@@ -7,11 +7,28 @@
 #include <stdio.h>
 #include <string>
 
-// So the idea here is we can define generally what an instruction holds, and then
-// read from a file with metadata on the instructions, and match from there.
-class Instruction
+const short int MIP_ISA_32 = 1;
+
+
+const short int MIPSI = 1;
+const short int MIPSII = 2;
+const short int MIPSIII = 3;
+const short int MIPSIV = 4;
+
+const short int RTYPE = 1;
+const short int ITYPE = 2;
+const short int JTYPE = 3;
+
+class instruction
 {
+public:
+	short int targetVersion;
+	short int targetISA;
+	short int instructionType;
+	void* funcPntr;
+	char* memonic;
 };
+
 
 class EmulatedCPU
 {
@@ -23,9 +40,28 @@ class EmulatedCPU
 		// Read more info when working with this.
 		uint32_t pc;
 		// REGISTERS
-
-		uint32_t registers[32];		
 		
+		instruction* itypes;
+
+		uint32_t registers[32];
+		int32_t rs; // 1st Source
+		int32_t rt; // 2nd Source
+		int32_t rd; // Register
+		int32_t immediate; // Immediate
+		int32_t signedImmediate; // Immediate
+		int32_t mipsTarget = 1;
+
+		/*
+		Where I'm stuck.
+		I'd really like to make a function pointer table, indexing each of the operations by it's OPCODE.
+		But I can't get C++ to let me declare this. 
+		*/
+
+		EmulatedCPU()
+		{
+			itypes = new instruction[64];
+		}
+
 		std::string getName(int offset)
 		{
 			if ((offset ==	0))	return "zero";
@@ -63,66 +99,62 @@ class EmulatedCPU
 			return "NULL";
 		}
 		
+		void addiu(uint32_t rs, uint32_t rt, uint32_t immediate)
+		{
+			
+
+		}
+
 		// pg. 40
 		void runInstruction(uint32_t opcode)
 		{
-			
-			if((opcode & 0xfc000000) == 0)
+			// First, let's determine the instruction type.
+
+			// If the upper 26-31 bits are set to zero, then, we have an R-Type instruction
+			if ((opcode & 0xfc000000) == 0)
 			{
-				printf("Special\n");
-				printf("%u\n", (opcode & 0xfc));
+				rs = (opcode & 0x3E00000) >> 21;
+				rt = (opcode & 0x1F0000) >> 16;
+				rd = (opcode & 0xf800) >> 11;
+
 				
-				// ADD, MIPS 1
-				if((opcode & 0x7ff) == 0x20)
-				{
-					printf("ADD\n");
-				}				
-				// AND, MIPS 1
-				if((opcode & 0x7ff) == 0x24)
-				{
-					printf("AND\n");
-				}
-				// ADDU
-				if((opcode & 0x7ff) == 0x21)
-				{
-					printf("ADDU\n");
-				}
 			}
 			
+
+
+
+
 			
-			// ADDI, MIPS 1
-			if((opcode & 0xfc000000) == 0x20000000)
-			{
-				printf("ADDI\n");
-			}
+			immediate = opcode & 0xffff;
+				
 			
-			// ADDI, MIPS 1
-			if((opcode & 0xfc000000) == 0x24000000)
-			{
-				printf("ADDIU\n");
-			}
-			
-			
-			
-			pc += 4;
-			
-			
-			
+			pc += 4;			
 		}
 };
 
 
 int main(int argn, char ** args)
 {
-	EmulatedCPU electricrock;
-	printf("%d %s\n", 31, electricrock.getName(31).c_str());
+
+	EmulatedCPU* electricrock = new EmulatedCPU;
+	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
 	// This is a valid opcode extracted from a program
 	// memonic: and $v0, $v1, $v0
-	electricrock.runInstruction(0x00621024);
+	electricrock->runInstruction(0x00621024);
 	
 	// memonic: addu $v0, $s5, $v0
-	electricrock.runInstruction(0x02a21021);
+	electricrock->runInstruction(0x02a21021);
+
+	// memonic: addiu $a1,$zero, 1
+	electricrock->runInstruction(0x24050001);
+
+
+	// Just a lazy way to stop things from progressing
+	char* str_space = (char*) malloc(sizeof(char) * 1024);
+	scanf("%s", str_space);
 	
+	
+
 }
 

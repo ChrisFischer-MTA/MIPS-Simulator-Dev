@@ -6,6 +6,8 @@
 #include <inttypes.h>
 #include <cassert>
 
+//Macro that compares plain text "opcode" to macro input
+//only here because it would otherwise get copy/pasted unreadably like 420 times in this document
 #define c(in) !strcmp(tokens[0].c_str(), in)
 
 
@@ -30,6 +32,8 @@ typedef struct inst {
 		this->type = type;
 	}
 } instruction;
+
+
 
 string* split(string input)
 {
@@ -115,14 +119,14 @@ instruction rType(string* tokens, int funct)
 	out.rs = reg(tokens[2]);
 	out.rt = reg(tokens[3]);
 	out.asem |= out.funct;
-	printf("%d, %d, %d\n", out.rs, out.rt, out.rd);
-	printf("%.8x\n", out.asem);
+	//printf("%d, %d, %d\n", out.rs, out.rt, out.rd);
+	//printf("%.8x\n", out.asem);
 	out.asem |= out.rd << 11;
-	printf("%.8x\n", out.rd << 11);
+	//printf("%.8x\n", out.rd << 11);
 	out.asem |= out.rt << 16;
-	printf("%.8x\n", out.rt << 16);
+	//printf("%.8x\n", out.rt << 16);
 	out.asem |= out.rs << 21;
-	printf("%.8x\n", out.rs << 21);
+	//printf("%.8x\n", out.rs << 21);
 	return out;
 }
 instruction iType(string* tokens, uint32_t op)

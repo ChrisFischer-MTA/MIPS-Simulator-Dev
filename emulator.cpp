@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <inttypes.h>
+
+#include "asem.cpp"
+
+#define BIT16 0x8000
+#define BIT32 0x80000000
+#define BIT64 0x8000000000000000
 
 const short int MIP_ISA_32 = 1;
 
@@ -31,6 +38,7 @@ class EmulatedCPU
 		// during instruction time by any pseudocode statement, it is automatically incremented by four.
 		// Read more info when working with this.
 		uint32_t pc;
+		bool is64bit = false;
 		// REGISTERS
 
 		// Hacky solution I do not understand which allows us to have a function table.
@@ -174,12 +182,12 @@ class EmulatedCPU
 			& EmulatedCPU::unimplemented, // 63
 		};
 
-		uint32_t registers[32];
-		int32_t rs; // 1st Source
-		int32_t rt; // 2nd Source
-		int32_t rd; // Register
-		int32_t immediate; // Immediate
-		int32_t signedImmediate; // Immediate
+		uint64_t registers[32];
+		uint8_t rs; // 1st Source
+		uint8_t rt; // 2nd Source
+		uint8_t rd; // Register
+		uint64_t immediate; // Immediate
+		uint64_t signedImmediate; // Immediate
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
 
@@ -235,11 +243,21 @@ class EmulatedCPU
 				printf("ADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			
-			int32_t temp = registers[rs] + registers[rt];
 
-			// Check for an overflow
-			if (((registers[rs] > 0) && (registers[rt] > 0) && (temp < 0)) ||
-					((registers[rs] < 0) && (registers[rt] < 0) && (temp > 0)))
+
+
+
+
+			int64_t temp = registers[rs] + registers[rt];
+
+			
+
+			uint64_t flag = is64bit ? BIT64 : BIT32;
+			//printf("%lld, %lld, %lld\n", flag & registers[rs], flag & registers[rt], flag & temp);
+			//printf("%lld, %lld, %lld\n", (flag & registers[rs]) == (flag & registers[rt]), (flag & temp) != (flag & registers[rs]), temp);
+			//printf("%lld, %lld, %lld\n", registers[rs], registers[rt], temp);
+
+			if (((flag & registers[rs]) == (flag & registers[rt])) && ((flag & temp) != (flag & registers[rs])))
 			{
 				signalException(IntegerOverflow);
 			}
@@ -255,16 +273,19 @@ class EmulatedCPU
 				printf("Invalid mips target for ADDI\n");
 			}
 
+			
+
 			if (debugPrint)
 			{
-				printf("ADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("ADDI %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
+			
 
 			int32_t temp = registers[rs] + signedImmediate;
 
 			// Check for an overflow
-			if (((registers[rs] > 0) && (signedImmediate > 0) && (temp < 0)) ||
-				((registers[rs] < 0) && (signedImmediate < 0) && (temp > 0)))
+			uint64_t flag = is64bit ? BIT64 : BIT32;
+			if (((flag & registers[rs]) == (flag & registers[rt])) && ((flag & temp) != (flag & registers[rs])))
 			{
 				signalException(IntegerOverflow);
 			}
@@ -282,7 +303,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("ADDIU %s, %s, %" PRIu64 "\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
 			int32_t temp = registers[rs] + signedImmediate;			
@@ -304,6 +325,22 @@ class EmulatedCPU
 			registers[rd] = registers[rs] + registers[rt];
 		}
 
+		void signExtend(uint64_t* target, int length)
+		{
+			uint64_t bitn = (uint64_t)1 << (length-1);
+			uint64_t mask = ~(bitn - 1);
+
+			if (is64bit)
+				*target |= *target & bitn ? mask : 0;
+			else
+			{
+				mask &= 0xffffffff;
+				*target |= *target & bitn ? mask : 0;
+			}
+				
+			return;
+		}
+
 
 		void EmulatedCPU::registerDump()
 		{
@@ -315,7 +352,7 @@ class EmulatedCPU
 			printf("=================DUMPING REGISTERS:=================\n");
 			for (i = 0; i < 32; i++)
 			{
-				printf("%s -> %u\n", getName(i).c_str(), registers[i]);
+				printf("%s -> %llx\n", getName(i).c_str(), registers[i]);
 			}
 		}
 		std::string getName(int offset)
@@ -356,27 +393,28 @@ class EmulatedCPU
 		}
 		
 		// pg. 40
-		void runInstruction(uint32_t opcode)
+		void runInstruction(uint32_t instruction)
 		{
 			// First, let's determine the instruction type.
-			rs = (opcode & 0x3E00000) >> 21;
-			rt = (opcode & 0x1F0000) >> 16;
-			rd = (opcode & 0xf800) >> 11;
-			immediate = opcode & 0xffff;
-			signedImmediate = opcode & 0xffff;
+			rs = (instruction & 0x3E00000) >> 21;
+			rt = (instruction & 0x1F0000) >> 16;
+			rd = (instruction & 0xf800) >> 11;
+			immediate = instruction & 0xffff;
+			signedImmediate = instruction & 0xffff;
+
 			
 			// If the upper 26-31 bits are set to zero, then, we have an R-Type instruction
-			if ((opcode & 0xfc000000) == 0)
+			if ((instruction & 0xfc000000) == 0)
 			{
 				// Essentially, this is a list of r type functions indexed by opcode.
-				printf("Rtype [%d]\n", (opcode & 0b111111));
-				(this->*inst_handlers_rtypes[(opcode & 0b111111)])(opcode);
+				printf("Rtype [%d]\n", (instruction & 0b111111));
+				(this->*inst_handlers_rtypes[(instruction & 0b111111)])(instruction);
 							
 			}
 			else
 			{
-				printf("Otype [%d]\n", ((opcode & 0xfc000000) >> 26));
-				(this->*inst_handlers_otypes[(opcode & 0xfc000000) >> 26])(opcode);
+				printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
+				(this->*inst_handlers_otypes[(instruction & 0xfc000000) >> 26])(instruction);
 			}			
 			pc += 4;			
 		}
@@ -393,17 +431,32 @@ int main(int argn, char ** args)
 	// memonic: and $v0, $v1, $v0
 	//electricrock->runInstruction(0x00621024);
 	
-	electricrock->registers[2] = 1337;
-	electricrock->registers[21] = 8008;
+	electricrock->registers[2] = 0xffffffffffffffff;
+	electricrock->registers[21] = 0x8000000000000000;
+	electricrock->is64bit = true;
 
-
+	instruction test = assemble("add $v0 $s5 $v0");
+	printf("%.8x\n", test.asem);
 	// memonic: addu $v0, $s5, $v0
-	electricrock->runInstruction(0x02a21021);
+	//electricrock->runInstruction(0x02a21021);
+
+	// memonic: addi r1, r1, -1
+	electricrock->runInstruction(0x20217FFF);
+	// addi r1, r1, -32,768
+	electricrock->runInstruction(0x20217000);
+	
+	electricrock->signExtend(&electricrock->signedImmediate, 32);
+
+
+
+	electricrock->registerDump();
 
 	// memonic: addiu $a1,$zero, 1
 	electricrock->runInstruction(0x24050001);
 
-	electricrock->registerDump();
+	// memonic: add $v0, $s5, $v0
+	electricrock->runInstruction(0x00551020);
+	
 	// Just a lazy way to stop things from progressing
 	char* str_space = (char*) malloc(sizeof(char) * 1024);
 	scanf("%s", str_space);

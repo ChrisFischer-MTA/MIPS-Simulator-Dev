@@ -86,7 +86,7 @@ class EmulatedCPU
 			& EmulatedCPU::addu, // 33
 			& EmulatedCPU::unimplemented, // 34
 			& EmulatedCPU::unimplemented, // 35
-			& EmulatedCPU::unimplemented, // 36
+			& EmulatedCPU::and, // 36
 			& EmulatedCPU::unimplemented, // 37
 			& EmulatedCPU::unimplemented, // 38
 			& EmulatedCPU::unimplemented, // 39
@@ -131,7 +131,7 @@ class EmulatedCPU
 			& EmulatedCPU::addiu, // 9
 			& EmulatedCPU::unimplemented, // 10
 			& EmulatedCPU::unimplemented, // 11
-			& EmulatedCPU::unimplemented, // 12
+			& EmulatedCPU::andi, // 12
 			& EmulatedCPU::unimplemented, // 13
 			& EmulatedCPU::unimplemented, // 14
 			& EmulatedCPU::unimplemented, // 15
@@ -291,7 +291,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %" PRIu64 "\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("ADDIU %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
 			this->signExtend(&immediate, 16, 32);
@@ -317,7 +317,48 @@ class EmulatedCPU
 				temp &= 0xffffffff;
 			registers[rd] = temp;
 		}
+		void EmulatedCPU::and (uint32_t opcode)
+		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for AND\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("AND %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+			registers[rd] = registers[rs] & registers[rt];
+		}
+		void EmulatedCPU::andi(uint32_t instruction)
+		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for ANDI\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("ADDIU %s, %s, %llx\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
+			}
+			registers[rt] = registers[rs] & immediate;
+		}
+		void EmulatedCPU::beq(uint32_t instruction)
+		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for ANDI\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+			}
+			//Control branches are going to take a model of instruction memory first. kekwuw
+
+		}
+		
+		
 		void signExtend(uint64_t* target, int length, int extension = -1)
 		{
 

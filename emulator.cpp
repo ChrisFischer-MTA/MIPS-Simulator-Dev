@@ -9,10 +9,13 @@
 #include <inttypes.h>
 
 #include "asem.cpp"
+#include "mmu/mmu.cpp"
 
 #define BIT16 0x8000
 #define BIT32 0x80000000
 #define BIT64 0x8000000000000000
+#define BIT(n) (uint64_t) 1 << (n-1)
+#define LOWERMASK(n) ((uint64_t) 1 << (n)) - 1
 
 const short int MIP_ISA_32 = 1;
 
@@ -242,20 +245,8 @@ class EmulatedCPU
 			{
 				printf("ADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			
-
-
-
-
-
-			int64_t temp = registers[rs] + registers[rt];
-
-			
-
+			uint64_t temp = registers[rs] + registers[rt];
 			uint64_t flag = is64bit ? BIT64 : BIT32;
-			//printf("%lld, %lld, %lld\n", flag & registers[rs], flag & registers[rt], flag & temp);
-			//printf("%lld, %lld, %lld\n", (flag & registers[rs]) == (flag & registers[rt]), (flag & temp) != (flag & registers[rs]), temp);
-			//printf("%lld, %lld, %lld\n", registers[rs], registers[rt], temp);
 
 			if (((flag & registers[rs]) == (flag & registers[rt])) && ((flag & temp) != (flag & registers[rs])))
 			{
@@ -272,16 +263,13 @@ class EmulatedCPU
 			{
 				printf("Invalid mips target for ADDI\n");
 			}
-
-			
-
 			if (debugPrint)
 			{
 				printf("ADDI %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 			
-
-			int32_t temp = registers[rs] + signedImmediate;
+			this->signExtend(&immediate, 16, 32);
+			uint64_t temp = registers[rs] + immediate;
 
 			// Check for an overflow
 			uint64_t flag = is64bit ? BIT64 : BIT32;
@@ -306,7 +294,10 @@ class EmulatedCPU
 				printf("ADDIU %s, %s, %" PRIu64 "\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
-			int32_t temp = registers[rs] + signedImmediate;			
+			this->signExtend(&immediate, 16, 32);
+			uint64_t temp = registers[rs] + signedImmediate;
+			if (!is64bit)
+				temp &= 0xffffffff;
 			registers[rt] = temp;
 
 		}
@@ -321,15 +312,32 @@ class EmulatedCPU
 			{
 				printf("ADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-
-			registers[rd] = registers[rs] + registers[rt];
+			uint64_t temp = registers[rs] + registers[rt];
+			if (!is64bit)
+				temp &= 0xffffffff;
+			registers[rd] = temp;
 		}
 
-		void signExtend(uint64_t* target, int length)
+		void signExtend(uint64_t* target, int length, int extension = -1)
 		{
+
 			uint64_t bitn = (uint64_t)1 << (length-1);
 			uint64_t mask = ~(bitn - 1);
-
+			printf("%llx\n", mask);
+			if (extension != -1)
+			{
+				if (extension == 32)
+				{
+					mask &= 0xffffffff;
+					*target |= *target & bitn ? mask : 0;
+					return;
+				}
+				else if (extension == 64)
+				{
+					*target |= *target & bitn ? mask : 0;
+					return;
+				}
+			}
 			if (is64bit)
 				*target |= *target & bitn ? mask : 0;
 			else
@@ -423,7 +431,6 @@ class EmulatedCPU
 
 int main(int argn, char ** args)
 {
-
 	EmulatedCPU* electricrock = new EmulatedCPU;
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
@@ -435,10 +442,13 @@ int main(int argn, char ** args)
 	electricrock->registers[21] = 0x8000000000000000;
 	electricrock->is64bit = true;
 
-	instruction test = assemble("add $v0 $s5 $v0");
-	printf("%.8x\n", test.asem);
+	//instruction test = assemble("add $v0 $s5 $v0");
+	//printf("%.8x\n", test.asem);
 	// memonic: addu $v0, $s5, $v0
 	//electricrock->runInstruction(0x02a21021);
+
+	//MMU memunit = MMU(PageTable(), (allocation *)NULL);
+	//memunit.segment(0, 3);
 
 	// memonic: addi r1, r1, -1
 	electricrock->runInstruction(0x20217FFF);

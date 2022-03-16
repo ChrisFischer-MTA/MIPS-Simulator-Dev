@@ -8,8 +8,7 @@
 #include <string>
 #include <inttypes.h>
 
-#include "asem.cpp"
-#include "mmu/mmu.cpp"
+#include "asem.cpp" // The numonic convertor
 
 #define BIT16 0x8000
 #define BIT32 0x80000000
@@ -20,6 +19,41 @@
 const short int MIP_ISA_32 = 1;
 
 const short int MIPSI = 1;
+/*
+LB Load Byte
+LBU Load Byte Unsigned
+SB Store Byte
+LH Load Halfword
+LHU Load Halfword Unsigned
+SH Store Halfword
+LWL Load Word Left
+LWR Load Word Right
+SWL Store Word Left
+SWR Store Word Right
+LWCz Load Word to Coprocessor-z (OUT OF SCOPE FOR NOW)
+SWCz Store Word from Coprocessor-z (OUT OF SCOPE FOR NOW)
+ADDI Addmmediate Word
+ADDIU Addmmediate Unsigned Word
+SLTI Set on Less Thanmmediate
+SLTIU Set on Less Thanmmediate Unsigned
+ANDI Andmmediate
+ORI Ormmediate
+XORI Exclusive Ormmediate
+LUI Load Uppermmediate
+ADD Add Word
+ADDU Add Unsigned Word
+SUB Subtract Word
+SUBU Subtract Unsigned Word
+SLT Set on Less Than
+SLTU Set on Less Than Unsigned
+AND And
+OR Or
+XOR Exclusive Or
+NOR Nor
+
+-- Finished at A10
+
+*/
 const short int MIPSII = 2;
 const short int MIPSIII = 3;
 const short int MIPSIV = 4;
@@ -123,7 +157,7 @@ class EmulatedCPU
 			& EmulatedCPU::unimplemented, // 1
 			& EmulatedCPU::unimplemented, // 2
 			& EmulatedCPU::unimplemented, // 3
-			& EmulatedCPU::unimplemented, // 4
+			& EmulatedCPU::beq, // 4
 			& EmulatedCPU::unimplemented, // 5
 			& EmulatedCPU::unimplemented, // 6
 			& EmulatedCPU::unimplemented, // 7
@@ -317,6 +351,8 @@ class EmulatedCPU
 				temp &= 0xffffffff;
 			registers[rd] = temp;
 		}
+
+
 		void EmulatedCPU::and (uint32_t opcode)
 		{
 			if (mipsTarget < 1)
@@ -343,6 +379,8 @@ class EmulatedCPU
 			}
 			registers[rt] = registers[rs] & immediate;
 		}
+		// Generally used for if i == j
+		// TODO: Email Heinrich
 		void EmulatedCPU::beq(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
@@ -354,7 +392,12 @@ class EmulatedCPU
 			{
 				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
-			//Control branches are going to take a model of instruction memory first. kekwuw
+			// Control branches are going to take a model of instruction memory first.
+			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+			if (registers[rs] == registers[rt])
+			{
+			}
+			
 
 		}
 		

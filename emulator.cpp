@@ -400,8 +400,480 @@ class EmulatedCPU
 			
 
 		}
+		void EmulatedCPU::beql(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bgez(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bgezal(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bgezall (uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bgezl(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bgtzl(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::blez(uint32_t instruction)
+		{
+
+		}
+		// MIPS II
+		void EmulatedCPU::blezl(uint32_t instruction)
+		{
+
+		}
+		// MIPS I again!
+		void EmulatedCPU::bltz(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::bltzal(uint32_t instruction)
+		{
+
+		}
+		// BLTZALL
+		// MIPS 2
+		void EmulatedCPU::BLTZALL(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::BLTZL(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::bne(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::BNEL(uint32_t instruction)
+		{
+
+		}
+		// break_ because break is a C++ reserved word
+		void EmulatedCPU::break_(uint32_t instruction)
+		{
+
+		}
+		// Co Processor Operaiton (should be unimplemented I think)
+		void EmulatedCPU::copz(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::DADD(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DADDI(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DADDIU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DADDU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DDIV(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DDIVU(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::div(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::divu(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::DMULT(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DMULTU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSLL(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSLL32(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSLLV(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRA(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRA32(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRAV(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRL(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRL32(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSRLV(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSUB(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::DSUBU(uint32_t instruction)
+		{
+
+		}
+		// Jumps
+		void EmulatedCPU::j(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::jal(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::jalr(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::jr(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lb(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lbu(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::LD(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2, likely going to be unimplemented
+		void EmulatedCPU::LDCz(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::LDL(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::LDR(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::lh(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lhu(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::LL(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::LLD(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::lui(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lw(uint32_t instruction)
+		{
+
+		}
+		// Likely to be unimplemented
+		void EmulatedCPU::lwcz(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lwl(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::lwr(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::LWU(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::mfhi(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::mflo(uint32_t instruction)
+		{
+
+		}
+		// MIPS 4
+		void EmulatedCPU::MOVN(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::MOVZ(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::mthi(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::mtlo(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::mult(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::multu(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::nor(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::or(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::ori(uint32_t instruction)
+		{
+
+		}
+		// MIPS 4
+		void EmulatedCPU::PERF(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::sb(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::SC(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::SCD(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::SD(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::SDCz(uint32_t instruction)
+		{
+
+		}
+		// MIPS 3
+		void EmulatedCPU::SDL(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::SDR(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::sh(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sll(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sllv(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::slt(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::slti(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sltui(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sltu(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sra(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::srav(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::srl(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::srlv(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sub(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::subu(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::sw(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::swcz(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::swl(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::swr(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::SYNC(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::syscall(uint32_t instruction)
+		{
+
+		}
+		// MIPS 2
+		void EmulatedCPU::TEQ(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TEQI(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TGE(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TEGI(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TEGIU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TGEU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TLT(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TLTI(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TLTUI(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TLTU(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TNE(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::TENI(uint32_t instruction)
+		{
+
+		}
+		// MIPS 1
+		void EmulatedCPU::xor(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::xori(uint32_t instruction)
+		{
+
+		}
 		
-		
+
 		void signExtend(uint64_t* target, int length, int extension = -1)
 		{
 

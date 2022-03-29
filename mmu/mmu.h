@@ -9,7 +9,9 @@
 
 using namespace std;
 
-
+//permissions special codes:
+// 8: guard allocation
+//rightmost 3 bits still must match page allocation
 class allocation
 {
 public:
@@ -26,15 +28,15 @@ public:
 		permissions = d;
 		ID = e;
 	}
-	allocation(string type)
+	allocation(string type, int offset = 0, int ID = 0)
 	{
-		if (strcmp(type.c_str(), "guard"))
+		if (!strcmp(type.c_str(), "guard"))
 		{
 			physAddress = 0;
-			offset = 0;
+			this->offset = offset;
 			length = 1;
-			permissions = 0;
-			ID = 0;
+			permissions = 8;
+			this->ID = ID;
 		}
 	}
 };
@@ -42,6 +44,9 @@ public:
 
 
 //1 is for table, 0 is for data
+//permissions is also used for special codes
+//42: empty page
+
 typedef struct page page;
 struct page
 {

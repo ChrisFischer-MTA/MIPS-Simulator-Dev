@@ -219,12 +219,47 @@ class EmulatedCPU
 			& EmulatedCPU::unimplemented, // 63
 		};
 
-		uint64_t registers[32];
+		const EmulatedCPU::funct EmulatedCPU::inst_handlers_regimm[32] = {
+			&EmulatedCPU::bltz, // 0
+			&EmulatedCPU::bgez, // 1
+			&EmulatedCPU::bltzl, // 2
+			&EmulatedCPU::bgezl, // 3
+			&EmulatedCPU::unimplemented, // 4
+			&EmulatedCPU::unimplemented, // 5
+			&EmulatedCPU::unimplemented, // 6
+			&EmulatedCPU::unimplemented, // 7
+			&EmulatedCPU::tgei, // 8
+			&EmulatedCPU::tgeiu, // 9
+			&EmulatedCPU::tlti, // 10
+			&EmulatedCPU::tltiu, // 11
+			&EmulatedCPU::teqi, // 12
+			&EmulatedCPU::unimplemented, // 13
+			&EmulatedCPU::tnei, // 14
+			&EmulatedCPU::unimplemented, // 15
+			&EmulatedCPU::bltzal, // 16
+			&EmulatedCPU::bgezal, // 17
+			&EmulatedCPU::bltzall, // 18
+			&EmulatedCPU::bgezall, // 19
+			&EmulatedCPU::unimplemented, // 20
+			&EmulatedCPU::unimplemented, // 21
+			&EmulatedCPU::unimplemented, // 22
+			&EmulatedCPU::unimplemented, // 23
+			&EmulatedCPU::unimplemented, // 24
+			&EmulatedCPU::unimplemented, // 25
+			&EmulatedCPU::unimplemented, // 26
+			&EmulatedCPU::unimplemented, // 27
+			&EmulatedCPU::unimplemented, // 28
+			&EmulatedCPU::unimplemented, // 29
+			&EmulatedCPU::unimplemented, // 30
+			&EmulatedCPU::unimplemented, // 31
+		};
+
+		uint64_t gpr[32];
 		uint8_t rs; // 1st Source
 		uint8_t rt; // 2nd Source
 		uint8_t rd; // Register
-		uint64_t immediate; // Immediate
-		uint64_t signedImmediate; // Immediate
+		uint16_t immediate; // Immediate
+		int16_t signedImmediate; // Immediate
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
 
@@ -234,7 +269,7 @@ class EmulatedCPU
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)
-				registers[i] = 0;		
+				gpr[i] = 0;		
 
 		}
 
@@ -257,11 +292,36 @@ class EmulatedCPU
 			}
 		}
 
+		// TODO: Rose and Sean 
+		uint32_t EmulatedCPU::getInstruction(int PC) {
+			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
+			// and return it.
+			EmulatedCPU::unimplemented(0x0);
+			return 0;
+		}
+		uint32_t EmulatedCPU::getNextInstruction() {
+			return getInstruction(pc + 1);
+		}
+
+
 		void EmulatedCPU::unimplemented(uint32_t opcode)
 		{
 			printf("\n\nPLEASE HELP ME YOU CALLED AN UNIMPLEMEND HANDLER\n\n");
 			printf("TIME TO DIE");
 			generallyPause();
+			return;
+		}
+
+
+		// Takes in a program counter that is the entry point.
+		// Unused.
+		void EmulatedCPU::runEmulation(int entryPoint)
+		{
+			pc = entryPoint;
+			
+			// Get the first instruction, execute it, increment by 1, and so forth.
+			// Implement memory checks every instruction.
+
 			return;
 		}
 
@@ -279,15 +339,15 @@ class EmulatedCPU
 			{
 				printf("ADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			uint64_t temp = registers[rs] + registers[rt];
+			uint64_t temp = gpr[rs] + gpr[rt];
 			uint64_t flag = is64bit ? BIT64 : BIT32;
 
-			if (((flag & registers[rs]) == (flag & registers[rt])) && ((flag & temp) != (flag & registers[rs])))
+			if (((flag & gpr[rs]) == (flag & gpr[rt])) && ((flag & temp) != (flag & gpr[rs])))
 			{
 				signalException(IntegerOverflow);
 			}
 
-			registers[rd] = temp;
+			gpr[rd] = temp;
 
 		}
 		void EmulatedCPU::addi(uint32_t opcode)
@@ -299,20 +359,21 @@ class EmulatedCPU
 			}
 			if (debugPrint)
 			{
-				printf("ADDI %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("ADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 			
-			this->signExtend(&immediate, 16, 32);
-			uint64_t temp = registers[rs] + immediate;
+			//this->signExtend(&immediate, 16, 32);
+
+			uint64_t temp = gpr[rs] + signedImmediate;
 
 			// Check for an overflow
 			uint64_t flag = is64bit ? BIT64 : BIT32;
-			if (((flag & registers[rs]) == (flag & registers[rt])) && ((flag & temp) != (flag & registers[rs])))
+			if (((flag & gpr[rs]) == (flag & gpr[rt])) && ((flag & temp) != (flag & gpr[rs])))
 			{
 				signalException(IntegerOverflow);
 			}
 
-			registers[rt] = temp;
+			gpr[rt] = temp;
 
 		}
 		void EmulatedCPU::addiu(uint32_t opcode)
@@ -325,14 +386,14 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("ADDIU %s, %s, %dx\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
 			}
 
-			this->signExtend(&immediate, 16, 32);
-			uint64_t temp = registers[rs] + signedImmediate;
+			//this->signExtend(&immediate, 16, 32);
+			uint64_t temp = gpr[rs] + immediate;
 			if (!is64bit)
 				temp &= 0xffffffff;
-			registers[rt] = temp;
+			gpr[rt] = temp;
 
 		}
 		void EmulatedCPU::addu(uint32_t opcode)
@@ -346,14 +407,12 @@ class EmulatedCPU
 			{
 				printf("ADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			uint64_t temp = registers[rs] + registers[rt];
+			uint64_t temp = gpr[rs] + gpr[rt];
 			if (!is64bit)
 				temp &= 0xffffffff;
-			registers[rd] = temp;
+			gpr[rd] = temp;
 		}
-
-
-		void EmulatedCPU::and (uint32_t opcode)
+		void EmulatedCPU::and(uint32_t opcode)
 		{
 			if (mipsTarget < 1)
 			{
@@ -364,7 +423,7 @@ class EmulatedCPU
 			{
 				printf("AND %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			registers[rd] = registers[rs] & registers[rt];
+			gpr[rd] = gpr[rs] & gpr[rt];
 		}
 		void EmulatedCPU::andi(uint32_t instruction)
 		{
@@ -377,127 +436,375 @@ class EmulatedCPU
 			{
 				printf("ADDIU %s, %s, %llx\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
 			}
-			registers[rt] = registers[rs] & immediate;
+			gpr[rt] = gpr[rs] & immediate;
 		}
-		// Generally used for if i == j
-		// TODO: Email Heinrich
+		
 		void EmulatedCPU::beq(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ANDI\n");
+				printf("Invalid mips target for BEQ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			// Control branches are going to take a model of instruction memory first.
 			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
-			if (registers[rs] == registers[rt])
-			{
-			}
-			
 
+			runInstruction(getNextInstruction());
+			if (gpr[rs] == gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
 		void EmulatedCPU::beql(uint32_t instruction)
 		{
+			// For this, simply execute the next instruction with the EmulatedCPU and the target address.
+			// Then we do the branch.
+
+			// todo get instruction wrapper.
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for BEQL\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("BEQL %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+			}
+			
+			if (gpr[rs] == gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += signedImmediate;
+			}
+
 
 		}
 		void EmulatedCPU::bgez(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for BEQ\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BGEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			// Control branches are going to take a model of instruction memory first.
+			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+
+			runInstruction(getNextInstruction());
+			if (gpr[rs] >= 0)
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += signedImmediate;
+			}
 		}
 		void EmulatedCPU::bgezal(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for BGEZAL\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BGEZAL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			runInstruction(getNextInstruction());
+
+			// Set return address equal to the value.
+			gpr[31] = pc + 2;
+
+			if (gpr[rs] >= 0)
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += signedImmediate;
+			}
 		}
 		void EmulatedCPU::bgezall (uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for BGEZALL\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BGEZALL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			runInstruction(getNextInstruction());
+
+			// Set return address equal to the value.
+			gpr[31] = pc + 2;
+
+			if (gpr[rs] >= 0)
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += signedImmediate;
+			}
 		}
 		void EmulatedCPU::bgezl(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for bgezl\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bgezl %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			
+			if (gpr[rs] >= 0)
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += signedImmediate;
+			}
+
+		}
+		void EmulatedCPU::bgtz(uint32_t instruction)
+		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for BGTZ\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("BGTZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			runInstruction(getNextInstruction());
+			if (gpr[rs] >= gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
 		void EmulatedCPU::bgtzl(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for BGTZL\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BGTZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			
+			if (gpr[rs] >= gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += immediate;
+			}
 		}
 		void EmulatedCPU::blez(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for BLEZ\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BLEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			runInstruction(getNextInstruction());
+			if (gpr[rs] <= gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
-		// MIPS II
 		void EmulatedCPU::blezl(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for BLEZL\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("BLEZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			if (gpr[rs] <= gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += immediate;
+			}
 		}
-		// MIPS I again!
 		void EmulatedCPU::bltz(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for bltz\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bltz %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			runInstruction(getNextInstruction());
+			if (gpr[rs] < gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
 		void EmulatedCPU::bltzal(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for bltzal\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			runInstruction(getNextInstruction());
+			gpr[31] = pc + 8;
+			if (gpr[rs] < gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
-		// BLTZALL
-		// MIPS 2
-		void EmulatedCPU::BLTZALL(uint32_t instruction)
+		void EmulatedCPU::bltzall(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for bltzal\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+			runInstruction(getNextInstruction());
+			gpr[31] = pc + 2;
+			if (gpr[rs] < gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
-		// MIPS 2
-		void EmulatedCPU::BLTZL(uint32_t instruction)
+		void EmulatedCPU::bltzl(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for bltzl\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bltzl %s, %llx\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			if (gpr[rs] < gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += immediate;
+			}
 		}
-		// MIPS 1
 		void EmulatedCPU::bne(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for bne\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+			}
+			// Control branches are going to take a model of instruction memory first.
+			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+
+			runInstruction(getNextInstruction());
+			if (gpr[rs] != gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				pc += immediate;
+			}
 		}
-		// MIPS 2
-		void EmulatedCPU::BNEL(uint32_t instruction)
+		void EmulatedCPU::bnel(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for bne\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+			}
+			// Control branches are going to take a model of instruction memory first.
+			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+
+			
+			if (gpr[rs] != gpr[rt])
+			{
+				// If the two registers equal, we increment PC by the offset.
+				runInstruction(getNextInstruction());
+				pc += immediate;
+			}
 		}
 		// break_ because break is a C++ reserved word
 		void EmulatedCPU::break_(uint32_t instruction)
 		{
-
+			printf("Called Break!\n");
+			unimplemented(instruction);
 		}
 		// Co Processor Operaiton (should be unimplemented I think)
 		void EmulatedCPU::copz(uint32_t instruction)
 		{
-
+			printf("Called COPz!\n");
+			unimplemented(instruction);
 		}
 		// MIPS 3
-		void EmulatedCPU::DADD(uint32_t instruction)
+		// Assigned to Rose Newcomer.
+		void EmulatedCPU::dadd(uint32_t instruction)
 		{
-
+			return;
 		}
-		void EmulatedCPU::DADDI(uint32_t instruction)
+		void EmulatedCPU::daddi(uint32_t instruction)
 		{
-
+			return;
 		}
-		void EmulatedCPU::DADDIU(uint32_t instruction)
+		void EmulatedCPU::daddiu(uint32_t instruction)
 		{
-
+			return;
 		}
-		void EmulatedCPU::DADDU(uint32_t instruction)
+		void EmulatedCPU::daddu(uint32_t instruction)
 		{
-
+			return;
 		}
-		void EmulatedCPU::DDIV(uint32_t instruction)
+		void EmulatedCPU::ddiv(uint32_t instruction)
 		{
-
+			return;
 		}
-		void EmulatedCPU::DDIVU(uint32_t instruction)
+		void EmulatedCPU::ddivu(uint32_t instruction)
 		{
-
+			return;
 		}
+
+
 		// MIPS 1
 		void EmulatedCPU::div(uint32_t instruction)
 		{
@@ -505,7 +812,7 @@ class EmulatedCPU
 		}
 		void EmulatedCPU::divu(uint32_t instruction)
 		{
-
+			return;
 		}
 		// MIPS 3
 		void EmulatedCPU::DMULT(uint32_t instruction)
@@ -815,51 +1122,55 @@ class EmulatedCPU
 
 		}
 		// MIPS 2
-		void EmulatedCPU::TEQ(uint32_t instruction)
+		void EmulatedCPU::teq(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TEQI(uint32_t instruction)
+		void EmulatedCPU::teqi(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TGE(uint32_t instruction)
+		void EmulatedCPU::tge(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TEGI(uint32_t instruction)
+		void EmulatedCPU::tgei(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TEGIU(uint32_t instruction)
+		void EmulatedCPU::tgeiu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TGEU(uint32_t instruction)
+		void EmulatedCPU::tgeu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TLT(uint32_t instruction)
+		void EmulatedCPU::tlt(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TLTI(uint32_t instruction)
+		void EmulatedCPU::tlti(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TLTUI(uint32_t instruction)
+		void EmulatedCPU::tltiu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TLTU(uint32_t instruction)
+		void EmulatedCPU::tltui(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TNE(uint32_t instruction)
+		void EmulatedCPU::tltu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::TENI(uint32_t instruction)
+		void EmulatedCPU::tne(uint32_t instruction)
+		{
+
+		}
+		void EmulatedCPU::tnei(uint32_t instruction)
 		{
 
 		}
@@ -916,7 +1227,7 @@ class EmulatedCPU
 			printf("=================DUMPING REGISTERS:=================\n");
 			for (i = 0; i < 32; i++)
 			{
-				printf("%s -> %llx\n", getName(i).c_str(), registers[i]);
+				printf("%s -> %llx\n", getName(i).c_str(), gpr[i]);
 			}
 		}
 		std::string getName(int offset)
@@ -964,8 +1275,18 @@ class EmulatedCPU
 			rt = (instruction & 0x1F0000) >> 16;
 			rd = (instruction & 0xf800) >> 11;
 			immediate = instruction & 0xffff;
-			signedImmediate = instruction & 0xffff;
+			signedImmediate = immediate;
 
+			if (is64bit == false)
+			{
+				int i;
+				for (i = 0; i < 32; i++)
+				{
+					gpr[i] = gpr[i] & 0xFFFFFFFF;
+				}
+			}
+			
+			printf("immediate signed: %d immediate unsigned: %d\n", signedImmediate, immediate);
 			
 			// If the upper 26-31 bits are set to zero, then, we have an R-Type instruction
 			if ((instruction & 0xfc000000) == 0)
@@ -975,12 +1296,16 @@ class EmulatedCPU
 				(this->*inst_handlers_rtypes[(instruction & 0b111111)])(instruction);
 							
 			}
+			// If the upper 26-31 bits are set to one, then, we have a REGIMM instruction
+			else if ((instruction & 0xfc000000) == 1)
+			{
+				printf("");
+			}
 			else
 			{
 				printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
 				(this->*inst_handlers_otypes[(instruction & 0xfc000000) >> 26])(instruction);
 			}			
-			pc += 4;			
 		}
 };
 
@@ -990,12 +1315,22 @@ int main(int argn, char ** args)
 	EmulatedCPU* electricrock = new EmulatedCPU;
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
+
+	/*
+	So generally, here's how this should work.
+	We load in a program (probably the one fed in via arguments)
+	We then map all of the things into memory using BN.
+	Every iteration, we exec the opcode and incremenet the PC.
+	*/
+
+
+
 	// This is a valid opcode extracted from a program
 	// memonic: and $v0, $v1, $v0
 	//electricrock->runInstruction(0x00621024);
 	
-	electricrock->registers[2] = 0xffffffffffffffff;
-	electricrock->registers[21] = 0x8000000000000000;
+	electricrock->gpr[2] = 0xffffffffffffffff;
+	electricrock->gpr[21] = 0x8000000000000000;
 	electricrock->is64bit = true;
 
 	//instruction test = assemble("add $v0 $s5 $v0");
@@ -1007,11 +1342,11 @@ int main(int argn, char ** args)
 	//memunit.segment(0, 3);
 
 	// memonic: addi r1, r1, -1
-	electricrock->runInstruction(0x20217FFF);
+	electricrock->runInstruction(0x1041ffff);
 	// addi r1, r1, -32,768
 	electricrock->runInstruction(0x20217000);
 	
-	electricrock->signExtend(&electricrock->signedImmediate, 32);
+	//electricrock->signExtend(&electricrock->signedImmediate, 32);
 
 
 

@@ -930,8 +930,8 @@ class EmulatedCPU
 			int64_t r = rs % rt;
 			if (is64bit)
 			{
-				LO = q | (0xffffffff << 32);
-				HI = r | (0xffffffff << 32);
+				LO = q | (((uint64_t)0xffffffff) << 32);
+				HI = r | (((uint64_t)0xffffffff) << 32);
 			}
 			else
 			{ 
@@ -961,8 +961,8 @@ class EmulatedCPU
 			int64_t r = rs % rt;
 			if (is64bit)
 			{
-				LO = q | (0xffffffff << 32);
-				HI = r | (0xffffffff << 32);
+				LO = q | ( (uint64_t)0xffffffff << 32);
+				HI = r | ( (uint64_t)0xffffffff << 32);
 			}
 			else
 			{
@@ -974,26 +974,61 @@ class EmulatedCPU
 		// MIPS 3
 		void EmulatedCPU::dmult(uint32_t instruction)
 		{
-			uint64_t u1 = (rs & 0xffffffff);
-			uint64_t v1 = (rt & 0xffffffff);
-			uint64_t t = (u1 * v1);
-			uint64_t w3 = (t & 0xffffffff);
-			uint64_t k = (t >> 32);
+			int64_t M = rs;
+			uint64_t Q = rt;
+			int count = 64;
+			int64_t A = 0;
+			bool Qinv = 0;
+			uint64_t ptr = 0;
+			while (count != 0)
+			{
+				printf("A: %.16llx, Q: %.16llx\n", A, Q);
+				if ((Q & 1) && !Qinv)
+				{
+					A = A - M;
+				}
+				else if (Qinv && !(Q & 1))
+				{
+					A = A + M;
+				}
+				Qinv = Q & 1;
+				Q >>= 1;
 
-			rs >>= 32;
-			t = (rs * v1) + k;
-			k = (t & 0xffffffff);
-			uint64_t w1 = (t >> 32);
-
-			rt >>= 32;
-			t = (u1 * rt) + k;
-			k = (t >> 32);
-
-			HI = (rs * rt) + w1 + k;
-			LO = (t << 32) + w3;
+				ptr = A & 1;
+				ptr <<= 63;
+				printf("a%2: %llx\n", ptr);
+				Q |= ptr;
+				printf("A:%llx\n", A);
+				A >>= 1;
+				printf("A:%llx\n", A);
+				count--;
+			}
+			HI = A;
+			LO = Q;
 		}
 		void EmulatedCPU::dmultu(uint32_t instruction)
 		{
+			int64_t M = rs;
+			uint64_t Q = rt;
+			int count = 64;
+			int64_t A = 0;
+			uint64_t ptr = 0;
+			HI = 0;
+			LO = 0;
+
+			while (count > 0)
+			{
+				if (Q & 1)
+				{
+					HI += M;
+				}
+				Q >>= 1;
+				LO >>= 1;
+				ptr = (HI & 1) << 63;
+				LO |= ptr;
+				HI >>= 1;
+			}
+			
 
 		}
 		void EmulatedCPU::dsll(uint32_t instruction)
@@ -1489,29 +1524,32 @@ int main(int argn, char ** args)
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
 	uint64_t rs, rt, HI = 0, LO = 0;
+	rs = 0xffff;
+	rt = 0xffff;
+	int64_t M = rs;
+	uint64_t Q = rt;
+	int count = 64;
+	int64_t A = 0;
+	uint64_t ptr = 0;
+	HI = 0;
+	LO = 0;
 
-	rs = 0xfffff;
-	rt = 0xfffff;
+	while (count > 0)
+	{
+		if (Q & 1)
+		{
+			HI += M;
+		}
+		Q >>= 1;
+		LO >>= 1;
+		ptr = (HI & 1) << 63;
+		LO |= ptr;
+		HI >>= 1;
+		count--;
+	}
+	
 
-	uint64_t u1 = (rs & 0xffffffff);
-	uint64_t v1 = (rt & 0xffffffff);
-	uint64_t t = (u1 * v1);
-	uint64_t w3 = (t & 0xffffffff);
-	uint64_t k = (t >> 32);
-
-	rs >>= 32;
-	t = (rs * v1) + k;
-	k = (t & 0xffffffff);
-	uint64_t w1 = (t >> 32);
-
-	rt >>= 32;
-	t = (u1 * rt) + k;
-	k = (t >> 32);
-
-	HI = (rs * rt) + w1 + k;
-	LO = (t << 32) + w3;
-
-	printf("%lx, %lx", HI, LO);
+	printf("%llx, %llx", HI, LO);
 
 	
 	/*

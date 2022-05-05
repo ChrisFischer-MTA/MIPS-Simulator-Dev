@@ -258,6 +258,7 @@ class EmulatedCPU
 		uint8_t rs; // 1st Source
 		uint8_t rt; // 2nd Source
 		uint8_t rd; // Register
+		uint8_t sa; // Shift Amount
 		uint64_t LO, HI; // Multiplication and division registers
 		uint16_t immediate; // Immediate
 		int16_t signedImmediate; // Immediate
@@ -852,7 +853,7 @@ class EmulatedCPU
 		//MIPS III
 		void EmulatedCPU::daddu(uint32_t opcode)
 		{
-			if (mipsTarget < 1)
+			if (mipsTarget < 3)
 			{
 				printf("Invalid mips target for DADDU\n");
 			}
@@ -884,10 +885,12 @@ class EmulatedCPU
 				return;
 			}
 
-			LO = (int64_t) rs / (int64_t) rt;
+			LO = (int64_t) gpr[rs] / (int64_t)gpr[rt];
 			HI = rs % rt;
 			return;
 		}
+
+		//MIPS III
 		void EmulatedCPU::ddivu(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
@@ -904,8 +907,8 @@ class EmulatedCPU
 				return;
 			}
 
-			LO = rs / rt;
-			HI = rs % rt;
+			LO = gpr[rs] / gpr[rt];
+			HI = gpr[rs] % gpr[rt];
 			return;
 		}
 
@@ -926,18 +929,17 @@ class EmulatedCPU
 			{
 				return;
 			}
-			int64_t q = ((int64_t)rs / (int64_t)rt);
-			int64_t r = rs % rt;
+			int64_t q = ((int64_t)gpr[rs] / (int64_t)gpr[rt]);
+			int64_t r = gpr[rs] % gpr[rt];
 			if (is64bit)
 			{
-				LO = q | (((uint64_t)0xffffffff) << 32);
-				HI = r | (((uint64_t)0xffffffff) << 32);
+				if((q & BIT32) > 0)
+					q |= (((uint64_t)0xffffffff) << 32);
+				if((r & BIT32) > 0)
+					r |= (((uint64_t)0xffffffff) << 32);
 			}
-			else
-			{ 
-				LO = q;
-				HI = r;
-			}
+			LO = q;
+			HI = r;
 			return;
 		}
 
@@ -957,25 +959,33 @@ class EmulatedCPU
 			{
 				return;
 			}
-			int64_t q = rs / rt;
-			int64_t r = rs % rt;
+			uint64_t q = gpr[rs] / gpr[rt];
+			uint64_t r = gpr[rs] % gpr[rt];
 			if (is64bit)
 			{
-				LO = q | ( (uint64_t)0xffffffff << 32);
-				HI = r | ( (uint64_t)0xffffffff << 32);
+				if ((q & BIT32) > 0)
+					q |= (((uint64_t)0xffffffff) << 32);
+				if ((r & BIT32) > 0)
+					r |= (((uint64_t)0xffffffff) << 32);
 			}
-			else
-			{
-				LO = q;
-				HI = r;
-			}
+
+			LO = q;
+			HI = r;
 			return;
 		}
-		// MIPS 3
+		// MIPS III
 		void EmulatedCPU::dmult(uint32_t instruction)
 		{
-			int64_t M = rs;
-			uint64_t Q = rt;
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DMULT\n");
+			}
+			if (debugPrint)
+			{
+				printf("DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+			int64_t M = gpr[rs];
+			uint64_t Q = gpr[rt];
 			int count = 64;
 			int64_t A = 0;
 			bool Qinv = 0;
@@ -1006,10 +1016,20 @@ class EmulatedCPU
 			HI = A;
 			LO = Q;
 		}
+
+		//MIPS III
 		void EmulatedCPU::dmultu(uint32_t instruction)
 		{
-			int64_t M = rs;
-			uint64_t Q = rt;
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DMULT\n");
+			}
+			if (debugPrint)
+			{
+				printf("DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+			int64_t M = gpr[rs];
+			uint64_t Q = gpr[rt];
 			int count = 64;
 			int64_t A = 0;
 			uint64_t ptr = 0;
@@ -1028,52 +1048,184 @@ class EmulatedCPU
 				LO |= ptr;
 				HI >>= 1;
 			}
-			
-
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsll(uint32_t instruction)
 		{
-
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSLL\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
+			
+			gpr[rd] = gpr[rt] << sa;
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsll32(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSLL32\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSLL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
 
+			gpr[rd] = gpr[rt] << (sa + 32);
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsllv(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSLLV\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSLLV %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
 
+			gpr[rd] = gpr[rt] << (gpr[rs] & 0x3f);
 		}
+		
+		//MIPS III
 		void EmulatedCPU::dsra(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRA\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRA %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
 
+			int64_t hold = gpr[rt];
+			gpr[rd] = (uint64_t) (hold >> sa);
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsra32(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRA32\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRA32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
 
+			int64_t hold = gpr[rt];
+			gpr[rd] = (uint64_t)(hold >> (sa+32));
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsrav(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRAV\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRA %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
 
+			int64_t hold = gpr[rt];
+			gpr[rd] = (uint64_t)(hold >> (gpr[rs] & 0x3f));
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsrl(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRL\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
 
+			gpr[rd] = gpr[rt] >> sa;
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsrl32(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRL32\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
 
+			gpr[rd] = gpr[rt] >> (sa+32);
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsrlv(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSRLV\n");
+			}
+			if (debugPrint)
+			{
+				printf("DSRLV %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
 
+			gpr[rd] = gpr[rt] >> (gpr[rs] & 0x3f);
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsub(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSUB\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("DSUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+			uint64_t temp = gpr[rs] - gpr[rt];
+			uint64_t flag = BIT64;
+
+			if (((flag & gpr[rs]) == (flag & gpr[rt])) && ((flag & temp) != (flag & gpr[rs])))
+			{
+				signalException(IntegerOverflow);
+			}
+
+			gpr[rd] = temp;
+			return;
 		}
+
+		//MIPS III
 		void EmulatedCPU::dsubu(uint32_t instruction)
 		{
+			if (mipsTarget < 3)
+			{
+				printf("Invalid mips target for DSUBU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("DSUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			gpr[rd] = gpr[rs] - gpr[rt];
 		}
 		// Jumps
 		void EmulatedCPU::j(uint32_t instruction)
@@ -1482,6 +1634,7 @@ class EmulatedCPU
 			rs = (instruction & 0x3E00000) >> 21;
 			rt = (instruction & 0x1F0000) >> 16;
 			rd = (instruction & 0xf800) >> 11;
+			sa = (instruction & 0x7c0) >> 6;
 			immediate = instruction & 0xffff;
 			signedImmediate = immediate;
 

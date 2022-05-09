@@ -74,7 +74,7 @@ class EmulatedCPU
 		// is determined by assigning a value to PC during an instruction time. If no value is assigned to PC
 		// during instruction time by any pseudocode statement, it is automatically incremented by four.
 		// Read more info when working with this.
-		uint32_t pc;
+		uint64_t pc;
 		bool is64bit = false;
 		// REGISTERS
 
@@ -262,8 +262,14 @@ class EmulatedCPU
 		uint64_t LO, HI; // Multiplication and division registers
 		uint16_t immediate; // Immediate
 		int16_t signedImmediate; // Immediate
+		//Meta
+		bool instructionNullify = false;
+		bool validState = true;
+		char* instructions;
+		int32_t tgt_offset = 0;
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
+		
 
 
 		EmulatedCPU()
@@ -302,7 +308,7 @@ class EmulatedCPU
 			return 0;
 		}
 		uint32_t EmulatedCPU::getNextInstruction() {
-			return getInstruction(pc + 1);
+			return getInstruction(pc + 4);
 		}
 
 
@@ -321,6 +327,24 @@ class EmulatedCPU
 		{
 			pc = entryPoint;
 			
+			while (validState == true)
+			{
+				if (!instructionNullify)
+				{
+					uint32_t instruction = getInstruction(pc);
+					runInstruction(instruction);
+				}
+				else
+					instructionNullify = false;
+
+				if (tgt_offset != 0)
+				{
+					pc += tgt_offset;
+					tgt_offset = 0;
+				}
+				else
+					pc += 4;
+			}
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
 
@@ -453,13 +477,19 @@ class EmulatedCPU
 				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			// Control branches are going to take a model of instruction memory first.
-			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+			// Rose, I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+			// Chris, that's illegal. I'm reporting you to the WHD for wage theft.
+			// Also you don't pay me.
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
+			
 			runInstruction(getNextInstruction());
 			if (gpr[rs] == gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::beql(uint32_t instruction)
@@ -477,12 +507,15 @@ class EmulatedCPU
 			{
 				printf("BEQL %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 			
 			if (gpr[rs] == gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += signedImmediate;
+				pc += extendedImmediate;
 			}
 
 
@@ -498,14 +531,15 @@ class EmulatedCPU
 			{
 				printf("BGEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
-			// Control branches are going to take a model of instruction memory first.
-			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+			
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 
 			runInstruction(getNextInstruction());
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += signedImmediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgezal(uint32_t instruction)
@@ -520,15 +554,18 @@ class EmulatedCPU
 				printf("BGEZAL %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 
 			// Set return address equal to the value.
-			gpr[31] = pc + 2;
+			gpr[31] = pc + 8;
 
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += signedImmediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgezall (uint32_t instruction)
@@ -543,15 +580,18 @@ class EmulatedCPU
 				printf("BGEZALL %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 
 			// Set return address equal to the value.
-			gpr[31] = pc + 2;
+			gpr[31] = pc + 8;
 
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += signedImmediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgezl(uint32_t instruction)
@@ -566,12 +606,14 @@ class EmulatedCPU
 				printf("bgezl %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 			
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += signedImmediate;
+				pc += extendedImmediate;
 			}
 
 		}
@@ -586,11 +628,15 @@ class EmulatedCPU
 			{
 				printf("BGTZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 			if (gpr[rs] >= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgtzl(uint32_t instruction)
@@ -604,12 +650,15 @@ class EmulatedCPU
 			{
 				printf("BGTZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 			
 			if (gpr[rs] >= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::blez(uint32_t instruction)
@@ -623,11 +672,15 @@ class EmulatedCPU
 			{
 				printf("BLEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 			if (gpr[rs] <= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::blezl(uint32_t instruction)
@@ -642,11 +695,14 @@ class EmulatedCPU
 				printf("BLEZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			if (gpr[rs] <= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltz(uint32_t instruction)
@@ -660,11 +716,15 @@ class EmulatedCPU
 			{
 				printf("bltz %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltzal(uint32_t instruction)
@@ -678,12 +738,16 @@ class EmulatedCPU
 			{
 				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
 			gpr[31] = pc + 8;
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltzall(uint32_t instruction)
@@ -697,12 +761,16 @@ class EmulatedCPU
 			{
 				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			runInstruction(getNextInstruction());
-			gpr[31] = pc + 2;
+			gpr[31] = pc + 8;
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltzl(uint32_t instruction)
@@ -717,11 +785,14 @@ class EmulatedCPU
 				printf("bltzl %s, %llx\n", getName(rs).c_str(), signedImmediate);
 			}
 
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
+
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bne(uint32_t instruction)
@@ -735,14 +806,15 @@ class EmulatedCPU
 			{
 				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
-			// Control branches are going to take a model of instruction memory first.
-			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
+
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 
 			runInstruction(getNextInstruction());
 			if (gpr[rs] != gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bnel(uint32_t instruction)
@@ -756,15 +828,15 @@ class EmulatedCPU
 			{
 				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
-			// Control branches are going to take a model of instruction memory first.
-			// Rose I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
-
+			
+			int32_t extendedImmediate = signedImmediate;
+			extendedImmediate <<= 2;
 			
 			if (gpr[rs] != gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += immediate;
+				pc += extendedImmediate;
 			}
 		}
 		// break_ because break is a C++ reserved word
@@ -773,7 +845,7 @@ class EmulatedCPU
 			printf("Called Break!\n");
 			unimplemented(instruction);
 		}
-		// Co Processor Operaiton (should be unimplemented I think)
+		// Co Processor Operation (should be unimplemented I think)
 		void EmulatedCPU::copz(uint32_t instruction)
 		{
 			printf("Called COPz!\n");
@@ -1676,33 +1748,13 @@ int main(int argn, char ** args)
 	EmulatedCPU* electricrock = new EmulatedCPU;
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
-	uint64_t rs, rt, HI = 0, LO = 0;
-	rs = 0xffff;
-	rt = 0xffff;
-	int64_t M = rs;
-	uint64_t Q = rt;
-	int count = 64;
-	int64_t A = 0;
-	uint64_t ptr = 0;
-	HI = 0;
-	LO = 0;
+	int32_t immediate = -4;
+	uint64_t test = 10;
+	test += immediate;
+	//test = 6
+	printf("%x", test);
 
-	while (count > 0)
-	{
-		if (Q & 1)
-		{
-			HI += M;
-		}
-		Q >>= 1;
-		LO >>= 1;
-		ptr = (HI & 1) << 63;
-		LO |= ptr;
-		HI >>= 1;
-		count--;
-	}
 	
-
-	printf("%llx, %llx", HI, LO);
 
 	
 	/*

@@ -326,7 +326,8 @@ class EmulatedCPU
 		void EmulatedCPU::runEmulation(int entryPoint)
 		{
 			pc = entryPoint;
-			
+			// Get the first instruction, execute it, increment by 1, and so forth.
+			// Implement memory checks every instruction.
 			while (validState == true)
 			{
 				if (!instructionNullify)
@@ -345,8 +346,7 @@ class EmulatedCPU
 				else
 					pc += 4;
 			}
-			// Get the first instruction, execute it, increment by 1, and so forth.
-			// Implement memory checks every instruction.
+			
 
 			return;
 		}
@@ -481,6 +481,7 @@ class EmulatedCPU
 			// Chris, that's illegal. I'm reporting you to the WHD for wage theft.
 			// Also you don't pay me.
 
+			//cast to 32 bits  for auto sigm extend and space fpr shifting
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
@@ -1300,21 +1301,98 @@ class EmulatedCPU
 			gpr[rd] = gpr[rs] - gpr[rt];
 		}
 		// Jumps
+		//MIPS I
 		void EmulatedCPU::j(uint32_t instruction)
 		{
+			uint64_t instr_index = (instruction & 0x3fffff) << 2;
 
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for J\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("J %d\n", instr_index);
+			}
+
+			runInstruction(getNextInstruction());
+			
+			uint64_t mask = is64bit ? 0xfffffffff0000000 : 0xf0000000;
+
+			pc = (pc & mask) | (instr_index);
 		}
+
+		//MIPS I
 		void EmulatedCPU::jal(uint32_t instruction)
 		{
 
+			uint64_t instr_index = (instruction & 0x3fffff) << 2;
+
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for JAL\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("JAL %d\n", instr_index);
+			}
+
+			runInstruction(getNextInstruction());
+
+			gpr[31] = pc + 8;
+
+			uint64_t mask = is64bit ? 0xfffffffff0000000 : 0xf0000000;
+
+			pc = (pc & mask) | (instr_index);
 		}
+
+		//MIPS I
 		void EmulatedCPU::jalr(uint32_t instruction)
 		{
 
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for JALR\n");
+			}
+
+			if (debugPrint)
+			{
+				
+				printf("JALR %x", getName(rd).c_str());
+				if (rd != 31)
+					printf("%, %x", getName(rs).c_str());
+				printf("\n");
+			}
+			uint64_t temp = gpr[rs];
+			gpr[rd] = pc + 8;
+
+			runInstruction(getNextInstruction());
+
+			pc = temp;
 		}
+
+		//MIPS I
 		void EmulatedCPU::jr(uint32_t instruction)
 		{
 
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for JR\n");
+			}
+
+			if (debugPrint)
+			{
+
+				printf("JR %x\n", getName(rs).c_str());
+			}
+			
+			uint64_t temp = gpr[rs];
+
+			runInstruction(getNextInstruction());
+
+			pc = temp;
 		}
 		void EmulatedCPU::lb(uint32_t instruction)
 		{
@@ -1389,52 +1467,224 @@ class EmulatedCPU
 		{
 
 		}
+
 		// MIPS 1
 		void EmulatedCPU::mfhi(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MFHI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MFHI %x", getName(rd).c_str());
+			}
+
+			gpr[rd] = HI;
 		}
 		void EmulatedCPU::mflo(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MFLO\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MFLO %x", getName(rd).c_str());
+			}
+
+			gpr[rd] = LO;
 		}
 		// MIPS 4
 		void EmulatedCPU::MOVN(uint32_t instruction)
 		{
 
+			if (mipsTarget < 4)
+			{
+				printf("Invalid mips target for MOVN\n");
+			}
+
+			if (debugPrint)
+			{
+
+				printf("MOVN %x, %x, %x", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			if (gpr[rt] != 0)
+			{
+				gpr[rd] = gpr[rs];
+			}
 		}
+
+		//MIPS IV
 		void EmulatedCPU::MOVZ(uint32_t instruction)
 		{
+			if (mipsTarget < 4)
+			{
+				printf("Invalid mips target for MOVZ\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MOVZ %x, %x, %x", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			if (gpr[rt] == 0)
+			{
+				gpr[rd] = gpr[rs];
+			}
 		}
 		// MIPS 1
 		void EmulatedCPU::mthi(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MTHI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MTHI %x", getName(rs).c_str());
+			}
+
+			HI = gpr[rs];
 		}
+
+		//MIPS I
 		void EmulatedCPU::mtlo(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MTLO\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MTLO %x", getName(rs).c_str());
+			}
+
+			LO = gpr[rs];
 		}
+
+		//MIPS I
 		void EmulatedCPU::mult(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MULT\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("MULT %s, %s", getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			int64_t a, b, result;
+
+			a = gpr[rs];
+			b = gpr[rt];
+			if (is64bit)
+			{
+				//sign extensions
+				a = (gpr[rs] & BIT32) ? gpr[rs] | 0xffffffff00000000 : gpr[rs] & 0xffffffff;
+				b = (gpr[rt] & BIT32) ? gpr[rt] | 0xffffffff00000000 : gpr[rt] & 0xffffffff;
+
+			}
+
+			result = a * b;
+			int32_t hold = (result & 0xffffffff);
+			LO = hold;
+			hold = (result & 0xffffffff00000000) >> 32;
+			HI = hold;
 		}
+
+		//MIPS I
 		void EmulatedCPU::multu(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for MULTU\n");
+			}
+
+			if (debugPrint)
+			{
+
+				printf("MULTU %s, %s", getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			uint64_t a, b, result;
+
+			//sign extensions
+			a = gpr[rs] & 0xffffffff;
+			b = gpr[rt] & 0xffffffff;
+
+			//For some reason you still sign extend the result in lo and hi.
+			result = a * b;
+			int32_t hold = (result & 0xffffffff);
+			LO = hold;
+			hold = (result & 0xffffffff00000000) >> 32;
+			HI = hold;
 
 		}
+
+		//MIPS I
 		void EmulatedCPU::nor(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for NOR\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("NOR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			gpr[rd] = ~(gpr[rs] | gpr[rt]);
 		}
+
+		//MIPS I
 		void EmulatedCPU::or(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for OR\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("OR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			gpr[rd] = gpr[rs] | gpr[rt];
 		}
+
+		//MIPS I
 		void EmulatedCPU::ori(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for ORI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("ORI %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			uint64_t extended = (uint64_t)immediate;
+			gpr[rt] = extended | gpr[rs];
 		}
 		// MIPS 4
 		void EmulatedCPU::PERF(uint32_t instruction)
@@ -1479,21 +1729,73 @@ class EmulatedCPU
 		{
 
 		}
+
+		//MIPS I
 		void EmulatedCPU::sll(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLL\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLL %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(sa).c_str());
+			}
+
+			gpr[rd] = gpr[rt] << sa;
 		}
+
+		//MIPS I
 		void EmulatedCPU::sllv(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLLV\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLLV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
+
+			gpr[rd] = gpr[rt] << (gpr[rs] & 0x1f);
 		}
+
+		//MIPS I
 		void EmulatedCPU::slt(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLT\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLT %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			gpr[rd] = (gpr[rs] < gpr[rt]);
 		}
+
+		//MIPS I
 		void EmulatedCPU::slti(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLTI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLTI %s, %s, %x", getName(rt).c_str(), getName(rs).c_str(), immediate);
+			}
+
+			int64_t hold = (int64_t) immediate;
 		}
 		void EmulatedCPU::sltui(uint32_t instruction)
 		{
@@ -1750,9 +2052,9 @@ int main(int argn, char ** args)
 
 	int32_t immediate = -4;
 	uint64_t test = 10;
-	test += immediate;
+	test = immediate;
 	//test = 6
-	printf("%x", test);
+	printf("%ld", test);
 
 	
 

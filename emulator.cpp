@@ -265,8 +265,10 @@ class EmulatedCPU
 		//Meta
 		bool instructionNullify = false;
 		bool validState = true;
+		bool delaySlot = false;
 		char* instructions;
 		int32_t tgt_offset = 0;
+
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
 		
@@ -338,7 +340,12 @@ class EmulatedCPU
 				else
 					instructionNullify = false;
 
-				if (tgt_offset != 0)
+				if (delaySlot)
+				{
+					delaySlot = false;
+					pc += 4;
+				}
+				else if (tgt_offset != 0)
 				{
 					pc += tgt_offset;
 					tgt_offset = 0;
@@ -485,12 +492,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
+			delaySlot = true;
 			
-			runInstruction(getNextInstruction());
 			if (gpr[rs] == gpr[rt])
 			{
-				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				// If the two registers equal, we set the pc to increment after an instruction.
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::beql(uint32_t instruction)
@@ -511,12 +518,18 @@ class EmulatedCPU
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
+
+
 			
 			if (gpr[rs] == gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 
 
@@ -530,17 +543,19 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGEZ %s, %lx\n", getName(rs).c_str(), signedImmediate);
 			}
 			
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
+			delaySlot = true;
+
 			runInstruction(getNextInstruction());
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgezal(uint32_t instruction)
@@ -558,7 +573,7 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
 
 			// Set return address equal to the value.
 			gpr[31] = pc + 8;
@@ -566,7 +581,7 @@ class EmulatedCPU
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgezall (uint32_t instruction)
@@ -584,7 +599,7 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			
 
 			// Set return address equal to the value.
 			gpr[31] = pc + 8;
@@ -592,7 +607,12 @@ class EmulatedCPU
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		void EmulatedCPU::bgezl(uint32_t instruction)
@@ -613,8 +633,12 @@ class EmulatedCPU
 			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
-				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 
 		}
@@ -633,11 +657,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
+
 			if (gpr[rs] >= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bgtzl(uint32_t instruction)
@@ -658,8 +683,12 @@ class EmulatedCPU
 			if (gpr[rs] >= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		void EmulatedCPU::blez(uint32_t instruction)
@@ -677,11 +706,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
+
 			if (gpr[rs] <= gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::blezl(uint32_t instruction)
@@ -703,7 +733,12 @@ class EmulatedCPU
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		void EmulatedCPU::bltz(uint32_t instruction)
@@ -721,11 +756,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
+
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltzal(uint32_t instruction)
@@ -743,12 +779,13 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
+
 			gpr[31] = pc + 8;
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bltzall(uint32_t instruction)
@@ -766,12 +803,16 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
 			gpr[31] = pc + 8;
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		void EmulatedCPU::bltzl(uint32_t instruction)
@@ -792,8 +833,12 @@ class EmulatedCPU
 			if (gpr[rs] < gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		void EmulatedCPU::bne(uint32_t instruction)
@@ -811,11 +856,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			runInstruction(getNextInstruction());
+			delaySlot = true;
+			
 			if (gpr[rs] != gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				pc += extendedImmediate;
+				tgt_offset = extendedImmediate;
 			}
 		}
 		void EmulatedCPU::bnel(uint32_t instruction)
@@ -836,8 +882,12 @@ class EmulatedCPU
 			if (gpr[rs] != gpr[rt])
 			{
 				// If the two registers equal, we increment PC by the offset.
-				runInstruction(getNextInstruction());
-				pc += extendedImmediate;
+				delaySlot = true;
+				tgt_offset = extendedImmediate;
+			}
+			else
+			{
+				instructionNullify = true;
 			}
 		}
 		// break_ because break is a C++ reserved word
@@ -1313,7 +1363,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("J %d\n", instr_index);
+				printf("J %lx\n", instr_index);
 			}
 
 			runInstruction(getNextInstruction());
@@ -1336,7 +1386,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("JAL %d\n", instr_index);
+				printf("JAL %lx\n", instr_index);
 			}
 
 			runInstruction(getNextInstruction());
@@ -1360,9 +1410,9 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 				
-				printf("JALR %x", getName(rd).c_str());
+				printf("JALR %s", getName(rd).c_str());
 				if (rd != 31)
-					printf("%, %x", getName(rs).c_str());
+					printf(", %s", getName(rs).c_str());
 				printf("\n");
 			}
 			uint64_t temp = gpr[rs];
@@ -1385,7 +1435,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("JR %x\n", getName(rs).c_str());
+				printf("JR %s\n", getName(rs).c_str());
 			}
 			
 			uint64_t temp = gpr[rs];
@@ -1479,7 +1529,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MFHI %x", getName(rd).c_str());
+				printf("MFHI %s", getName(rd).c_str());
 			}
 
 			gpr[rd] = HI;
@@ -1494,7 +1544,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MFLO %x", getName(rd).c_str());
+				printf("MFLO %s", getName(rd).c_str());
 			}
 
 			gpr[rd] = LO;
@@ -1511,7 +1561,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MOVN %x, %x, %x", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("MOVN %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (gpr[rt] != 0)
@@ -1531,7 +1581,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MOVZ %x, %x, %x", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("MOVZ %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (gpr[rt] == 0)
@@ -1550,7 +1600,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MTHI %x", getName(rs).c_str());
+				printf("MTHI %s", getName(rs).c_str());
 			}
 
 			HI = gpr[rs];
@@ -1567,7 +1617,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("MTLO %x", getName(rs).c_str());
+				printf("MTLO %s", getName(rs).c_str());
 			}
 
 			LO = gpr[rs];
@@ -1795,39 +1845,178 @@ class EmulatedCPU
 				printf("SLTI %s, %s, %x", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 
-			int64_t hold = (int64_t) immediate;
+			int64_t extended = (int64_t) immediate;
+			gpr[rd] = gpr[rs] < extended;
 		}
+
+		//MIPS I
+		//@might not be how casting works.
 		void EmulatedCPU::sltui(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLTIU\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLTIU %s, %s, %x", getName(rt).c_str(), getName(rs).c_str(), immediate);
+			}
+			if (is64bit)
+			{
+				int64_t extended = (int64_t)signedImmediate;
+				uint64_t a = extended, 
+						 b = gpr[rs];
+				gpr[rt] = a < b;
+			}
+			else
+			{
+				int32_t extended = (int32_t)signedImmediate;
+				uint64_t a = extended & 0xffffffff,
+						 b = gpr[rs];
+				gpr[rt] = a < b;
+			}
+			
 		}
+
+		//MIPS I
 		void EmulatedCPU::sltu(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SLUT\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SLUT %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			uint64_t a = gpr[rs], b = gpr[rt];
+			gpr[rd] = a < b;
 		}
 		void EmulatedCPU::sra(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SRA\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SRA %s, %s, %x", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
+
+			int32_t hold = gpr[rt] & 0xffffffff;
+			hold >>= sa;
+			if (is64bit)
+				gpr[rd] = (int64_t)hold;
+			else
+			{
+				gpr[rd] = hold;
+				gpr[rd] &= 0xffffffff;
+			}
 		}
+
+		//MIPS I
 		void EmulatedCPU::srav(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SRAV\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SRAV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
+
+			int32_t hold = gpr[rt] & 0xffffffff;
+			hold >>= (gpr[rs] & 0x1f);
+			if (is64bit)
+				gpr[rd] = (int64_t)hold;
+			else
+			{
+				gpr[rd] = hold;
+				gpr[rd] &= 0xffffffff;
+			}
 		}
 		void EmulatedCPU::srl(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SRL\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SRL %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), sa);
+			}
+
+			uint32_t hold = gpr[rt];
+			hold >>= sa;
+			gpr[rd] = hold;
 		}
 		void EmulatedCPU::srlv(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SRLV\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("SRLV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+			}
+
+			uint32_t hold = gpr[rt];
+			hold >>= (gpr[rs] & 0x1f);
+			gpr[rd] = hold;
 		}
+
+		//MIPS I
 		void EmulatedCPU::sub(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SUB\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("SUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+			uint64_t temp = gpr[rs] - gpr[rt];
+			uint64_t flag = BIT32;
+
+			if (((flag & gpr[rs]) == (flag & gpr[rt])) && ((flag & temp) != (flag & gpr[rs])))
+			{
+				signalException(IntegerOverflow);
+			}
+
+			gpr[rd] = temp;
 		}
 		void EmulatedCPU::subu(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SUBU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("SUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+			uint64_t temp = gpr[rs] - gpr[rt];
+			if (!is64bit)
+				temp &= 0xffffffff;
+			gpr[rd] = temp;
 		}
 		void EmulatedCPU::sw(uint32_t instruction)
 		{
@@ -1908,17 +2097,42 @@ class EmulatedCPU
 		{
 
 		}
-		// MIPS 1
+
+		//MIPS 1
 		void EmulatedCPU::xor(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for XOR\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("XOR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			gpr[rd] = gpr[rs] ^ gpr[rt];
 		}
+
+		//MIPS I
 		void EmulatedCPU::xori(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for XORI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("XORI %s, %s, %x", getName(rd).c_str(), getName(rs).c_str(), immediate);
+			}
+
+			gpr[rt] = gpr[rs] ^ immediate;
 		}
 		
-
+		//@dontuse
 		void signExtend(uint64_t* target, int length, int extension = -1)
 		{
 
@@ -2052,9 +2266,9 @@ int main(int argn, char ** args)
 
 	int32_t immediate = -4;
 	uint64_t test = 10;
-	test = immediate;
+	//immediate  >>= 1;
 	//test = 6
-	printf("%ld", test);
+	printf("%lld", immediate);
 
 	
 

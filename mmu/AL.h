@@ -12,4 +12,6 @@ public:
 	void add(T input);
 	void empty();
 	T get(int index);
+	T operator [](int i) const { return array[i]; }
+	T& operator [](int i) { return array[i]; }
 };

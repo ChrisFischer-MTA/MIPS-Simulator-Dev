@@ -9,35 +9,40 @@
 
 using namespace std;
 
-//permissions special codes:
-// 8: guard allocation
-//rightmost 3 bits still must match page allocation
+//permissions 00000rwx
 class allocation
 {
 public:
-	uint64_t physAddress;
-	int offset;
+	uint64_t start, end;
 	int length;
-	char permissions;
+	int width;
+	bool readable;
+	bool writable;
+	bool executable;
 	uint64_t ID;
-	allocation(uint64_t a, int b, int c, char d, uint64_t e)
-	{
-		physAddress = a;
-		offset = b;
-		length = c;
-		permissions = d;
-		ID = e;
-	}
-	allocation(string type, int offset = 0, int ID = 0)
-	{
-		if (!strcmp(type.c_str(), "guard"))
+	char** array;
+	bool* initialized;
+	bool* writtenTo;
+	allocation(int start, int length, char permissions, int width) {
+		this->start = start;
+		this->length = length;
+		this->end = start + length;
+		this->width = width;
+
+		this->readable = permissions >> 2;
+		this->writable = (permissions >> 1) & 1;
+		this->executable = permissions & 1;
+
+		int depth = (length / width) + 1;
+		this->array = (char**)calloc(depth, sizeof(char*));
+		for (int i = 0;i < depth;i++)
 		{
-			physAddress = 0;
-			this->offset = offset;
-			length = 1;
-			permissions = 8;
-			this->ID = ID;
+			this->array[i] = (char*)calloc(width, sizeof(char));
 		}
+		this->initialized = (bool *)calloc(depth, sizeof(bool));
+		this->writtenTo = (bool*)calloc(depth, sizeof(bool));
+		ID = 0;
+		
 	}
 };
 

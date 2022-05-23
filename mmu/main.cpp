@@ -20,15 +20,4 @@ typedef struct allo
 
 
 
-int main() {
-
-
-    tree<allocation> *test = new tree<allocation>();
-    allocation insert;
-    insert.start = 5;
-    test->insertNode(insert);
-
-
-
-}
 

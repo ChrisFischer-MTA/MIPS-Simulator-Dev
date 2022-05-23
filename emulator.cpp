@@ -8,7 +8,9 @@
 #include <string>
 #include <inttypes.h>
 
-#include "asem.cpp" // The numonic convertor
+#include "asem.cpp" // The mnemonic convertor
+#include "mmu/mmu.cpp"
+
 
 #define BIT16 0x8000
 #define BIT32 0x80000000
@@ -65,6 +67,7 @@ const short int JTYPE = 3;
 
 // Exception Types
 const short int IntegerOverflow = 1;
+const short int MemoryFault = 2;
 
 class EmulatedCPU
 {
@@ -254,6 +257,7 @@ class EmulatedCPU
 			&EmulatedCPU::unimplemented, // 31
 		};
 
+		//registers and instruction fields
 		uint64_t gpr[32];
 		uint8_t rs; // 1st Source
 		uint8_t rt; // 2nd Source
@@ -262,7 +266,9 @@ class EmulatedCPU
 		uint64_t LO, HI; // Multiplication and division registers
 		uint16_t immediate; // Immediate
 		int16_t signedImmediate; // Immediate
+
 		//Meta
+		MMU memUnit;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -1495,8 +1501,34 @@ class EmulatedCPU
 		{
 
 		}
+
+		//MIPS I
 		void EmulatedCPU::lw(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for LW\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("LW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+			}
+
+			if (mipsTarget == 4)
+			{
+				if (immediate & 3 > 0)
+					1 + 2;
+			}
+			if (is64bit)
+			{
+
+			}
+			else
+			{
+				int32_t offset = immediate;
+
+			}
 
 		}
 		// Likely to be unimplemented

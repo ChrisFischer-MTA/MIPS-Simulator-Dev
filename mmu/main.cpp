@@ -16,7 +16,7 @@ typedef struct allo
     int length;
     char permissions;
 
-} allocation;
+} section;
 
 
 

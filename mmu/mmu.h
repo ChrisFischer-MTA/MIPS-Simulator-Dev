@@ -5,33 +5,38 @@
 #include <string>
 #include <inttypes.h>
 
+#ifndef MMUH
+#define MMMUH 1
+#endif
+
 #include "AL.h"
 
 using namespace std;
 
 //permissions 00000rwx
-class allocation
+class section
 {
 public:
+	//Meta
 	uint64_t start, end;
 	int length;
-	int width;
 	bool readable;
 	bool writable;
 	bool executable;
 	uint64_t ID;
+
+	//Chunk of memory
 	char** array;
+	int width;
 	bool* initialized;
 	bool* writtenTo;
-	allocation(int start, int length, char permissions, int width) {
+	section(int start, int length, char permissions, int width) {
 		this->start = start;
 		this->length = length;
 		this->end = start + length;
 		this->width = width;
 
-		this->readable = permissions >> 2;
-		this->writable = (permissions >> 1) & 1;
-		this->executable = permissions & 1;
+		this->setPerms(permissions);
 
 		int depth = (length / width) + 1;
 		this->array = (char**)calloc(depth, sizeof(char*));
@@ -44,58 +49,37 @@ public:
 		ID = 0;
 		
 	}
+	void setPerms(char permissions)
+	{
+		readable = (permissions >> 2) & 1;
+		writable = (permissions >> 1) & 1;
+		executable = permissions & 1;
+	}
+
+	friend bool operator<(const section& lhs, const section& rhs) { return lhs.start < rhs.start; }
 };
 
-
-
-//1 is for table, 0 is for data
-//permissions is also used for special codes
-//42: empty page
-
-typedef struct page page;
-struct page
+class segment
 {
 public:
-	int depth;
-	bool dType;
-	uint64_t address;
+	//Meta
+	uint64_t start, end;
+	int length;
 	char permissions;
-	char* data;
-	uint32_t* dirtybits;
-	page* table;
-	ArrayList<allocation> tokens;
-	int maxfree;
-	page(bool type, uint64_t address, char permissions)
+	bool readable;
+	bool writable;
+	bool executable;
+	uint64_t ID;
+
+	//Data
+	ArrayList<section> sections;
+	section operator [](int i) const { return sections[i]; }
+	section& operator [](int i) { return sections[i]; }
+	void setPerms(char permissions)
 	{
-		this->tokens = ArrayList<allocation>(10);
-		this->dType = type;
-		this->address = address;
-		this->permissions = permissions;
-		if (type)
-		{
-			dirtybits = (uint32_t*)calloc(16, sizeof(uint32_t));
-			table = (page*)calloc(512, sizeof(page));
-			maxfree = -1;
-			return;
-		}
-		else
-		{
-			data = (char*)calloc(4096, sizeof(char));
-			maxfree = 4096;
-		}
-	}
-	page()
-	{
-		dType = false;
-		permissions = 42;
-		this->tokens = ArrayList<allocation>(10);
+		readable = (permissions >> 2) & 1;
+		writable = (permissions >> 1) & 1;
+		executable = permissions & 1;
 	}
 };
-
-/*typedef struct pagetable_
-{
-	int depth;
-	page *data[512];
-	uint32_t dirtybits[16];
-} PageTable;*/
 

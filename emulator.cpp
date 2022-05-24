@@ -8,8 +8,13 @@
 #include <string>
 #include <inttypes.h>
 
-#include "asem.cpp" // The mnemonic convertor
+#ifndef EMULATOR
+#define EMULATOR 1
 #include "mmu/mmu.cpp"
+#endif
+
+
+
 
 
 #define BIT16 0x8000
@@ -268,7 +273,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU memUnit;
+		MMU:MMU memUnit;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -285,7 +290,11 @@ class EmulatedCPU
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)
-				gpr[i] = 0;		
+			{
+				gpr[i] = 0;	
+			}
+					
+			memUnit = MMU();
 
 		}
 

@@ -82,6 +82,9 @@ int main(int argc, char* argv[])
                 bool readable = temp >> 2;
                 bool writable = (temp >> 1) & 1;
                 bool executable = temp & 1;
+                
+                uint64_t newBase = 0x0000000fffffffff;
+                seg->GetStart((uint64_t) newBase);
 
                 printf("0x%08lx\t0x%08lx-0x%08lx\t0x%08lx\t%d%d%d\n", 
                     seg->GetStart(), seg->GetStart(), 

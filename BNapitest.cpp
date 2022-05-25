@@ -2,7 +2,6 @@
 #include <inttypes.h>
 #include "binaryninjacore.h"
 #include "binaryninjaapi.h"
-#include "lowlevelilinstruction.h"
 
 using namespace BinaryNinja;
 using namespace std;

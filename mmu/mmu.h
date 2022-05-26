@@ -7,7 +7,7 @@
 #include <inttypes.h>
 
 
-
+#include "binja.h"
 #include "AL.h"
 
 using namespace std;

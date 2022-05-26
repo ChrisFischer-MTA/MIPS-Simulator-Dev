@@ -128,7 +128,7 @@ class EmulatedCPU
 			& EmulatedCPU::addu, // 33
 			& EmulatedCPU::unimplemented, // 34
 			& EmulatedCPU::unimplemented, // 35
-			& EmulatedCPU::and, // 36
+			& EmulatedCPU::andop, // 36
 			& EmulatedCPU::unimplemented, // 37
 			& EmulatedCPU::unimplemented, // 38
 			& EmulatedCPU::unimplemented, // 39
@@ -460,7 +460,7 @@ class EmulatedCPU
 				temp &= 0xffffffff;
 			gpr[rd] = temp;
 		}
-		void EmulatedCPU::and(uint32_t opcode)
+		void EmulatedCPU::andop(uint32_t opcode)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1744,7 +1744,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::or(uint32_t instruction)
+		void EmulatedCPU::orop(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{

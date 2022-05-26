@@ -1,12 +1,15 @@
-#include "mmu.h"
+#pragma once
 #include <iostream>
 #include <stdio.h>
 #include <cassert>
 
 #ifndef MMUCPP
 #define MMUCPP 1
-#include "../emulator.cpp"
 #endif
+
+#include "mmu.h"
+
+
 
 
 #define BLOCKWIDTH 1024
@@ -17,170 +20,162 @@ using namespace std;
 #define W 2
 #define X 1
 
-class MMU
+
+MMU::MMU(bool is64bit, BinaryView binview)
 {
-public:
-	ArrayList<segment> segments;
-	ArrayList<section> allSections;
-	EmulatedCPU *emulator;
-	int alloLength;
-	bool is64Bit;
-	BinaryView bv;
-	MMU(EmulatedCPU *electrickRock)
+	auto buttsegs = bv->GetSegments();
+	segments = ArrayList<segment>(buttsegs.size);
+	this->is64Bit = is64bit;
+	bv = binview;
+	for (int i = 0;i < buttsegs.size; i++)
 	{
-		auto buttsegs = bv->GetSegments();
-		segments = ArrayList<segment>(buttsegs.size);
-		emulator = electrickRock;
-		is64Bit = emulator->is64bit;
-		bv = emulator->bv;
-		for (int i = 0;i < buttsegs.size; i++)
-		{
-			segments[i].start = buttsegs[i]->GetStart();
-			segments[i].end = buttsegs[i]->GetEnd();
-			segments[i].length = buttsegs[i]->GetLength();
-			int flags = buttsegs[i]->GetFlags();
-			segments[i].setPerms(flags & 7);
-			segments[i].permissions = flags;
-			segments[i].ID = 0;
-			segments[i].sections = ArrayList<section>(5);
-		}
+		segments[i].start = buttsegs[i]->GetStart();
+		segments[i].end = buttsegs[i]->GetEnd();
+		segments[i].length = buttsegs[i]->GetLength();
+		int flags = buttsegs[i]->GetFlags();
+		segments[i].setPerms(flags & 7);
+		segments[i].permissions = flags;
+		segments[i].ID = 0;
+		segments[i].sections = ArrayList<section>(5);
+	}
 
-		auto sectionlist = bv->GetSections();
-		allSections = ArrayList<section>(sectionlist.size);
-		for (int i = 0;i < sectionList.size;i++)
-		{
-			//find parent segment
-			segment parent = segSearch(sectionlist[i]->GetStart());
+	auto sectionlist = bv->GetSections();
+	allSections = ArrayList<section>(sectionlist.size);
+	for (int i = 0;i < sectionList.size;i++)
+	{
+		//find parent segment
+		segment parent = segSearch(sectionlist[i]->GetStart());
 
-			//create section object
-			allSections[i] =
-				section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH);
+		//create section object
+		allSections[i] =
+			section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH);
 			
 			
 
-		}
-		//sort sections
-		secSort();
+	}
+	//sort sections
+	secSort();
 
-		for (int i = 0;i < allSections.size;i++)
-		{
-			//couple segment and section
-			parent.sections.add(allSections[i]);
-		}
+	for (int i = 0;i < allSections.size;i++)
+	{
+		//couple segment and section
+		parent.sections.add(allSections[i]);
+	}
 			
 
 		
-	}
-	MMU()
-	{
+}
+MMU::MMU()
+{
 
-	}
+}
 
-	void secSort()
+void MMU::secSort()
+{
+	ArrayList<section> sorted = ArrayList<section>(allSections.size);
+	section least = allSections[0];
+	for (int j = 0;j < allSections.size;j++)
 	{
-		ArrayList<section> sorted = ArrayList<section>(allSections.size);
-		section least = allSections[0];
-		for (int j = 0;j < allSections.size;j++)
-		{
-			int leastindex = 0;
-			for (int i = 1;i < allSections.size;i++)
-			{
-				if (allSections[i] < least)
-				{
-					least = allSections[i];
-					leastindex = i;
-				}
-			}
-			sorted[j] = least;
-			allSections[leastindex].start = 0;
-		}
+		int leastindex = 0;
 		for (int i = 1;i < allSections.size;i++)
 		{
-			allSections[i] = sorted[i];
-		}
-		return allSections;
-		
-	}
-
-	segment segSearch(uint64_t index)
-	{
-		for (int i = 0;i < segments.size;i++)
-		{
-			if (index <= segment[i].end && index >= segment[i].start)
+			if (allSections[i] < least)
 			{
-				return segment[i];
+				least = allSections[i];
+				leastindex = i;
 			}
 		}
-		return NULL;
+		sorted[j] = least;
+		allSections[leastindex].start = 0;
 	}
-	
-	//Just get the initial pointer, emulator draws line
-	//numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
-	char * getEffectiveAddress(uint64_t address, int numBytes)
+	for (int i = 1;i < allSections.size;i++)
 	{
-		//For each segment,
-		for (int i = 0;i < segments.size;i++)
+		allSections[i] = sorted[i];
+	}
+	return;
+		
+}
+
+segment MMU::segSearch(uint64_t index)
+{
+	for (int i = 0;i < segments.size;i++)
+	{
+		if (index <= segments[i].end && index >= segments[i].start)
 		{
-			//For each section,
-			for (int j = 0;j < sections.size;j++)
+			return segments[i];
+		}
+	}
+	return segment();
+}
+	
+//Returns a pointer to a stream of bytes that can be read as necessary
+//the stream of bytes is either the mmu memory segments (ideally) or a reconstructed short block
+//of unwritable straight from binja
+//numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
+char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
+{
+	//For each segment,
+	for (int i = 0;i < segments.size;i++)
+	{
+		//For each section,
+		for (int j = 0;j < allSections.size;j++)
+		{
+			section token = segments[i].sections[j];
+			//Is it valid? (within bounds)
+			if (address >= token.start && address <= token.end)
 			{
-				section token = segments[i].sections[j];
-				//Is it valid? (within bounds)
-				if (address >= token.start && address <= token.end)
+				//Is it readable?
+				if (token.readable)
 				{
-					//Is it readable?
-					if (token.readable)
+					//Is it writable? Exists to avoid loading unwritable data when unnecessary
+					if (token.writable)
 					{
-						//Is it writable? Exists to avoid loading unwritable data when unnecessary
-						if (token.writable)
+						//Yes, could have a dirty state in memory:
+						//block access arithmetic, token[depth][blockOffset] should be starting point
+						int offset = address - token.start;
+						int depth = offset / token.width;
+						int blockOffset = depth % token.width;
+
+						//Not even initialized, pull and return 
+						if (!token.initialized[depth])
 						{
-							//Yes, could have a dirty state in memory:
-							//block access arithmetic, token[depth][blockOffset] should be starting point
-							int offset = address - token.start;
-							int depth = offset / token.width;
-							int blockOffset = depth % token.width;
-
-							//Not even initialized, pull and return 
-							if (!token.initialized[depth])
-							{
-								//token[depth] = binja.access(token.start + depth*width, width);
-								if (bv->Read(token.array[depth], address - blockOffset, token.width) != token.width)
-									emulator->generallyPause();
-								token.initialized[depth] = true;
-
-							}
-							if (blockOffset + numBytes > token.width)
-							{
-								printf("something weird happened\n");
+							//token[depth] = binja.access(token.start + depth*width, width);
+							if (bv->Read(token.array[depth], address - blockOffset, token.width) != token.width)
 								emulator->generallyPause();
-							}
-
-							return token.array[depth] + blockOffset;
-
+							token.initialized[depth] = true;
 
 						}
-						//should just return a pointer to a numBytes-length array of the requested bytes
-						else
+						if (blockOffset + numBytes > token.width)
 						{
-							unsigned char* out = (unsigned char*)(calloc(numBytes, sizeof(char)));
-
-							//if(num bytes read by Read() != numBytes)
-							if (bv->Read(out, address, numBytes) != numBytes)
-								emulator->generallyPause();
-							return out;
+							printf("something weird happened\n");
+							emulator->generallyPause();
 						}
+
+						return token.array[depth] + blockOffset;
+
+
+					}
+					//should just return a pointer to a numBytes-length array of the requested bytes
+					else
+					{
+						char* out = (char*)(calloc(numBytes, sizeof(char)));
+
+						//if(num bytes read by Read() != numBytes)
+						if (bv->Read(out, address, numBytes) != numBytes)
+							emulator->generallyPause();
+						return out;
 					}
 				}
-				else
-				{
-					emulator->signalException(MemoryFault);
-				}
-
 			}
+			else
+			{
+				emulator->signalException(MemoryFault);
+			}
+
 		}
 	}
-	void store(uint64_t address, void* data, int datalength)
-	{
+}
+void MMU::store(uint64_t address, void* data, int datalength)
+{
 
-	}
-};
+}

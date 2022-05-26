@@ -8,7 +8,7 @@
 #endif
 
 #include "mmu.h"
-#include "binja.h"
+#include "../binja.h"
 
 
 

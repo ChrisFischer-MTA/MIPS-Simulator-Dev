@@ -2138,7 +2138,7 @@ class EmulatedCPU
 		}
 
 		//MIPS 1
-		void EmulatedCPU::xor(uint32_t instruction)
+		void EmulatedCPU::xorop(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{

@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <stdint.h>
 #include <stdlib.h>
@@ -5,13 +6,12 @@
 #include <string>
 #include <inttypes.h>
 
-#ifndef MMUH
-#define MMMUH 1
-#endif
+
 
 #include "AL.h"
 
 using namespace std;
+
 
 //permissions 00000rwx
 class section
@@ -44,10 +44,10 @@ public:
 		{
 			this->array[i] = (char*)calloc(width, sizeof(char));
 		}
-		this->initialized = (bool *)calloc(depth, sizeof(bool));
+		this->initialized = (bool*)calloc(depth, sizeof(bool));
 		this->writtenTo = (bool*)calloc(depth, sizeof(bool));
 		ID = 0;
-		
+
 	}
 	void setPerms(char permissions)
 	{
@@ -82,4 +82,24 @@ public:
 		executable = permissions & 1;
 	}
 };
+
+
+class MMU
+{
+public:
+	ArrayList<segment> segments;
+	ArrayList<section> allSections;
+	int alloLength;
+	bool is64Bit;
+	BinaryView bv;
+	MMU(bool is64bit, BinaryView binview);
+	MMU();
+	void secSort();
+	segment segSearch(uint64_t index);
+	char* getEffectiveAddress(uint64_t address, int numBytes);
+	void store(uint64_t address, void* data, int datalength);
+
+};
+
+
 

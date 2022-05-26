@@ -8,10 +8,8 @@
 #include <string>
 #include <inttypes.h>
 
-#ifndef EMULATOR
-#define EMULATOR 1
-#include "mmu/mmu.cpp"
-#endif
+
+#include "mmu/mmu.h"
 
 
 
@@ -273,7 +271,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU:MMU memUnit;
+		MMU memUnit;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;

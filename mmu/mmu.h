@@ -25,7 +25,7 @@ public:
 	bool writable;
 	bool executable;
 	uint64_t ID;
-	segment parent;
+	segment* parent;
 
 	//Chunk of memory
 	char** array;

@@ -24,7 +24,7 @@ const short int MemoryFault = 2;
 
 void generallyPause();
 
-MMU::MMU(bool is64bit, BinaryView* binview)
+MMU::MMU(bool is64bit, EmulatedCPU rock)
 {
 	bv = binview;
 	auto buttsegs = bv->GetSegments();

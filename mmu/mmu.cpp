@@ -173,7 +173,7 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 			}
 			else
 			{
-				emulator->signalException(MemoryFault);
+				//emulator->signalException(MemoryFault);
 			}
 
 		}

@@ -8,6 +8,7 @@
 
 
 #include "../binja.h"
+#include "../emulator.cpp"
 #include "AL.h"
 
 using namespace std;

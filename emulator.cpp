@@ -271,7 +271,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU memUnit;
+		//MMU memUnit;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -292,7 +292,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 					
-			memUnit = MMU(is64bit, bv);
+			//memUnit = MMU(is64bit, bv);
 
 		}
 
@@ -2328,7 +2328,9 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 
 
+	MMU test;
 
+	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
@@ -2338,9 +2340,8 @@ int main(int argn, char ** args)
 	//test = 6
 	printf("%lld", immediate);
 
-	
+	*/
 
-	
 	/*
 	So generally, here's how this should work.
 	We load in a program (probably the one fed in via arguments)

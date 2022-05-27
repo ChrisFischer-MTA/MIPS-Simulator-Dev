@@ -12,6 +12,8 @@
 
 using namespace std;
 
+class section;
+
 class segment
 {
 public:

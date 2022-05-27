@@ -526,7 +526,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BEQL %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printf("BEQL %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -556,7 +556,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGEZ %s, %lx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 			
 			int32_t extendedImmediate = signedImmediate;
@@ -580,7 +580,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGEZAL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGEZAL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -606,7 +606,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGEZALL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGEZALL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -637,7 +637,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bgezl %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("bgezl %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -664,7 +664,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGTZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGTZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -687,7 +687,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BGTZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BGTZL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -713,7 +713,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BLEZ %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BLEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;

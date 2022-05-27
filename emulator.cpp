@@ -480,7 +480,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %llx\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
+				printf("ADDIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
 			}
 			gpr[rt] = gpr[rs] & immediate;
 		}
@@ -494,7 +494,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BEQ %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printf("BEQ %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			// Control branches are going to take a model of instruction memory first.
 			// Rose, I removed your "kekwuw". That is not appropriate. I'll be docking your pay!

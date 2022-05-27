@@ -26,7 +26,7 @@ MMU::MMU(bool is64bit, BinaryView* binview)
 {
 	bv = binview;
 	auto buttsegs = bv->GetSegments();
-	segments = ArrayList<segment>(buttsegs.size);
+	segments = ArrayList<segment>(buttsegs->size());
 	this->is64Bit = is64bit;
 	for (int i = 0;i < buttsegs.size; i++)
 	{
@@ -41,8 +41,8 @@ MMU::MMU(bool is64bit, BinaryView* binview)
 	}
 
 	auto sectionlist = bv->GetSections();
-	allSections = ArrayList<section>(sectionlist.size);
-	for (int i = 0;i < sectionList.size;i++)
+	allSections = ArrayList<section>(sectionlist->size());
+	for (int i = 0;i < sectionList->size();i++)
 	{
 		//find parent segment
 		segment parent = segSearch(sectionlist[i]->GetStart());

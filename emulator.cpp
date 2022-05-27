@@ -1225,7 +1225,7 @@ class EmulatedCPU
 			}
 			if (debugPrint)
 			{
-				printf("DSLLV %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("DSLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] << (gpr[rs] & 0x3f);
@@ -1272,7 +1272,7 @@ class EmulatedCPU
 			}
 			if (debugPrint)
 			{
-				printf("DSRA %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("DSRA %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			int64_t hold = gpr[rt];
@@ -1318,7 +1318,7 @@ class EmulatedCPU
 			}
 			if (debugPrint)
 			{
-				printf("DSRLV %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("DSRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] >> (gpr[rs] & 0x3f);
@@ -1994,7 +1994,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SRL %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printf("SRL %s, %s, %d", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			uint32_t hold = gpr[rt];
@@ -2177,7 +2177,7 @@ class EmulatedCPU
 
 			uint64_t bitn = (uint64_t)1 << (length-1);
 			uint64_t mask = ~(bitn - 1);
-			printf("%llx\n", mask);
+			printf("%lx\n", mask);
 			if (extension != -1)
 			{
 				if (extension == 32)
@@ -2209,12 +2209,12 @@ class EmulatedCPU
 			int i;
 
 			printf("=================    CPU STATE:    =================\n");
-			printf("PC: [0%x]\n", pc);
+			printf("PC: [0%lx]\n", pc);
 
 			printf("=================DUMPING REGISTERS:=================\n");
 			for (i = 0; i < 32; i++)
 			{
-				printf("%s -> %llx\n", getName(i).c_str(), gpr[i]);
+				printf("%s -> %lx\n", getName(i).c_str(), gpr[i]);
 			}
 		}
 		std::string getName(int offset)

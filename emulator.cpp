@@ -283,7 +283,7 @@ class EmulatedCPU
 		
 
 
-		EmulatedCPU(bool is64bit, BinaryView bv)
+		EmulatedCPU(bool is64bit, BinaryView* bv)
 		{
 			int i;
 			pc = 0;
@@ -2309,7 +2309,7 @@ int main(int argn, char ** args)
     InitPlugins();
 
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	Ref<BinaryView> bv;
+	BinaryView* bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")

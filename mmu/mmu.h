@@ -91,8 +91,8 @@ public:
 	ArrayList<section> allSections;
 	int alloLength;
 	bool is64Bit;
-	BinaryView bv;
-	MMU(bool is64bit, BinaryView binview);
+	BinaryView* bv;
+	MMU(bool is64bit, BinaryView* binview);
 	MMU();
 	void secSort();
 	segment segSearch(uint64_t index);

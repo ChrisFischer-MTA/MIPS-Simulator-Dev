@@ -22,12 +22,12 @@ using namespace std;
 #define X 1
 
 
-MMU::MMU(bool is64bit, BinaryView binview)
+MMU::MMU(bool is64bit, BinaryView* binview)
 {
+	bv = binview;
 	auto buttsegs = bv->GetSegments();
 	segments = ArrayList<segment>(buttsegs.size);
 	this->is64Bit = is64bit;
-	bv = binview;
 	for (int i = 0;i < buttsegs.size; i++)
 	{
 		segments[i].start = buttsegs[i]->GetStart();

@@ -89,175 +89,175 @@ class EmulatedCPU
 		
 		// A list of functions that are rtypes index by their ALU code.
 		// Indexed by their ALU code.
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_rtypes[64] = {
-			& EmulatedCPU::unimplemented, // 0
-			& EmulatedCPU::unimplemented, // 1
-			& EmulatedCPU::unimplemented, // 2
-			& EmulatedCPU::unimplemented, // 3
-			& EmulatedCPU::unimplemented, // 4
-			& EmulatedCPU::unimplemented, // 5
-			& EmulatedCPU::unimplemented, // 6
-			& EmulatedCPU::unimplemented, // 7
-			& EmulatedCPU::unimplemented, // 8
-			& EmulatedCPU::unimplemented, // 9
-			& EmulatedCPU::unimplemented, // 10
-			& EmulatedCPU::unimplemented, // 11
-			& EmulatedCPU::unimplemented, // 12
-			& EmulatedCPU::unimplemented, // 13
-			& EmulatedCPU::unimplemented, // 14
-			& EmulatedCPU::unimplemented, // 15
-			& EmulatedCPU::unimplemented, // 16
-			& EmulatedCPU::unimplemented, // 17
-			& EmulatedCPU::unimplemented, // 18
-			& EmulatedCPU::unimplemented, // 19
-			& EmulatedCPU::unimplemented, // 20
-			& EmulatedCPU::unimplemented, // 21
-			& EmulatedCPU::unimplemented, // 22
-			& EmulatedCPU::unimplemented, // 23
-			& EmulatedCPU::unimplemented, // 24
-			& EmulatedCPU::unimplemented, // 25
-			& EmulatedCPU::unimplemented, // 26
-			& EmulatedCPU::unimplemented, // 27
-			& EmulatedCPU::unimplemented, // 28
-			& EmulatedCPU::unimplemented, // 29
-			& EmulatedCPU::unimplemented, // 30
-			& EmulatedCPU::unimplemented, // 31
-			& EmulatedCPU::add, // 32
-			& EmulatedCPU::addu, // 33
-			& EmulatedCPU::unimplemented, // 34
-			& EmulatedCPU::unimplemented, // 35
-			& EmulatedCPU::andop, // 36
-			& EmulatedCPU::unimplemented, // 37
-			& EmulatedCPU::unimplemented, // 38
-			& EmulatedCPU::unimplemented, // 39
-			& EmulatedCPU::unimplemented, // 40
-			& EmulatedCPU::unimplemented, // 41
-			& EmulatedCPU::unimplemented, // 42
-			& EmulatedCPU::unimplemented, // 43
-			& EmulatedCPU::unimplemented, // 44
-			& EmulatedCPU::unimplemented, // 45
-			& EmulatedCPU::unimplemented, // 46
-			& EmulatedCPU::unimplemented, // 47
-			& EmulatedCPU::unimplemented, // 48
-			& EmulatedCPU::unimplemented, // 49
-			& EmulatedCPU::unimplemented, // 50
-			& EmulatedCPU::unimplemented, // 51
-			& EmulatedCPU::unimplemented, // 52
-			& EmulatedCPU::unimplemented, // 53
-			& EmulatedCPU::unimplemented, // 54
-			& EmulatedCPU::unimplemented, // 55
-			& EmulatedCPU::unimplemented, // 56
-			& EmulatedCPU::unimplemented, // 57
-			& EmulatedCPU::unimplemented, // 58
-			& EmulatedCPU::unimplemented, // 59
-			& EmulatedCPU::unimplemented, // 60
-			& EmulatedCPU::unimplemented, // 61
-			& EmulatedCPU::unimplemented, // 62
-			& EmulatedCPU::unimplemented, // 63
+		const funct inst_handlers_rtypes[64] = {
+			& unimplemented, // 0
+			& unimplemented, // 1
+			& unimplemented, // 2
+			& unimplemented, // 3
+			& unimplemented, // 4
+			& unimplemented, // 5
+			& unimplemented, // 6
+			& unimplemented, // 7
+			& unimplemented, // 8
+			& unimplemented, // 9
+			& unimplemented, // 10
+			& unimplemented, // 11
+			& unimplemented, // 12
+			& unimplemented, // 13
+			& unimplemented, // 14
+			& unimplemented, // 15
+			& unimplemented, // 16
+			& unimplemented, // 17
+			& unimplemented, // 18
+			& unimplemented, // 19
+			& unimplemented, // 20
+			& unimplemented, // 21
+			& unimplemented, // 22
+			& unimplemented, // 23
+			& unimplemented, // 24
+			& unimplemented, // 25
+			& unimplemented, // 26
+			& unimplemented, // 27
+			& unimplemented, // 28
+			& unimplemented, // 29
+			& unimplemented, // 30
+			& unimplemented, // 31
+			& add, // 32
+			& addu, // 33
+			& unimplemented, // 34
+			& unimplemented, // 35
+			& andop, // 36
+			& unimplemented, // 37
+			& unimplemented, // 38
+			& unimplemented, // 39
+			& unimplemented, // 40
+			& unimplemented, // 41
+			& unimplemented, // 42
+			& unimplemented, // 43
+			& unimplemented, // 44
+			& unimplemented, // 45
+			& unimplemented, // 46
+			& unimplemented, // 47
+			& unimplemented, // 48
+			& unimplemented, // 49
+			& unimplemented, // 50
+			& unimplemented, // 51
+			& unimplemented, // 52
+			& unimplemented, // 53
+			& unimplemented, // 54
+			& unimplemented, // 55
+			& unimplemented, // 56
+			& unimplemented, // 57
+			& unimplemented, // 58
+			& unimplemented, // 59
+			& unimplemented, // 60
+			& unimplemented, // 61
+			& unimplemented, // 62
+			& unimplemented, // 63
 		};
 
 		// A list of functions that are other types then rtypes. 
 		// Index by their opcode.
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_otypes[64] = {
-			& EmulatedCPU::unimplemented, // 0
-			& EmulatedCPU::unimplemented, // 1
-			& EmulatedCPU::unimplemented, // 2
-			& EmulatedCPU::unimplemented, // 3
-			& EmulatedCPU::beq, // 4
-			& EmulatedCPU::unimplemented, // 5
-			& EmulatedCPU::unimplemented, // 6
-			& EmulatedCPU::unimplemented, // 7
-			& EmulatedCPU::addi, // 8
-			& EmulatedCPU::addiu, // 9
-			& EmulatedCPU::unimplemented, // 10
-			& EmulatedCPU::unimplemented, // 11
-			& EmulatedCPU::andi, // 12
-			& EmulatedCPU::unimplemented, // 13
-			& EmulatedCPU::unimplemented, // 14
-			& EmulatedCPU::unimplemented, // 15
-			& EmulatedCPU::unimplemented, // 16
-			& EmulatedCPU::unimplemented, // 17
-			& EmulatedCPU::unimplemented, // 18
-			& EmulatedCPU::unimplemented, // 19
-			& EmulatedCPU::unimplemented, // 20
-			& EmulatedCPU::unimplemented, // 21
-			& EmulatedCPU::unimplemented, // 22
-			& EmulatedCPU::unimplemented, // 23
-			& EmulatedCPU::unimplemented, // 24
-			& EmulatedCPU::unimplemented, // 25
-			& EmulatedCPU::unimplemented, // 26
-			& EmulatedCPU::unimplemented, // 27
-			& EmulatedCPU::unimplemented, // 28
-			& EmulatedCPU::unimplemented, // 29
-			& EmulatedCPU::unimplemented, // 30
-			& EmulatedCPU::unimplemented, // 31
-			& EmulatedCPU::unimplemented, // 32
-			& EmulatedCPU::unimplemented, // 33
-			& EmulatedCPU::unimplemented, // 34
-			& EmulatedCPU::unimplemented, // 35
-			& EmulatedCPU::unimplemented, // 36
-			& EmulatedCPU::unimplemented, // 37
-			& EmulatedCPU::unimplemented, // 38
-			& EmulatedCPU::unimplemented, // 39
-			& EmulatedCPU::unimplemented, // 40
-			& EmulatedCPU::unimplemented, // 41
-			& EmulatedCPU::unimplemented, // 42
-			& EmulatedCPU::unimplemented, // 43
-			& EmulatedCPU::unimplemented, // 44
-			& EmulatedCPU::unimplemented, // 45
-			& EmulatedCPU::unimplemented, // 46
-			& EmulatedCPU::unimplemented, // 47
-			& EmulatedCPU::unimplemented, // 48
-			& EmulatedCPU::unimplemented, // 49
-			& EmulatedCPU::unimplemented, // 50
-			& EmulatedCPU::unimplemented, // 51
-			& EmulatedCPU::unimplemented, // 52
-			& EmulatedCPU::unimplemented, // 53
-			& EmulatedCPU::unimplemented, // 54
-			& EmulatedCPU::unimplemented, // 55
-			& EmulatedCPU::unimplemented, // 56
-			& EmulatedCPU::unimplemented, // 57
-			& EmulatedCPU::unimplemented, // 58
-			& EmulatedCPU::unimplemented, // 59
-			& EmulatedCPU::unimplemented, // 60
-			& EmulatedCPU::unimplemented, // 61
-			& EmulatedCPU::unimplemented, // 62
-			& EmulatedCPU::unimplemented, // 63
+		const funct inst_handlers_otypes[64] = {
+			& unimplemented, // 0
+			& unimplemented, // 1
+			& unimplemented, // 2
+			& unimplemented, // 3
+			& beq, // 4
+			& unimplemented, // 5
+			& unimplemented, // 6
+			& unimplemented, // 7
+			& addi, // 8
+			& addiu, // 9
+			& unimplemented, // 10
+			& unimplemented, // 11
+			& andi, // 12
+			& unimplemented, // 13
+			& unimplemented, // 14
+			& unimplemented, // 15
+			& unimplemented, // 16
+			& unimplemented, // 17
+			& unimplemented, // 18
+			& unimplemented, // 19
+			& unimplemented, // 20
+			& unimplemented, // 21
+			& unimplemented, // 22
+			& unimplemented, // 23
+			& unimplemented, // 24
+			& unimplemented, // 25
+			& unimplemented, // 26
+			& unimplemented, // 27
+			& unimplemented, // 28
+			& unimplemented, // 29
+			& unimplemented, // 30
+			& unimplemented, // 31
+			& unimplemented, // 32
+			& unimplemented, // 33
+			& unimplemented, // 34
+			& unimplemented, // 35
+			& unimplemented, // 36
+			& unimplemented, // 37
+			& unimplemented, // 38
+			& unimplemented, // 39
+			& unimplemented, // 40
+			& unimplemented, // 41
+			& unimplemented, // 42
+			& unimplemented, // 43
+			& unimplemented, // 44
+			& unimplemented, // 45
+			& unimplemented, // 46
+			& unimplemented, // 47
+			& unimplemented, // 48
+			& unimplemented, // 49
+			& unimplemented, // 50
+			& unimplemented, // 51
+			& unimplemented, // 52
+			& unimplemented, // 53
+			& unimplemented, // 54
+			& unimplemented, // 55
+			& unimplemented, // 56
+			& unimplemented, // 57
+			& unimplemented, // 58
+			& unimplemented, // 59
+			& unimplemented, // 60
+			& unimplemented, // 61
+			& unimplemented, // 62
+			& unimplemented, // 63
 		};
 
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_regimm[32] = {
-			&EmulatedCPU::bltz, // 0
-			&EmulatedCPU::bgez, // 1
-			&EmulatedCPU::bltzl, // 2
-			&EmulatedCPU::bgezl, // 3
-			&EmulatedCPU::unimplemented, // 4
-			&EmulatedCPU::unimplemented, // 5
-			&EmulatedCPU::unimplemented, // 6
-			&EmulatedCPU::unimplemented, // 7
-			&EmulatedCPU::tgei, // 8
-			&EmulatedCPU::tgeiu, // 9
-			&EmulatedCPU::tlti, // 10
-			&EmulatedCPU::tltiu, // 11
-			&EmulatedCPU::teqi, // 12
-			&EmulatedCPU::unimplemented, // 13
-			&EmulatedCPU::tnei, // 14
-			&EmulatedCPU::unimplemented, // 15
-			&EmulatedCPU::bltzal, // 16
-			&EmulatedCPU::bgezal, // 17
-			&EmulatedCPU::bltzall, // 18
-			&EmulatedCPU::bgezall, // 19
-			&EmulatedCPU::unimplemented, // 20
-			&EmulatedCPU::unimplemented, // 21
-			&EmulatedCPU::unimplemented, // 22
-			&EmulatedCPU::unimplemented, // 23
-			&EmulatedCPU::unimplemented, // 24
-			&EmulatedCPU::unimplemented, // 25
-			&EmulatedCPU::unimplemented, // 26
-			&EmulatedCPU::unimplemented, // 27
-			&EmulatedCPU::unimplemented, // 28
-			&EmulatedCPU::unimplemented, // 29
-			&EmulatedCPU::unimplemented, // 30
-			&EmulatedCPU::unimplemented, // 31
+		const funct inst_handlers_regimm[32] = {
+			&bltz, // 0
+			&bgez, // 1
+			&bltzl, // 2
+			&bgezl, // 3
+			&unimplemented, // 4
+			&unimplemented, // 5
+			&unimplemented, // 6
+			&unimplemented, // 7
+			&tgei, // 8
+			&tgeiu, // 9
+			&tlti, // 10
+			&tltiu, // 11
+			&teqi, // 12
+			&unimplemented, // 13
+			&tnei, // 14
+			&unimplemented, // 15
+			&bltzal, // 16
+			&bgezal, // 17
+			&bltzall, // 18
+			&bgezall, // 19
+			&unimplemented, // 20
+			&unimplemented, // 21
+			&unimplemented, // 22
+			&unimplemented, // 23
+			&unimplemented, // 24
+			&unimplemented, // 25
+			&unimplemented, // 26
+			&unimplemented, // 27
+			&unimplemented, // 28
+			&unimplemented, // 29
+			&unimplemented, // 30
+			&unimplemented, // 31
 		};
 
 		//registers and instruction fields
@@ -316,18 +316,18 @@ class EmulatedCPU
 		}
 
 		// TODO: Rose and Sean 
-		uint32_t EmulatedCPU::getInstruction(int PC) {
+		uint32_t getInstruction(int PC) {
 			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 			// and return it.
-			EmulatedCPU::unimplemented(0x0);
+			unimplemented(0x0);
 			return 0;
 		}
-		uint32_t EmulatedCPU::getNextInstruction() {
+		uint32_t getNextInstruction() {
 			return getInstruction(pc + 4);
 		}
 
 
-		void EmulatedCPU::unimplemented(uint32_t opcode)
+		void unimplemented(uint32_t opcode)
 		{
 			printf("\n\nPLEASE HELP ME YOU CALLED AN UNIMPLEMEND HANDLER\n\n");
 			printf("TIME TO DIE");
@@ -338,7 +338,7 @@ class EmulatedCPU
 
 		// Takes in a program counter that is the entry point.
 		// Unused.
-		void EmulatedCPU::runEmulation(int entryPoint)
+		void runEmulation(int entryPoint)
 		{
 			pc = entryPoint;
 			// Get the first instruction, execute it, increment by 1, and so forth.
@@ -373,7 +373,7 @@ class EmulatedCPU
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
 		// TODO: Test with negative values.
-		void EmulatedCPU::add(uint32_t opcode)
+		void add(uint32_t opcode)
 		{
 
 			if(mipsTarget < 1)
@@ -396,7 +396,7 @@ class EmulatedCPU
 			gpr[rd] = temp;
 
 		}
-		void EmulatedCPU::addi(uint32_t opcode)
+		void addi(uint32_t opcode)
 		{
 
 			if (mipsTarget < 1)
@@ -422,7 +422,7 @@ class EmulatedCPU
 			gpr[rt] = temp;
 
 		}
-		void EmulatedCPU::addiu(uint32_t opcode)
+		void addiu(uint32_t opcode)
 		{
 
 			if (mipsTarget < 1)
@@ -442,7 +442,7 @@ class EmulatedCPU
 			gpr[rt] = temp;
 
 		}
-		void EmulatedCPU::addu(uint32_t opcode)
+		void addu(uint32_t opcode)
 		{
 			if (mipsTarget < 1)
 			{
@@ -458,7 +458,7 @@ class EmulatedCPU
 				temp &= 0xffffffff;
 			gpr[rd] = temp;
 		}
-		void EmulatedCPU::andop(uint32_t opcode)
+		void andop(uint32_t opcode)
 		{
 			if (mipsTarget < 1)
 			{
@@ -471,7 +471,7 @@ class EmulatedCPU
 			}
 			gpr[rd] = gpr[rs] & gpr[rt];
 		}
-		void EmulatedCPU::andi(uint32_t instruction)
+		void andi(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -485,7 +485,7 @@ class EmulatedCPU
 			gpr[rt] = gpr[rs] & immediate;
 		}
 		
-		void EmulatedCPU::beq(uint32_t instruction)
+		void beq(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -513,7 +513,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::beql(uint32_t instruction)
+		void beql(uint32_t instruction)
 		{
 			// For this, simply execute the next instruction with the EmulatedCPU and the target address.
 			// Then we do the branch.
@@ -547,7 +547,7 @@ class EmulatedCPU
 
 
 		}
-		void EmulatedCPU::bgez(uint32_t instruction)
+		void bgez(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -571,7 +571,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bgezal(uint32_t instruction)
+		void bgezal(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -597,7 +597,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bgezall (uint32_t instruction)
+		void bgezall (uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -628,7 +628,7 @@ class EmulatedCPU
 				instructionNullify = true;
 			}
 		}
-		void EmulatedCPU::bgezl(uint32_t instruction)
+		void bgezl(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -655,7 +655,7 @@ class EmulatedCPU
 			}
 
 		}
-		void EmulatedCPU::bgtz(uint32_t instruction)
+		void bgtz(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -678,7 +678,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bgtzl(uint32_t instruction)
+		void bgtzl(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -704,7 +704,7 @@ class EmulatedCPU
 				instructionNullify = true;
 			}
 		}
-		void EmulatedCPU::blez(uint32_t instruction)
+		void blez(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -727,7 +727,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::blezl(uint32_t instruction)
+		void blezl(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -754,7 +754,7 @@ class EmulatedCPU
 				instructionNullify = true;
 			}
 		}
-		void EmulatedCPU::bltz(uint32_t instruction)
+		void bltz(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -777,7 +777,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bltzal(uint32_t instruction)
+		void bltzal(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -801,7 +801,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bltzall(uint32_t instruction)
+		void bltzall(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -828,7 +828,7 @@ class EmulatedCPU
 				instructionNullify = true;
 			}
 		}
-		void EmulatedCPU::bltzl(uint32_t instruction)
+		void bltzl(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -854,7 +854,7 @@ class EmulatedCPU
 				instructionNullify = true;
 			}
 		}
-		void EmulatedCPU::bne(uint32_t instruction)
+		void bne(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -877,7 +877,7 @@ class EmulatedCPU
 				tgt_offset = extendedImmediate;
 			}
 		}
-		void EmulatedCPU::bnel(uint32_t instruction)
+		void bnel(uint32_t instruction)
 		{
 			if (mipsTarget < 2)
 			{
@@ -904,20 +904,20 @@ class EmulatedCPU
 			}
 		}
 		// break_ because break is a C++ reserved word
-		void EmulatedCPU::break_(uint32_t instruction)
+		void break_(uint32_t instruction)
 		{
 			printf("Called Break!\n");
 			unimplemented(instruction);
 		}
 		// Co Processor Operation (should be unimplemented I think)
-		void EmulatedCPU::copz(uint32_t instruction)
+		void copz(uint32_t instruction)
 		{
 			printf("Called COPz!\n");
 			unimplemented(instruction);
 		}
 		// MIPS III
 		// Assigned to Rose.
-		void EmulatedCPU::dadd(uint32_t instruction)
+		void dadd(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -941,7 +941,7 @@ class EmulatedCPU
 		}
 
 		// MIPS III
-		void EmulatedCPU::daddi(uint32_t instruction)
+		void daddi(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -967,7 +967,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::daddiu(uint32_t opcode)
+		void daddiu(uint32_t opcode)
 		{
 
 			if (mipsTarget < 3)
@@ -987,7 +987,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::daddu(uint32_t opcode)
+		void daddu(uint32_t opcode)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1004,7 +1004,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::ddiv(uint32_t instruction)
+		void ddiv(uint32_t instruction)
 		{
 			
 			if (mipsTarget < 3)
@@ -1027,7 +1027,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::ddivu(uint32_t instruction)
+		void ddivu(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1050,7 +1050,7 @@ class EmulatedCPU
 
 
 		// MIPS 1
-		void EmulatedCPU::div(uint32_t instruction)
+		void div(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1080,7 +1080,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::divu(uint32_t instruction)
+		void divu(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1110,7 +1110,7 @@ class EmulatedCPU
 			return;
 		}
 		// MIPS III
-		void EmulatedCPU::dmult(uint32_t instruction)
+		void dmult(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1154,7 +1154,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dmultu(uint32_t instruction)
+		void dmultu(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1187,7 +1187,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsll(uint32_t instruction)
+		void dsll(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1202,7 +1202,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsll32(uint32_t instruction)
+		void dsll32(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1217,7 +1217,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsllv(uint32_t instruction)
+		void dsllv(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1232,7 +1232,7 @@ class EmulatedCPU
 		}
 		
 		//MIPS III
-		void EmulatedCPU::dsra(uint32_t instruction)
+		void dsra(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1248,7 +1248,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsra32(uint32_t instruction)
+		void dsra32(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1264,7 +1264,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsrav(uint32_t instruction)
+		void dsrav(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1280,7 +1280,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsrl(uint32_t instruction)
+		void dsrl(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1295,7 +1295,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsrl32(uint32_t instruction)
+		void dsrl32(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1310,7 +1310,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsrlv(uint32_t instruction)
+		void dsrlv(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1325,7 +1325,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsub(uint32_t instruction)
+		void dsub(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1349,7 +1349,7 @@ class EmulatedCPU
 		}
 
 		//MIPS III
-		void EmulatedCPU::dsubu(uint32_t instruction)
+		void dsubu(uint32_t instruction)
 		{
 			if (mipsTarget < 3)
 			{
@@ -1365,7 +1365,7 @@ class EmulatedCPU
 		}
 		// Jumps
 		//MIPS I
-		void EmulatedCPU::j(uint32_t instruction)
+		void j(uint32_t instruction)
 		{
 			uint64_t instr_index = (instruction & 0x3fffff) << 2;
 
@@ -1387,7 +1387,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::jal(uint32_t instruction)
+		void jal(uint32_t instruction)
 		{
 
 			uint64_t instr_index = (instruction & 0x3fffff) << 2;
@@ -1412,7 +1412,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::jalr(uint32_t instruction)
+		void jalr(uint32_t instruction)
 		{
 
 			if (mipsTarget < 1)
@@ -1437,7 +1437,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::jr(uint32_t instruction)
+		void jr(uint32_t instruction)
 		{
 
 			if (mipsTarget < 1)
@@ -1457,60 +1457,60 @@ class EmulatedCPU
 
 			pc = temp;
 		}
-		void EmulatedCPU::lb(uint32_t instruction)
+		void lb(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::lbu(uint32_t instruction)
+		void lbu(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::LD(uint32_t instruction)
+		void LD(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2, likely going to be unimplemented
-		void EmulatedCPU::LDCz(uint32_t instruction)
+		void LDCz(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::LDL(uint32_t instruction)
+		void LDL(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::LDR(uint32_t instruction)
+		void LDR(uint32_t instruction)
 		{
 
 		}
 		// MIPS 1
-		void EmulatedCPU::lh(uint32_t instruction)
+		void lh(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::lhu(uint32_t instruction)
+		void lhu(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2
-		void EmulatedCPU::LL(uint32_t instruction)
+		void LL(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::LLD(uint32_t instruction)
+		void LLD(uint32_t instruction)
 		{
 
 		}
 		// MIPS 1
-		void EmulatedCPU::lui(uint32_t instruction)
+		void lui(uint32_t instruction)
 		{
 
 		}
 
 		//MIPS I
-		void EmulatedCPU::lw(uint32_t instruction)
+		void lw(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1539,26 +1539,26 @@ class EmulatedCPU
 
 		}
 		// Likely to be unimplemented
-		void EmulatedCPU::lwcz(uint32_t instruction)
+		void lwcz(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::lwl(uint32_t instruction)
+		void lwl(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::lwr(uint32_t instruction)
+		void lwr(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::LWU(uint32_t instruction)
+		void LWU(uint32_t instruction)
 		{
 
 		}
 
 		// MIPS 1
-		void EmulatedCPU::mfhi(uint32_t instruction)
+		void mfhi(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1573,7 +1573,7 @@ class EmulatedCPU
 
 			gpr[rd] = HI;
 		}
-		void EmulatedCPU::mflo(uint32_t instruction)
+		void mflo(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1589,7 +1589,7 @@ class EmulatedCPU
 			gpr[rd] = LO;
 		}
 		// MIPS 4
-		void EmulatedCPU::MOVN(uint32_t instruction)
+		void MOVN(uint32_t instruction)
 		{
 
 			if (mipsTarget < 4)
@@ -1610,7 +1610,7 @@ class EmulatedCPU
 		}
 
 		//MIPS IV
-		void EmulatedCPU::MOVZ(uint32_t instruction)
+		void MOVZ(uint32_t instruction)
 		{
 			if (mipsTarget < 4)
 			{
@@ -1629,7 +1629,7 @@ class EmulatedCPU
 			}
 		}
 		// MIPS 1
-		void EmulatedCPU::mthi(uint32_t instruction)
+		void mthi(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1646,7 +1646,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::mtlo(uint32_t instruction)
+		void mtlo(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1663,7 +1663,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::mult(uint32_t instruction)
+		void mult(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1696,7 +1696,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::multu(uint32_t instruction)
+		void multu(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1725,7 +1725,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::nor(uint32_t instruction)
+		void nor(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1742,7 +1742,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::orop(uint32_t instruction)
+		void orop(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1759,7 +1759,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::ori(uint32_t instruction)
+		void ori(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1776,51 +1776,51 @@ class EmulatedCPU
 			gpr[rt] = extended | gpr[rs];
 		}
 		// MIPS 4
-		void EmulatedCPU::PERF(uint32_t instruction)
+		void PERF(uint32_t instruction)
 		{
 
 		}
 		// MIPS 1
-		void EmulatedCPU::sb(uint32_t instruction)
+		void sb(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2
-		void EmulatedCPU::SC(uint32_t instruction)
+		void SC(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::SCD(uint32_t instruction)
+		void SCD(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::SD(uint32_t instruction)
+		void SD(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2
-		void EmulatedCPU::SDCz(uint32_t instruction)
+		void SDCz(uint32_t instruction)
 		{
 
 		}
 		// MIPS 3
-		void EmulatedCPU::SDL(uint32_t instruction)
+		void SDL(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::SDR(uint32_t instruction)
+		void SDR(uint32_t instruction)
 		{
 
 		}
 		// MIPS 1
-		void EmulatedCPU::sh(uint32_t instruction)
+		void sh(uint32_t instruction)
 		{
 
 		}
 
 		//MIPS I
-		void EmulatedCPU::sll(uint32_t instruction)
+		void sll(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1837,7 +1837,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::sllv(uint32_t instruction)
+		void sllv(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1854,7 +1854,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::slt(uint32_t instruction)
+		void slt(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1871,7 +1871,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::slti(uint32_t instruction)
+		void slti(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1890,7 +1890,7 @@ class EmulatedCPU
 
 		//MIPS I
 		//@might not be how casting works.
-		void EmulatedCPU::sltui(uint32_t instruction)
+		void sltui(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1920,7 +1920,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::sltu(uint32_t instruction)
+		void sltu(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1936,7 +1936,7 @@ class EmulatedCPU
 			uint64_t a = gpr[rs], b = gpr[rt];
 			gpr[rd] = a < b;
 		}
-		void EmulatedCPU::sra(uint32_t instruction)
+		void sra(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1961,7 +1961,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::srav(uint32_t instruction)
+		void srav(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -1984,7 +1984,7 @@ class EmulatedCPU
 				gpr[rd] &= 0xffffffff;
 			}
 		}
-		void EmulatedCPU::srl(uint32_t instruction)
+		void srl(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2001,7 +2001,7 @@ class EmulatedCPU
 			hold >>= sa;
 			gpr[rd] = hold;
 		}
-		void EmulatedCPU::srlv(uint32_t instruction)
+		void srlv(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2020,7 +2020,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::sub(uint32_t instruction)
+		void sub(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2041,7 +2041,7 @@ class EmulatedCPU
 
 			gpr[rd] = temp;
 		}
-		void EmulatedCPU::subu(uint32_t instruction)
+		void subu(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2057,88 +2057,88 @@ class EmulatedCPU
 				temp &= 0xffffffff;
 			gpr[rd] = temp;
 		}
-		void EmulatedCPU::sw(uint32_t instruction)
+		void sw(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::swcz(uint32_t instruction)
+		void swcz(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::swl(uint32_t instruction)
+		void swl(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::swr(uint32_t instruction)
+		void swr(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2
-		void EmulatedCPU::SYNC(uint32_t instruction)
+		void SYNC(uint32_t instruction)
 		{
 
 		}
 		// MIPS 1
-		void EmulatedCPU::syscall(uint32_t instruction)
+		void syscall(uint32_t instruction)
 		{
 
 		}
 		// MIPS 2
-		void EmulatedCPU::teq(uint32_t instruction)
+		void teq(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::teqi(uint32_t instruction)
+		void teqi(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tge(uint32_t instruction)
+		void tge(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tgei(uint32_t instruction)
+		void tgei(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tgeiu(uint32_t instruction)
+		void tgeiu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tgeu(uint32_t instruction)
+		void tgeu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tlt(uint32_t instruction)
+		void tlt(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tlti(uint32_t instruction)
+		void tlti(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tltiu(uint32_t instruction)
+		void tltiu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tltui(uint32_t instruction)
+		void tltui(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tltu(uint32_t instruction)
+		void tltu(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tne(uint32_t instruction)
+		void tne(uint32_t instruction)
 		{
 
 		}
-		void EmulatedCPU::tnei(uint32_t instruction)
+		void tnei(uint32_t instruction)
 		{
 
 		}
 
 		//MIPS 1
-		void EmulatedCPU::xorop(uint32_t instruction)
+		void xorop(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2155,7 +2155,7 @@ class EmulatedCPU
 		}
 
 		//MIPS I
-		void EmulatedCPU::xori(uint32_t instruction)
+		void xori(uint32_t instruction)
 		{
 			if (mipsTarget < 1)
 			{
@@ -2297,7 +2297,7 @@ class EmulatedCPU
 		}
 };
 
-static string EmulatedCPU::GetPluginsDirectory()
+string GetPluginsDirectory()
 {
         return "C:\\Program Files\\Vector35\\BinaryNinja\\plugins\\";
 }

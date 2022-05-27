@@ -9,6 +9,7 @@
 
 #include "mmu.h"
 #include "../binja.h"
+#include "../emulator.cpp"
 
 #define BLOCKWIDTH 1024
 
@@ -26,7 +27,7 @@ void generallyPause();
 
 MMU::MMU(bool is64bit, EmulatedCPU rock)
 {
-	bv = binview;
+	bv = NULL;
 	auto buttsegs = bv->GetSegments();
 	segments = ArrayList<segment>(buttsegs.size());
 	this->is64Bit = is64bit;

@@ -283,7 +283,7 @@ class EmulatedCPU
 		
 
 
-		EmulatedCPU(bool is64bit, auto bv)
+		EmulatedCPU(bool is64bit, BinaryView bv)
 		{
 			int i;
 			pc = 0;

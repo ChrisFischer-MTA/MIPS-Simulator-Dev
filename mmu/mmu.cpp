@@ -66,6 +66,7 @@ MMU::MMU(bool is64bit, BinaryView* binview)
 
 		
 }
+
 MMU::MMU()
 {
 

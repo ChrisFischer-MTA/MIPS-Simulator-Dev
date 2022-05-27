@@ -178,6 +178,10 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 
 		}
 	}
+
+	// It is possible to reach this point so we need to return some value, however I dont believe it should be NULL
+	// Chris and Rose I will need your help on a more permanent solution for this - Sean
+	return NULL;
 }
 
 void MMU::store(uint64_t address, void* data, int datalength)

@@ -179,6 +179,7 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 		}
 	}
 }
+
 void MMU::store(uint64_t address, void* data, int datalength)
 {
 

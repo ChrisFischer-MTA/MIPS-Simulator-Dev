@@ -51,7 +51,7 @@ MMU::MMU(bool is64bit, BinaryView* binview)
 		allSections[i] =
 			section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH);
 			
-			
+		allSections[i].parent = parent;	
 
 	}
 	//sort sections
@@ -60,7 +60,7 @@ MMU::MMU(bool is64bit, BinaryView* binview)
 	for (int i = 0;i < allSections.size;i++)
 	{
 		//couple segment and section
-		parent.sections.add(allSections[i]);
+		allSections[i].parent.sections.add(allSections[i]);
 	}
 			
 

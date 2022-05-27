@@ -22,6 +22,8 @@ using namespace std;
 #define X 1
 
 
+void generallyPause();
+
 MMU::MMU(bool is64bit, BinaryView* binview)
 {
 	bv = binview;
@@ -183,9 +185,9 @@ void MMU::store(uint64_t address, void* data, int datalength)
 }
 
 void generallyPause()
-		{
-			while (1)
-			{
-				// do nothing
-			}
-		}
+{
+	while (1)
+	{
+		// do nothing
+	}
+}

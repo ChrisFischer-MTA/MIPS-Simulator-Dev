@@ -10,9 +10,6 @@
 #include "mmu.h"
 #include "../binja.h"
 
-
-
-
 #define BLOCKWIDTH 1024
 
 using namespace std;
@@ -20,6 +17,9 @@ using namespace std;
 #define R 4
 #define W 2
 #define X 1
+
+const short int IntegerOverflow = 1;
+const short int MemoryFault = 2;
 
 
 void generallyPause();

@@ -886,7 +886,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printf("bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			
 			int32_t extendedImmediate = signedImmediate;
@@ -1128,7 +1128,7 @@ class EmulatedCPU
 			uint64_t ptr = 0;
 			while (count != 0)
 			{
-				printf("A: %.16llx, Q: %.16llx\n", A, Q);
+				printf("A: %.16lx, Q: %.16lx\n", A, Q);
 				if ((Q & 1) && !Qinv)
 				{
 					A = A - M;
@@ -1142,11 +1142,11 @@ class EmulatedCPU
 
 				ptr = A & 1;
 				ptr <<= 63;
-				printf("a%2: %llx\n", ptr);
+				printf("a%2: %lx\n", ptr);
 				Q |= ptr;
-				printf("A:%llx\n", A);
+				printf("A:%lx\n", A);
 				A >>= 1;
-				printf("A:%llx\n", A);
+				printf("A:%lx\n", A);
 				count--;
 			}
 			HI = A;

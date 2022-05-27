@@ -280,6 +280,7 @@ class EmulatedCPU
 
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
+		BinaryView* bv;
 		
 
 

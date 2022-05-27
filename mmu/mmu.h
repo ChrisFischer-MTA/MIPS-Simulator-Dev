@@ -12,31 +12,7 @@
 
 using namespace std;
 
-class section;
-
-class segment
-{
-public:
-	//Meta
-	uint64_t start, end;
-	int length;
-	char permissions;
-	bool readable;
-	bool writable;
-	bool executable;
-	uint64_t ID;
-
-	//Data
-	ArrayList<section> sections;
-	section operator [](int i) const { return sections[i]; }
-	section& operator [](int i) { return sections[i]; }
-	void setPerms(char permissions)
-	{
-		readable = (permissions >> 2) & 1;
-		writable = (permissions >> 1) & 1;
-		executable = permissions & 1;
-	}
-};
+class segment;
 
 //permissions 00000rwx
 class section
@@ -83,6 +59,30 @@ public:
 	}
 
 	friend bool operator<(const section& lhs, const section& rhs) { return lhs.start < rhs.start; }
+};
+
+class segment
+{
+public:
+	//Meta
+	uint64_t start, end;
+	int length;
+	char permissions;
+	bool readable;
+	bool writable;
+	bool executable;
+	uint64_t ID;
+
+	//Data
+	ArrayList<section> sections;
+	section operator [](int i) const { return sections[i]; }
+	section& operator [](int i) { return sections[i]; }
+	void setPerms(char permissions)
+	{
+		readable = (permissions >> 2) & 1;
+		writable = (permissions >> 1) & 1;
+		executable = permissions & 1;
+	}
 };
 
 class MMU

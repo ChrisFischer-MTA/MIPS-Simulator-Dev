@@ -2297,7 +2297,7 @@ class EmulatedCPU
 		}
 };
 
-static string EmulatedCPU::GetPluginsDirectory()
+static string GetPluginsDirectory()
 {
         return "C:\\Program Files\\Vector35\\BinaryNinja\\plugins\\";
 }
@@ -2308,7 +2308,7 @@ int main(int argn, char ** args)
 	SetBundledPluginDirectory(GetPluginsDirectory());
     InitPlugins();
 
-	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), argv[1]);
+	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), argn[1]);
 	Ref<BinaryView> bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
@@ -2329,7 +2329,7 @@ int main(int argn, char ** args)
 
 
 
-	EmulatedCPU* electricrock = new EmulatedCPU(is64bit, bv);
+	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	printf("%d %s\n", 31, electricrock->getName(31).c_str());
 
 	int32_t immediate = -4;

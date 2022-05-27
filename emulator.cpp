@@ -89,7 +89,7 @@ class EmulatedCPU
 		
 		// A list of functions that are rtypes index by their ALU code.
 		// Indexed by their ALU code.
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_rtypes[64] = {
+		const EmulatedCPU::funct inst_handlers_rtypes[64] = {
 			& EmulatedCPU::unimplemented, // 0
 			& EmulatedCPU::unimplemented, // 1
 			& EmulatedCPU::unimplemented, // 2
@@ -158,7 +158,7 @@ class EmulatedCPU
 
 		// A list of functions that are other types then rtypes. 
 		// Index by their opcode.
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_otypes[64] = {
+		const EmulatedCPU::funct inst_handlers_otypes[64] = {
 			& EmulatedCPU::unimplemented, // 0
 			& EmulatedCPU::unimplemented, // 1
 			& EmulatedCPU::unimplemented, // 2
@@ -225,7 +225,7 @@ class EmulatedCPU
 			& EmulatedCPU::unimplemented, // 63
 		};
 
-		const EmulatedCPU::funct EmulatedCPU::inst_handlers_regimm[32] = {
+		const EmulatedCPU::funct inst_handlers_regimm[32] = {
 			&EmulatedCPU::bltz, // 0
 			&EmulatedCPU::bgez, // 1
 			&EmulatedCPU::bltzl, // 2
@@ -316,7 +316,7 @@ class EmulatedCPU
 		}
 
 		// TODO: Rose and Sean 
-		uint32_t EmulatedCPU::getInstruction(int PC) {
+		uint32_t getInstruction(int PC) {
 			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 			// and return it.
 			EmulatedCPU::unimplemented(0x0);

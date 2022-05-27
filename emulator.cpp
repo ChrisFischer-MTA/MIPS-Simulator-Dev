@@ -736,7 +736,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("BLEZL %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("BLEZL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -763,7 +763,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bltz %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("bltz %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -786,7 +786,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -810,7 +810,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bltzal %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -837,7 +837,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bltzl %s, %llx\n", getName(rs).c_str(), signedImmediate);
+				printf("bltzl %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -863,7 +863,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("bne %s, %s, %llx\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printf("bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1142,7 +1142,6 @@ class EmulatedCPU
 
 				ptr = A & 1;
 				ptr <<= 63;
-				printf("a%2: %lx\n", ptr);
 				Q |= ptr;
 				printf("A:%lx\n", A);
 				A >>= 1;
@@ -2287,7 +2286,7 @@ class EmulatedCPU
 			// If the upper 26-31 bits are set to one, then, we have a REGIMM instruction
 			else if ((instruction & 0xfc000000) == 1)
 			{
-				printf("");
+				printf(" ");
 			}
 			else
 			{

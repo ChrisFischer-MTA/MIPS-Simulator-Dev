@@ -283,7 +283,7 @@ class EmulatedCPU
 		
 
 
-		EmulatedCPU(bool is64bit, BinaryView bv)
+		EmulatedCPU(bool is64bit, auto bv)
 		{
 			int i;
 			pc = 0;
@@ -2308,7 +2308,7 @@ int main(int argn, char ** args)
 	SetBundledPluginDirectory(GetPluginsDirectory());
     InitPlugins();
 
-	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), argn[1]);
+	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{

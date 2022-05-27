@@ -143,14 +143,14 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 						{
 							//token[depth] = binja.access(token.start + depth*width, width);
 							if (bv->Read(token.array[depth], address - blockOffset, token.width) != token.width)
-								emulator->generallyPause();
+								generallyPause();
 							token.initialized[depth] = true;
 
 						}
 						if (blockOffset + numBytes > token.width)
 						{
 							printf("something weird happened\n");
-							emulator->generallyPause();
+							generallyPause();
 						}
 
 						return token.array[depth] + blockOffset;
@@ -164,7 +164,7 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 
 						//if(num bytes read by Read() != numBytes)
 						if (bv->Read(out, address, numBytes) != numBytes)
-							emulator->generallyPause();
+							generallyPause();
 						return out;
 					}
 				}
@@ -181,3 +181,11 @@ void MMU::store(uint64_t address, void* data, int datalength)
 {
 
 }
+
+void generallyPause()
+		{
+			while (1)
+			{
+				// do nothing
+			}
+		}

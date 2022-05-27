@@ -9,7 +9,6 @@
 
 #include "mmu.h"
 #include "../binja.h"
-#include "../emulator.cpp"
 
 #define BLOCKWIDTH 1024
 

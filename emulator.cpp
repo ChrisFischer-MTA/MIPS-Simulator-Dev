@@ -325,7 +325,7 @@ class EmulatedCPU
 			
 			// Get opcode from binja from address
 			size_t numBytesRead;
-			unsigned char* bytes = (unsigned char*)malloc((sizeof char) * 4);
+			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
 			numBytesRead = bv->Read(bytes, address, 4);
 
 			// Not sure why this was here

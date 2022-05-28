@@ -39,7 +39,9 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		segments[i].setPerms(flags & 7);
 		segments[i].permissions = flags;
 		segments[i].ID = 0;
-		vector<section> v(5,0);
+
+		// Rose I need help
+		vector<section> v(5,section());
 		segments[i].sections = v;
 	}
 

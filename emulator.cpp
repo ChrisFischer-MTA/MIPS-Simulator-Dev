@@ -2331,8 +2331,21 @@ int main(int argn, char ** args)
 	
 	bv->UpdateAnalysisAndWait();
 
+	// Testing Binja integration
+	printf("\nSections\n");
+	printf("Name\t\t\tStart-Finish\t\t\tPerms\tNotes\n");
 
-	MMU* mmu = new MMU(false, bv);
+	for (auto& sec : bv->GetSections())
+	{
+		printf("%s\t\t\t0x%08lx-0x%08lx\t\t\t%d\t%s\n", 
+			sec->GetName().c_str(), sec->GetStart(), 
+			sec->GetStart()+sec->GetLength(), sec->GetSemantics(), 
+			sec->GetType().c_str())
+	}
+
+
+
+	//MMU* mmu = new MMU(false, bv);
 
 	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

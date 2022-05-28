@@ -67,7 +67,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 	}
 			
 
-		*/f
+		*/
 }
 
 MMU::MMU()

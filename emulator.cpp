@@ -2326,12 +2326,7 @@ int main(int argn, char ** args)
 	
 	bv->UpdateAnalysisAndWait();
 
-<<<<<<< HEAD
 	//MMU* mmu = new MMU(false, bv);
-=======
-
-	//MMU* test = new MMU(false, bv);
->>>>>>> 1f39ecdafd47396874f4be9bfaed8c150ec47823
 
 	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

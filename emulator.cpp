@@ -2340,7 +2340,7 @@ int main(int argn, char ** args)
 		printf("%s\t\t\t0x%08lx-0x%08lx\t\t\t%d\t%s\n", 
 			sec->GetName().c_str(), sec->GetStart(), 
 			sec->GetStart()+sec->GetLength(), sec->GetSemantics(), 
-			sec->GetType().c_str())
+			sec->GetType().c_str());
 	}
 
 

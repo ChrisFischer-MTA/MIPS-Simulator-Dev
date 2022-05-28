@@ -319,13 +319,13 @@ class EmulatedCPU
 		// TODO: Rose and Sean
 		// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 		// and return it. 
-		uint32_t getInstruction(int PC) {
+		unsigned char* getInstruction(int PC) {
 			// Make PC a memory address (THIS SHOULD EVENTUALLY BE A CONVERSION FROM PC int TO AN ADDRESS OF MEMORY)
 			uint64_t address = (uint64_t)PC;
 			
 			// Get opcode from binja from address
 			size_t numBytesRead;
-			uint32_t bytes;
+			unsigned char* bytes = (unsigned char*)malloc((sizeof char) * 4);
 			numBytesRead = bv->Read(bytes, address, 4);
 
 			// Not sure why this was here
@@ -2340,8 +2340,8 @@ int main(int argn, char ** args)
 
 	// Method for testing getInstruction();
 	uint32_t address = 0;
-	uint32_t opcode = electricrock.getInstruction(address);
-	printf("\nopcode: %08" PRIx32 "\n", opcode);
+	unsigned char* opcode = electricrock->getInstruction(address);
+	printf("opcode:%x %x %x %x",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
 
 	//MMU* mmu = new MMU(false, bv);
 

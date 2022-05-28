@@ -2312,7 +2312,7 @@ int main(int argn, char ** args)
     InitPlugins();
 
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	BinaryView* bv;
+	BinaryNinja::BinaryView* bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")

@@ -316,12 +316,22 @@ class EmulatedCPU
 			}
 		}
 
-		// TODO: Rose and Sean 
+		// TODO: Rose and Sean
+		// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
+		// and return it. 
 		uint32_t getInstruction(int PC) {
-			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
-			// and return it.
-			EmulatedCPU::unimplemented(0x0);
-			return 0;
+			// Make PC a memory address (THIS SHOULD EVENTUALLY BE A CONVERSION FROM PC int TO AN ADDRESS OF MEMORY)
+			uint64_t address = (uint64_t)PC;
+			
+			// Get opcode from binja from address
+			size_t numBytesRead;
+			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
+			numBytesRead = bv->Read(bytes, address, 4);
+
+			// Not sure why this was here
+			//EmulatedCPU::unimplemented(0x0);
+
+			return bytes;
 		}
 
 		uint32_t getNextInstruction() {
@@ -2325,6 +2335,11 @@ int main(int argn, char ** args)
 	}
 	
 	bv->UpdateAnalysisAndWait();
+
+	// Method for testing getInstruction();
+	uint32_t address = 0;
+	size_t opcode = getInstruction(address);
+	printf("\nopcode: %x %x %x %x\n",*(bytes+0),*(bytes+1),*(bytes+2),*(bytes+3));
 
 	//MMU* mmu = new MMU(false, bv);
 

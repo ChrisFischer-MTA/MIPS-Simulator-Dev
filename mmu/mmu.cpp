@@ -28,7 +28,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 {
 	// At some point need to check bv->platform->architecture for is64bit bool
 	auto tmp = bv->GetSegments();
-	segments = vector<segments>(tmp.size());
+	segments = vector<segment>(tmp.size());
 	this->is64Bit = is64bit;
 	for (int i = 0;i < tmp.size(); i++)
 	{
@@ -59,7 +59,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 	//sort sections
 	secSort();
 
-	for (int i = 0;i < allSections.size;i++)
+	for (int i = 0;i < allSections.size();i++)
 	{
 		//couple segment and section
 		allSections[i].parent->sections.add(allSections[i]);
@@ -75,10 +75,10 @@ void MMU::secSort()
 {
 	vector<section> sorted = vector<section>(allSections.size);
 	section least = allSections[0];
-	for (int j = 0;j < allSections.size;j++)
+	for (int j = 0;j < allSections.size();j++)
 	{
 		int leastindex = 0;
-		for (int i = 1;i < allSections.size;i++)
+		for (int i = 1;i < allSections.size();i++)
 		{
 			if (allSections[i] < least)
 			{
@@ -89,7 +89,7 @@ void MMU::secSort()
 		sorted[j] = least;
 		allSections[leastindex].start = 0;
 	}
-	for (int i = 1;i < allSections.size;i++)
+	for (int i = 1;i < allSections.size();i++)
 	{
 		allSections[i] = sorted[i];
 	}
@@ -99,7 +99,7 @@ void MMU::secSort()
 
 segment MMU::segSearch(uint64_t index)
 {
-	for (int i = 0;i < segments.size;i++)
+	for (int i = 0;i < segments.size();i++)
 	{
 		if (index <= segments[i].end && index >= segments[i].start)
 		{
@@ -116,10 +116,10 @@ segment MMU::segSearch(uint64_t index)
 char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 {	
 	//For each segment,
-	for (int i = 0;i < segments.size;i++)
+	for (int i = 0;i < segments.size();i++)
 	{
 		//For each section,
-		for (int j = 0;j < allSections.size;j++)
+		for (int j = 0;j < allSections.size();j++)
 		{
 			section token = segments[i].sections[j];
 			//Is it valid? (within bounds)

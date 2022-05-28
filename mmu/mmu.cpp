@@ -39,7 +39,8 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		segments[i].setPerms(flags & 7);
 		segments[i].permissions = flags;
 		segments[i].ID = 0;
-		segments[i].sections = vector<section> v(5,0);
+		vector<section> v(5,0);
+		segments[i].sections = v;
 	}
 
 	auto sectionlist = bv->GetSections();
@@ -62,7 +63,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 	for (int i = 0;i < allSections.size();i++)
 	{
 		//couple segment and section
-		allSections[i].parent->sections.add(allSections[i]);
+		allSections[i].parent->sections.push_back(allSections[i]);
 	}
 }
 

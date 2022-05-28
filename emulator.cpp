@@ -325,7 +325,7 @@ class EmulatedCPU
 			
 			// Get opcode from binja from address
 			size_t numBytesRead;
-			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
+			uint32_t bytes = (unsigned char*) malloc(sizeof(char) * 4);
 			numBytesRead = bv->Read(bytes, address, 4);
 
 			// Not sure why this was here
@@ -2338,8 +2338,8 @@ int main(int argn, char ** args)
 
 	// Method for testing getInstruction();
 	uint32_t address = 0;
-	size_t opcode = getInstruction(address);
-	printf("\nopcode: %x %x %x %x\n",*(bytes+0),*(bytes+1),*(bytes+2),*(bytes+3));
+	size_t opcode = EmulatedCPU::getInstruction(address);
+	printf("\nopcode: %x %x %x %x\n",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
 
 	//MMU* mmu = new MMU(false, bv);
 

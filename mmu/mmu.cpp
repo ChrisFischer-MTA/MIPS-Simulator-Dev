@@ -27,7 +27,6 @@ void generallyPause();
 MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 {
 	// At some point need to check bv->platform->architecture for is64bit bool
-	/*
 	auto buttsegs = bv->GetSegments();
 	segments = ArrayList<segment>(buttsegs.size());
 	this->is64Bit = is64bit;
@@ -67,7 +66,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 	}
 			
 
-		*/
+		
 }
 
 MMU::MMU()

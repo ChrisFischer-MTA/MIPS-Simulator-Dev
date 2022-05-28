@@ -24,7 +24,7 @@ using namespace std;
 
 void generallyPause();
 
-MMU::MMU(bool is64bit, BinaryView* bv)
+MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 {
 	// At some point need to check bv->platform->architecture for is64bit bool
 	auto buttsegs = bv->GetSegments();

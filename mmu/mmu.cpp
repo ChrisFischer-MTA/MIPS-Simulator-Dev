@@ -24,9 +24,8 @@ const short int MemoryFault = 2;
 
 void generallyPause();
 
-MMU::MMU(bool is64bit, EmulatedCPU rock)
+MMU::MMU(bool is64bit, BinaryView* bv)
 {
-	bv = NULL;
 	auto buttsegs = bv->GetSegments();
 	segments = ArrayList<segment>(buttsegs.size());
 	this->is64Bit = is64bit;
@@ -173,7 +172,7 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 			}
 			else
 			{
-				//emulator->signalException(MemoryFault);
+				emulator->signalException(MemoryFault);
 			}
 
 		}

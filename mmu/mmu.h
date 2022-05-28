@@ -75,7 +75,7 @@ public:
 	uint64_t ID;
 
 	//Data
-	ArrayList<section> sections;
+	vector<section> sections;
 	section operator [](int i) const { return sections[i]; }
 	section& operator [](int i) { return sections[i]; }
 	void setPerms(char permissions)

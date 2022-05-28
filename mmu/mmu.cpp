@@ -27,24 +27,23 @@ void generallyPause();
 MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 {
 	// At some point need to check bv->platform->architecture for is64bit bool
-	/*
-	auto buttsegs = bv->GetSegments();
-	segments = ArrayList<segment>(buttsegs.size());
+	auto tmp = bv->GetSegments();
+	segments = vector<segments>(tmp.size());
 	this->is64Bit = is64bit;
-	for (int i = 0;i < buttsegs.size(); i++)
+	for (int i = 0;i < tmp.size(); i++)
 	{
-		segments[i].start = buttsegs[i]->GetStart();
-		segments[i].end = buttsegs[i]->GetEnd();
-		segments[i].length = buttsegs[i]->GetLength();
-		int flags = buttsegs[i]->GetFlags();
+		segments[i].start = tmp[i]->GetStart();
+		segments[i].end = tmp[i]->GetEnd();
+		segments[i].length = tmp[i]->GetLength();
+		int flags = tmp[i]->GetFlags();
 		segments[i].setPerms(flags & 7);
 		segments[i].permissions = flags;
 		segments[i].ID = 0;
-		segments[i].sections = ArrayList<section>(5);
+		segments[i].sections = vector<section>;
 	}
 
 	auto sectionlist = bv->GetSections();
-	allSections = ArrayList<section>(sectionlist.size());
+	allSections = vector<section>(sectionlist.size());
 	for (int i = 0;i < sectionlist.size();i++)
 	{
 		//find parent segment
@@ -65,9 +64,6 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		//couple segment and section
 		allSections[i].parent->sections.add(allSections[i]);
 	}
-			
-
-	*/
 }
 
 MMU::MMU()
@@ -77,8 +73,7 @@ MMU::MMU()
 
 void MMU::secSort()
 {
-	/*
-	ArrayList<section> sorted = ArrayList<section>(allSections.size);
+	vector<section> sorted = vector<section>(allSections.size);
 	section least = allSections[0];
 	for (int j = 0;j < allSections.size;j++)
 	{
@@ -98,14 +93,12 @@ void MMU::secSort()
 	{
 		allSections[i] = sorted[i];
 	}
-	*/
 	return;
 		
 }
 
 segment MMU::segSearch(uint64_t index)
 {
-	/*
 	for (int i = 0;i < segments.size;i++)
 	{
 		if (index <= segments[i].end && index >= segments[i].start)
@@ -114,7 +107,6 @@ segment MMU::segSearch(uint64_t index)
 		}
 	}
 	return segment();
-	*/
 }
 	
 //Returns a pointer to a stream of bytes that can be read as necessary
@@ -123,7 +115,6 @@ segment MMU::segSearch(uint64_t index)
 //numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
 char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 {	
-	/*
 	//For each segment,
 	for (int i = 0;i < segments.size;i++)
 	{
@@ -184,7 +175,6 @@ char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
 
 		}
 	}
-	*/
 	// It is possible to reach this point so we need to return some value, however I dont believe it should be NULL
 	// Rose I will need your help on a more permanent solution for this - Sean
 	return NULL;

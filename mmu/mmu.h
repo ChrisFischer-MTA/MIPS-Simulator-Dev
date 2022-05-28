@@ -93,7 +93,7 @@ public:
 	int alloLength;
 	bool is64Bit;
 	BinaryView* bv;
-	MMU(bool is64bit, BinaryNinja::BinaryView* bv);
+	MMU(bool is64bit, BinaryView* bv);
 	MMU();
 	void secSort();
 	segment segSearch(uint64_t index);

@@ -92,7 +92,7 @@ public:
 	ArrayList<section> allSections;
 	int alloLength;
 	bool is64Bit;
-	BinaryNinja::BinaryView* bv;
+	BinaryView* bv;
 	MMU(bool is64bit, BinaryNinja::BinaryView* bv);
 	MMU();
 	void secSort();

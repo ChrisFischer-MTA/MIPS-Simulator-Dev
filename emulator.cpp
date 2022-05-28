@@ -2327,7 +2327,7 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 
 
-	MMU* test = new MMU(is64bit, bv);
+	MMU* test = new MMU(false, bv);
 
 	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

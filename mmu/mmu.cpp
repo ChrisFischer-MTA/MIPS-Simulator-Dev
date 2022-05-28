@@ -41,8 +41,8 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		segments[i].ID = 0;
 
 		// Rose I need help
-		vector<section> v(5,section());
-		segments[i].sections = v;
+		//vector<section> v(5,section());
+		//segments[i].sections = v;
 	}
 
 	auto sectionlist = bv->GetSections();

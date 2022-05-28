@@ -320,6 +320,10 @@ class EmulatedCPU
 		uint32_t getInstruction(int PC) {
 			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 			// and return it.
+
+			// Turn memory into memory address
+
+			// Get op from BinaryNinja
 			EmulatedCPU::unimplemented(0x0);
 			return 0;
 		}
@@ -2327,7 +2331,7 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 
 
-	//MMU* test = new MMU(false, bv);
+	MMU* test = new MMU(false, bv);
 
 	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

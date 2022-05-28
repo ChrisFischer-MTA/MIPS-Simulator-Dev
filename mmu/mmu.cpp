@@ -39,7 +39,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		segments[i].setPerms(flags & 7);
 		segments[i].permissions = flags;
 		segments[i].ID = 0;
-		segments[i].sections = vector<section>;
+		segments[i].sections = vector<section> v(5,0);
 	}
 
 	auto sectionlist = bv->GetSections();
@@ -73,7 +73,7 @@ MMU::MMU()
 
 void MMU::secSort()
 {
-	vector<section> sorted = vector<section>(allSections.size);
+	vector<section> sorted = vector<section>(allSections.size());
 	section least = allSections[0];
 	for (int j = 0;j < allSections.size();j++)
 	{

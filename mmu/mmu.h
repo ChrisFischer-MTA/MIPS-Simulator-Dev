@@ -89,10 +89,10 @@ public:
 class MMU
 {
 public:
-	//ArrayList<segment> segments;
-	//ArrayList<section> allSections;
-	vector<segment> segments;
-	vector<section> allSections;
+	ArrayList<segment> segments;
+	ArrayList<section> allSections;
+	//vector<segment> segments;
+	//vector<section> allSections;
 	int alloLength;
 	bool is64Bit;
 	BinaryNinja::BinaryView* bv;

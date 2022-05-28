@@ -18,8 +18,8 @@ using namespace std;
 #define W 2
 #define X 1
 
-const short int IntegerOverflow = 1;
-const short int MemoryFault = 2;
+//const short int IntegerOverflow = 1;
+//const short int MemoryFault = 2;
 
 
 void generallyPause();

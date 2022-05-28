@@ -69,8 +69,8 @@ const short int JTYPE = 3;
 
 
 // Exception Types
-//const short int IntegerOverflow = 1;
-//const short int MemoryFault = 2;
+const short int IntegerOverflow = 1;
+const short int MemoryFault = 2;
 
 class EmulatedCPU
 {

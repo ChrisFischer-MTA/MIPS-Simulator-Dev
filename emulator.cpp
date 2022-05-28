@@ -2327,7 +2327,11 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 
 
+<<<<<<< HEAD
 	MMU* test = new MMU(is64bit, bv);
+=======
+	MMU* test = new MMU(false, bv);
+>>>>>>> parent of 3916f49... reverting
 
 	/* 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

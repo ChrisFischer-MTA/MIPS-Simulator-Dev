@@ -67,7 +67,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 	}
 			
 
-		*/f
+		*/
 }
 
 MMU::MMU()
@@ -77,7 +77,6 @@ MMU::MMU()
 
 void MMU::secSort()
 {
-	/*
 	ArrayList<section> sorted = ArrayList<section>(allSections.size);
 	section least = allSections[0];
 	for (int j = 0;j < allSections.size;j++)
@@ -98,7 +97,6 @@ void MMU::secSort()
 	{
 		allSections[i] = sorted[i];
 	}
-	*/
 	return;
 		
 }

@@ -9,8 +9,7 @@
 #include <inttypes.h>
 
 
-#include "mmu/mmu.cpp"
-#include "mmu/AL.h"
+#include "mmu/mmu.h"
 
 
 
@@ -321,10 +320,6 @@ class EmulatedCPU
 		uint32_t getInstruction(int PC) {
 			// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 			// and return it.
-
-			// Turn memory into memory address
-
-			// Get op from BinaryNinja
 			EmulatedCPU::unimplemented(0x0);
 			return 0;
 		}
@@ -2313,7 +2308,7 @@ int main(int argn, char ** args)
     InitPlugins();
 
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	BinaryNinja::BinaryView* bv;
+	BinaryView* bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")

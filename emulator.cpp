@@ -325,7 +325,7 @@ class EmulatedCPU
 			
 			// Get opcode from binja from address
 			size_t numBytesRead;
-			uint32_t bytes = (unsigned char*) malloc(sizeof(char) * 4);
+			uint32_t bytes;
 			numBytesRead = bv->Read(bytes, address, 4);
 
 			// Not sure why this was here
@@ -2336,10 +2336,12 @@ int main(int argn, char ** args)
 	
 	bv->UpdateAnalysisAndWait();
 
+	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
+
 	// Method for testing getInstruction();
 	uint32_t address = 0;
-	size_t opcode = EmulatedCPU::getInstruction(address);
-	printf("\nopcode: %x %x %x %x\n",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
+	uint32_t opcode = electricrock.getInstruction(address);
+	printf("\nopcode: %08" PRIx32 "\n", opcode);
 
 	//MMU* mmu = new MMU(false, bv);
 

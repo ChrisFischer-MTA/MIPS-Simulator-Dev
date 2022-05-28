@@ -334,6 +334,7 @@ class EmulatedCPU
 			return bytes;
 		}
 
+		// Need help resolving the warnings Im getting and ultimately not messing up other code
 		uint32_t getNextInstruction() {
 			return getInstruction(pc + 4);
 		}

@@ -293,7 +293,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 					
-			//memUnit = MMU(is64bit, bv);
+			memUnit = MMU(is64bit, bv);
 
 		}
 
@@ -2340,7 +2340,30 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
-	EmulatedCPU* electricrock = new EmulatedCPU(false, NULL);
+	SetBundledPluginDirectory(GetPluginsDirectory());
+        InitPlugins();
+
+        Ref<BinaryData> bd = new BinaryData(new FileMetadata(), argv[1]);
+        Ref<BinaryView> bv;
+        for (auto type : BinaryViewType::GetViewTypes())
+        {
+                if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
+                {
+                        bv = type->Create(bd);
+                        break;
+                }
+        }
+
+        if (!bv || bv->GetTypeName() == "Raw")
+        {
+                fprintf(stderr, "Input file does not appear to be an exectuable\n");
+                return -1;
+        }
+        
+        bv->UpdateAnalysisAndWait();
+
+
+	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 
 	// Method for testing getInstruction();
 	//uint32_t address = 0;

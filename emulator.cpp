@@ -82,6 +82,7 @@ class EmulatedCPU
 		// Read more info when working with this.
 		uint64_t pc;
 		bool is64bit = false;
+		BinaryView* bv;
 		// REGISTERS
 
 		// Hacky solution I do not understand which allows us to have a function table.
@@ -305,6 +306,32 @@ class EmulatedCPU
 			{
 				// do nothing
 			}
+		}
+
+		void makeBinaryView(char *args)
+		{
+			// Make dat binary view
+			SetBundledPluginDirectory(GetPluginsDirectory());
+			InitPlugins();
+
+			Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args);
+			
+			for (auto type : BinaryViewType::GetViewTypes())
+			{
+				if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
+				{
+					bv = type->Create(bd);
+					break;
+				}
+			}
+
+			if (!bv || bv->GetTypeName() == "Raw")
+			{
+				//fprintf(stderr, "Input file does not appear to be an exectuable\n");
+				return -1;
+			}
+			
+			bv->UpdateAnalysisAndWait();
 		}
 
 		void signalException(int excpt)
@@ -2314,29 +2341,6 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
-	// Make dat binary view
-	SetBundledPluginDirectory(GetPluginsDirectory());
-    InitPlugins();
-
-	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	BinaryView* bv;
-	for (auto type : BinaryViewType::GetViewTypes())
-	{
-		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
-		{
-			bv = type->Create(bd);
-			break;
-		}
-	}
-
-	if (!bv || bv->GetTypeName() == "Raw")
-	{
-		//fprintf(stderr, "Input file does not appear to be an exectuable\n");
-		return -1;
-	}
-	
-	bv->UpdateAnalysisAndWait();
-
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 
 	// Method for testing getInstruction();

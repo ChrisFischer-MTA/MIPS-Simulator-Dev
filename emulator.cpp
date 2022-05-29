@@ -272,7 +272,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU memUnit;
+		//MMU memUnit;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;

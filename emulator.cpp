@@ -2340,7 +2340,7 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
-	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
+	EmulatedCPU* electricrock = new EmulatedCPU(false, NULL);
 
 	// Method for testing getInstruction();
 	//uint32_t address = 0;

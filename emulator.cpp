@@ -281,7 +281,6 @@ class EmulatedCPU
 
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
-		BinaryView* bv;
 		
 
 
@@ -2344,9 +2343,9 @@ int main(int argn, char ** args)
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 
 	// Method for testing getInstruction();
-	uint32_t address = 0;
-	unsigned char* opcode = electricrock->getInstruction(address);
-	printf("opcode:%x %x %x %x",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
+	//uint32_t address = 0;
+	//unsigned char* opcode = electricrock->getInstruction(address);
+	//printf("opcode:%x %x %x %x",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
 
 	//MMU* mmu = new MMU(false, bv);
 

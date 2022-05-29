@@ -293,7 +293,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 					
-			memUnit = MMU(is64bit, bv);
+			//memUnit = MMU(is64bit, bv);
 
 		}
 

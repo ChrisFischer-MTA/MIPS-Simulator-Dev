@@ -392,8 +392,11 @@ class EmulatedCPU
 			pc = entryPoint;
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
+
 			while (validState == true)
 			{
+				printf("current pc: %x\n", pc);
+
 				if (!instructionNullify)
 				{
 					uint32_t instruction = getInstruction(pc);

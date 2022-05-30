@@ -381,7 +381,7 @@ class EmulatedCPU
 			// Make PC a memory address (THIS SHOULD EVENTUALLY BE A CONVERSION FROM PC int TO AN ADDRESS OF MEMORY)
 			uint64_t address = (uint64_t)PC;
 			
-			// Get opcode from binja from address
+			// Get opcode from binja using address
 			size_t numBytesRead;
 			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
 			numBytesRead = bv->Read(bytes, address, 4);
@@ -2424,7 +2424,7 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160, 0));
+	printf("Lover of the russian queen. %u\n", electricrock->getInstuction(0x00400160));
 	BNShutdown();
 
 	// Method for testing getInstruction();

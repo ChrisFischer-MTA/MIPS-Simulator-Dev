@@ -2417,7 +2417,7 @@ int main(int argn, char ** args)
 	printf("[INFO] Plugins initialized!\n");
 
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	Ref<BinaryView> bv;
+	Ref<BinaryView> bv = NULL;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")

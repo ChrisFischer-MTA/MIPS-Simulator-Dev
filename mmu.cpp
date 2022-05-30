@@ -197,27 +197,26 @@ class MMU
 
 
 	unsigned char* getBytes(int addr)
-	{
+	{	
 		if(bv == NULL)
 		{
 			printf("Binary View is not initalized in this getBytes call!\n");
 		}
-		printf("Help me 1\n");
 
 		// Allocate bytes and buffer
 		size_t numBytesRead;
-		printf("Help me 2\n");
 		
+		// Create location for bytes to be read in to
 		unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
+
 		// Check for a null pntr
 		if(bytes == NULL)
 		{
 			printf("Insufficent space on heap for a malloc.\n");
 		}
-		printf("Help me 3\n");
+
 		numBytesRead = bv->Read(bytes, addr, 4);
 		
-		printf("Help me 4\n");
 		return bytes;
 	}
 

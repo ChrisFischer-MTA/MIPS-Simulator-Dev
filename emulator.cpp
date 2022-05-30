@@ -311,25 +311,14 @@ class EmulatedCPU
 		}
 
 		uint32_t debugGetValue(int address, int retVal)
-		{
-			printf("Entering debuggetvalue...\n");
-			// First, get bytes
-			//int testZero = 0;
-			//int retVal;
-			
-			printf("memUnit: %x\n", memUnit);
-			
+		{	
 			char* bytes = memUnit->getBytes(address);
-			
-			printf("exited memunit...\n");
-			
+
 			printf("%x", bytes[0]);
 			printf(" %x", bytes[1]);
 			printf(" %x", bytes[2]);
 			printf(" %x\n", bytes[3]);
-			
-			
-			
+				
 			printf("%x ", bytes[0]);
 			retVal += (bytes[0] << 24);
 			printf("retval is currently %x!\n",retVal);

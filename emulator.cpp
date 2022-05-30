@@ -2424,7 +2424,7 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	printf("Lover of the russian queen. %u\n", electricrock->getInstuction(0x00400160));
+	printf("Lover of the russian queen. %u\n", electricrock->getInstruction(0x00400160));
 	BNShutdown();
 
 	// Method for testing getInstruction();

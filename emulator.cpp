@@ -2422,6 +2422,7 @@ int main(int argn, char ** args)
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
 		{
+			printf("initializing bv..\n");
 			bv = type->Create(bd);
 			break;
 		}

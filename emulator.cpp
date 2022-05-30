@@ -2406,7 +2406,7 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	//printf("Lover of the russian queen. %u\n", electricrock->getInstruction(0x00400168));
+	printf("Lover of the russian queen. %u\n", electricrock->getBytes(0x004010e0));
 	electricrock->runEmulation(bv->GetEntryPoint());
 
 	// Proper shutdown of core

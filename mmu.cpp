@@ -198,7 +198,12 @@ class MMU
 
 	void getBytes(int addr)
 	{
-		// TODO: Sean
+		// Allocate bytes and buffer
+		size_t numBytesRead;
+		unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
+		numBytesRead = bv->Read(bytes, addr, 4);
+		
+		return bytes;
 	}
 
 	void MMU::store(uint64_t address, void* data, int datalength)

@@ -326,7 +326,6 @@ class EmulatedCPU
 
 			if (!bv || bv->GetTypeName() == "Raw")
 			{
-				//fprintf(stderr, "Input file does not appear to be an exectuable\n");
 				return -1;
 			}
 			
@@ -2342,7 +2341,26 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	SetBundledPluginDirectory(GetPluginsDirectory());
+	InitPlugins();
+
+	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	
+	for (auto type : BinaryViewType::GetViewTypes())
+	{
+		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
+		{
+			bv = type->Create(bd);
+			break;
+		}
+	}
+
+	if (!bv || bv->GetTypeName() == "Raw")
+	{
+		return -1;
+	}
+	
+	bv->UpdateAnalysisAndWait();
 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 

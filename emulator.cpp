@@ -313,27 +313,11 @@ class EmulatedCPU
 		uint32_t debugGetValue(int address, int retVal)
 		{	
 			char* bytes = memUnit->getBytes(address);
-
-			printf("%x", bytes[0]);
-			printf(" %x", bytes[1]);
-			printf(" %x", bytes[2]);
-			printf(" %x\n", bytes[3]);
 				
-			printf("%x ", bytes[0]);
 			retVal += (bytes[0] << 24);
-			printf("retval is currently %x!\n",retVal);
-			
-			printf(" %x ", bytes[1]);
 			retVal += (bytes[1] << 16);
-			printf("retval is currently %x!\n",retVal);
-			
-			printf(" %x ", bytes[2]);
 			retVal += (bytes[2] << 8);
-			printf("retval is currently %x!\n",retVal);
-			
-			printf(" %x \n", bytes[3]);
 			retVal += (bytes[3]);
-			printf("retval is currently %x!\n",retVal);
 			
 			return retVal;
 		}
@@ -2406,7 +2390,7 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	printf("Lover of the russian queen. %u\n", electricrock->getBytes(0x004010e0));
+	printf("Lover of the russian queen. %u\n", electricrock->debugGetBytes(0x004010e0, 0));
 	electricrock->runEmulation(bv->GetEntryPoint());
 
 	// Proper shutdown of core

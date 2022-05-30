@@ -204,7 +204,7 @@ class MMU
 		}
 		printf("Help me 1\n");
 
-		printf("0x%08lx\n", (bv->GetSegments())->GetStart());
+		printf("0x%08lx\n", (bv->GetSegments())[0]->GetStart());
 
 		// Allocate bytes and buffer
 		size_t numBytesRead;

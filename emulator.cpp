@@ -272,7 +272,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU *memUnit = NULL;
+		//MMU *memUnit = NULL;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -293,7 +293,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 					
-			memUnit = &MMU(is64bit, bv);
+			//memUnit = &MMU(is64bit, bv);
 
 		}
 
@@ -307,7 +307,7 @@ class EmulatedCPU
 			}
 		}
 
-		void makeBinaryView(char *args)
+		auto makeBinaryView(char *args)
 		{
 			// Make dat binary view
 			SetBundledPluginDirectory(GetPluginsDirectory());
@@ -331,6 +331,8 @@ class EmulatedCPU
 			}
 			
 			bv->UpdateAnalysisAndWait();
+
+			return bv;
 		}
 
 		void signalException(int excpt)
@@ -2340,28 +2342,7 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
-	SetBundledPluginDirectory(GetPluginsDirectory());
-        InitPlugins();
-
-        Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-        Ref<BinaryView> bv;
-        for (auto type : BinaryViewType::GetViewTypes())
-        {
-                if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
-                {
-                        bv = type->Create(bd);
-                        break;
-                }
-        }
-
-        if (!bv || bv->GetTypeName() == "Raw")
-        {
-                fprintf(stderr, "Input file does not appear to be an exectuable\n");
-                return -1;
-        }
-        
-        bv->UpdateAnalysisAndWait();
-
+	
 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 

@@ -377,19 +377,26 @@ class EmulatedCPU
 		// TODO: Rose and Sean
 		// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 		// and return it. 
-		unsigned char* getInstruction(int PC) {
+		uint32_t getInstruction(int PC) {
 			// Make PC a memory address (THIS SHOULD EVENTUALLY BE A CONVERSION FROM PC int TO AN ADDRESS OF MEMORY)
-			uint64_t address = (uint64_t)PC;
+			int address = PC;
+			uint32_t retVal = 0;
 			
 			// Get opcode from binja using address
 			size_t numBytesRead;
 			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
 			numBytesRead = bv->Read(bytes, address, 4);
+			
+			// Convert to uint32_t
+			retVal += (bytes[0] << 24);
+			retVal += (bytes[1] << 16);
+			retVal += (bytes[2] << 8);
+			retVal += (bytes[3]);
 
-			// Not sure why this was here
-			//EmulatedCPU::unimplemented(0x0);
+			// Free malloc call
+			free(bytes);
 
-			return bytes;
+			return retVal;
 		}
 
 		// Need help resolving the warnings Im getting and ultimately not messing up other code

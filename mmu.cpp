@@ -220,7 +220,7 @@ class MMU
 		return bytes;
 	}
 
-	void MMU::store(uint64_t address, void* data, int datalength)
+	void store(uint64_t address, void* data, int datalength)
 	{
 
 	}

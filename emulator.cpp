@@ -379,7 +379,7 @@ class EmulatedCPU
 
 			while (validState == true)
 			{
-				printf("current pc: 0x%x\n", pc);
+				printf("current pc: 0x%lx\n", pc);
 
 				if (!instructionNullify)
 				{

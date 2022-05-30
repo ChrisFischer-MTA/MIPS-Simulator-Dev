@@ -2341,6 +2341,8 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	BinaryView *bv;
+
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
 

@@ -24,8 +24,9 @@ using namespace std;
 
 void generallyPause();
 
-MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
-{
+MMU::MMU(bool is64bit)
+{	
+	/*
 	// At some point need to check bv->platform->architecture for is64bit bool
 	auto tmp = bv->GetSegments();
 	segments = vector<segment>(tmp.size());
@@ -67,11 +68,7 @@ MMU::MMU(bool is64bit, BinaryNinja::BinaryView* bv)
 		//couple segment and section
 		allSections[i].parent->sections.push_back(allSections[i]);
 	}
-}
-
-MMU::MMU()
-{
-
+	*/
 }
 
 void MMU::secSort()

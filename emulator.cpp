@@ -296,7 +296,6 @@ class EmulatedCPU
 			}
 					
 			//memUnit = &MMU(is64bit, bv);
-
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced

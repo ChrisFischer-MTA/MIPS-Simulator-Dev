@@ -272,7 +272,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		//MMU memUnit;
+		MMU memUnit = NULL;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -2343,7 +2343,7 @@ int main(int argn, char ** args)
 	SetBundledPluginDirectory(GetPluginsDirectory());
         InitPlugins();
 
-        Ref<BinaryData> bd = new BinaryData(new FileMetadata(), argv[1]);
+        Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
         Ref<BinaryView> bv;
         for (auto type : BinaryViewType::GetViewTypes())
         {

@@ -1,0 +1,1 @@
+/usr/bin/c++  -fpermissive   CMakeFiles/MIPS-Simulator-Dev.dir/emulator.cpp.o  -o ../../out/bin/MIPS-Simulator-Dev   -L/home/cfischer/binaryninja  -Wl,-rpath,/home/cfischer/binaryninja ../../out/libbinaryninjaapi.a -ldl /home/cfischer/binaryninja/libbinaryninjacore.so.1 

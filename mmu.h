@@ -8,7 +8,7 @@
 #include <vector>
 
 
-#include "../binja.h"
+#include "binja.h"
 #include "AL.h"
 
 using namespace std;
@@ -96,7 +96,7 @@ public:
 	int alloLength;
 	bool is64Bit;
 	BinaryNinja::BinaryView* bv;
-	MMU(bool is64bit);
+	MMU(bool);
 	void secSort();
 	segment segSearch(uint64_t index);
 	char* getEffectiveAddress(uint64_t address, int numBytes);

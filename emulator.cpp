@@ -310,12 +310,12 @@ class EmulatedCPU
 			}
 		}
 
-		uint32_t debugGetValue(int address)
+		uint32_t debugGetValue(int address, int retVal)
 		{
 			printf("Entering debuggetvalue...\n");
 			// First, get bytes
-			int testZero = 0;
-			int retVal;
+			//int testZero = 0;
+			//int retVal;
 			
 			printf("memUnit: %x\n", memUnit);
 			
@@ -345,16 +345,6 @@ class EmulatedCPU
 			printf(" %x \n", bytes[3]);
 			retVal += (bytes[3]);
 			printf("retval is currently %x!\n",retVal);
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			
 			return retVal;
 		}
@@ -2445,7 +2435,7 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160));
+	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160, 0));
 	BNShutdown();
 
 	// Method for testing getInstruction();

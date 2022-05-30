@@ -314,15 +314,15 @@ class EmulatedCPU
 		{	
 			char* bytes = memUnit->getBytes(address);
 				
-			retVal += (bytes[0] << 24);
-			retVal += (bytes[1] << 16);
-			retVal += (bytes[2] << 8);
-			retVal += (bytes[3]);
+			retVal += ((bytes[0] & 0xff) << 24);
+			retVal += ((bytes[1] & 0xff) << 16);
+			retVal += ((bytes[2] & 0xff) << 8);
+			retVal += ((bytes[3] & 0xff));
 
-			printf("%x ", *(bytes+0));
-			printf("%x ", *(bytes+1));
-			printf("%x ", *(bytes+2));
-			printf("%x\n", *(bytes+3));
+			printf("%x ", (bytes[0] & 0xff));
+			printf("%x ", (bytes[1] & 0xff));
+			printf("%x ", (bytes[2] & 0xff));
+			printf("%x\n", (bytes[3] & 0xff));
 
 			
 			return retVal;

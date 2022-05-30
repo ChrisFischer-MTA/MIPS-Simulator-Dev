@@ -284,8 +284,10 @@ class EmulatedCPU
 		
 
 
-		EmulatedCPU(bool is64bit, BinaryView* bv)
+		EmulatedCPU(bool is64bit, BinaryView* bc)
 		{
+			bv = bc;
+
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)

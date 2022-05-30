@@ -314,7 +314,7 @@ class EmulatedCPU
 		{
 			printf("Entering debuggetvalue...\n");
 			// First, get bytes
-			uint32_t retVal = 0;
+			uint32_t retVal;
 			
 			printf("memUnit: %x\n", memUnit);
 			
@@ -2446,6 +2446,7 @@ int main(int argn, char ** args)
 	// Should give us 3c1c0043 in unsigned decimal
 	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160));
 	BNShutdown();
+
 	// Method for testing getInstruction();
 	//uint32_t address = 0;
 	//unsigned char* opcode = electricrock->getInstruction(address);

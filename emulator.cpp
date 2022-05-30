@@ -288,7 +288,7 @@ class EmulatedCPU
 		{
 			bv = bc;
 
-			MMU memUnit = MMU(is64bit);
+			MMU memUnit = MMU(is64bit, bc);
 
 			int i;
 			pc = 0;

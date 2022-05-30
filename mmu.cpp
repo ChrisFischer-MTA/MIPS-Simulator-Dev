@@ -26,8 +26,13 @@ void generallyPause();
 class MMU
 {
 	public:
-	MMU(bool is64bit)
+	BinaryView* bv;
+	MMU(bool is64bit, BinaryView* bc)
 	{	
+	
+		// Assign the passed BinaryView into our class.
+		bv = bc;
+		
 		/*
 		// At some point need to check bv->platform->architecture for is64bit bool
 		auto tmp = bv->GetSegments();
@@ -188,6 +193,13 @@ class MMU
 		return NULL;
 	}
 	*/
+
+
+
+	void getBytes(int addr)
+	{
+		// TODO: Sean
+	}
 
 	void MMU::store(uint64_t address, void* data, int datalength)
 	{

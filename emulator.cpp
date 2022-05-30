@@ -314,7 +314,7 @@ class EmulatedCPU
 		{
 			printf("Entering debuggetvalue...\n");
 			// First, get bytes
-			int retVal = 0;
+			uint32_t retVal;
 			
 			printf("memUnit: %x\n", memUnit);
 			
@@ -322,7 +322,7 @@ class EmulatedCPU
 			
 			printf("exited memunit...\n");
 			
-			printf("%x", bytes[0]);
+			printf("%x", 0);
 			printf(" %x", bytes[1]);
 			printf(" %x", bytes[2]);
 			printf(" %x\n", bytes[3]);

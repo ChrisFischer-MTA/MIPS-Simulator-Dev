@@ -395,7 +395,7 @@ class EmulatedCPU
 
 			while (validState == true)
 			{
-				printf("current pc: %x\n", pc);
+				printf("current pc: 0x%x\n", pc);
 
 				if (!instructionNullify)
 				{
@@ -2407,7 +2407,7 @@ int main(int argn, char ** args)
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
 	//printf("Lover of the russian queen. %u\n", electricrock->getInstruction(0x00400168));
-	electricrock->runEmulation(bv->GetStart());
+	electricrock->runEmulation(bv->GetEntryPoint());
 
 	// Proper shutdown of core
 	BNShutdown();

@@ -312,13 +312,49 @@ class EmulatedCPU
 
 		uint32_t debugGetValue(int address)
 		{
+			printf("Entering debuggetvalue...\n");
 			// First, get bytes
-			uint32_t retVal;
+			uint32_t retVal = 0;
+			
+			printf("memUnit: %x\n", memUnit);
+			
 			char* bytes = memUnit->getBytes(address);
+			
+			printf("exited memunit...\n");
+			
+			printf("%x", bytes[0]);
+			printf(" %x", bytes[1]);
+			printf(" %x", bytes[2]);
+			printf(" %x\n", bytes[3]);
+			
+			
+			
+			printf("%x ", bytes[0]);
 			retVal += (bytes[0] << 24);
+			printf("retval is currently %x!\n",retVal);
+			
+			printf(" %x ", bytes[1]);
 			retVal += (bytes[1] << 16);
+			printf("retval is currently %x!\n",retVal);
+			
+			printf(" %x ", bytes[2]);
 			retVal += (bytes[2] << 8);
+			printf("retval is currently %x!\n",retVal);
+			
+			printf(" %x \n", bytes[3]);
 			retVal += (bytes[3]);
+			printf("retval is currently %x!\n",retVal);
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			return retVal;
 		}
 
@@ -2349,21 +2385,39 @@ class EmulatedCPU
 		}
 };
 
+
+#ifndef _WIN32
+#include <libgen.h>
+#include <dlfcn.h>
 static string GetPluginsDirectory()
 {
-        return "C:\\Program Files\\Vector35\\BinaryNinja\\plugins\\";
+	Dl_info info;
+	if (!dladdr((void *)BNGetBundledPluginDirectory, &info))
+		return NULL;
+
+	stringstream ss;
+	ss << dirname((char *)info.dli_fname) << "/plugins/";
+	return ss.str();
 }
+#else
+static string GetPluginsDirectory()
+{
+	return "C:\\Program Files\\Vector35\\BinaryNinja\\plugins\\";
+}
+#endif
 
 int main(int argn, char ** args)
 {	
-	BinaryView *bv;
-	printf("Creating BV: %s\n",  args[1]);
-
+	// In order to initiate the bundled plugins properly, the location
+	// of where bundled plugins directory is must be set. Since
+	// libbinaryninjacore is in the path get the path to it and use it to
+	// determine the plugins directory
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
+	printf("[INFO] Plugins initialized!\n");
 
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
-	
+	Ref<BinaryView> bv;
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
@@ -2372,27 +2426,25 @@ int main(int argn, char ** args)
 			break;
 		}
 	}
-	
-	if (!bv)
-	{
-		printf("bv not created\n");
-		return -1;
-	}
+	printf("[INFO] BVs initialized!\n");
 
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
-		printf("Binary type of raw\n");
+		fprintf(stderr, "Input file does not appear to be an exectuable\n");
 		return -1;
 	}
-	
+	printf("[INFO] Starting Analysis.\n");
+
 	bv->UpdateAnalysisAndWait();
+	
+	printf("[INFO] Finished Analysis.\n");
 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
 	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160));
-
+	BNShutdown();
 	// Method for testing getInstruction();
 	//uint32_t address = 0;
 	//unsigned char* opcode = electricrock->getInstruction(address);
@@ -2456,8 +2508,8 @@ int main(int argn, char ** args)
 	
 	*/
 	// Just a lazy way to stop things from progressing
-	char* str_space = (char*) malloc(sizeof(char) * 1024);
-	scanf("%s", str_space);
+	//char* str_space = (char*) malloc(sizeof(char) * 1024);
+	//scanf("%s", str_space);
 	
 	
 	

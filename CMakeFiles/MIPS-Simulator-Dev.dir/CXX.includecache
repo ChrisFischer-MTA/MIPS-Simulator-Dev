@@ -29,6 +29,10 @@ inttypes.h
 -
 mmu.cpp
 /home/cfischer/Desktop/binjaapi/binaryninja-api/examples/MIPS-Simulator-Dev/mmu.cpp
+libgen.h
+-
+dlfcn.h
+-
 
 /home/cfischer/Desktop/binjaapi/binaryninja-api/examples/MIPS-Simulator-Dev/mmu.cpp
 iostream

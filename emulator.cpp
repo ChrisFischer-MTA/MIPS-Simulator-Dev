@@ -307,7 +307,7 @@ class EmulatedCPU
 			}
 		}
 
-		auto makeBinaryView(char *args)
+		BinaryView *makeBinaryView(char *args)
 		{
 			// Make dat binary view
 			SetBundledPluginDirectory(GetPluginsDirectory());

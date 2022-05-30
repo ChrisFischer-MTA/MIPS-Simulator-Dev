@@ -319,10 +319,10 @@ class EmulatedCPU
 			retVal += (bytes[2] << 8);
 			retVal += (bytes[3]);
 
-			printf("%x ", bytes[0]);
-			printf("%x ", bytes[1]);
-			printf("%x ", bytes[2]);
-			printf("%x\n", bytes[3]);
+			printf("%x ", *(bytes+0));
+			printf("%x ", *(bytes+1));
+			printf("%x ", *(bytes+2));
+			printf("%x\n", *(bytes+3));
 
 			
 			return retVal;

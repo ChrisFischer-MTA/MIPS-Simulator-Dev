@@ -338,33 +338,6 @@ class EmulatedCPU
 			return retVal;
 		}
 
-		BinaryView *makeBinaryView(char *args)
-		{
-			// Make dat binary view
-			SetBundledPluginDirectory(GetPluginsDirectory());
-			InitPlugins();
-
-			Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args);
-			
-			for (auto type : BinaryViewType::GetViewTypes())
-			{
-				if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
-				{
-					bv = type->Create(bd);
-					break;
-				}
-			}
-
-			if (!bv || bv->GetTypeName() == "Raw")
-			{
-				return -1;
-			}
-			
-			bv->UpdateAnalysisAndWait();
-
-			return bv;
-		}
-
 		void signalException(int excpt)
 		{
 			printf("Exception occured! [%d]\n", excpt);
@@ -2409,7 +2382,6 @@ int main(int argn, char ** args)
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
 		{
-			printf("initializing bv..\n");
 			bv = type->Create(bd);
 			break;
 		}
@@ -2431,7 +2403,10 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0043 in unsigned decimal
-	printf("Lover of the russian queen. %u\n", electricrock->getInstruction(0x00400160));
+	//printf("Lover of the russian queen. %u\n", electricrock->getInstruction(0x00400168));
+	electricrock->runEmulation(bv->GetStart())
+
+	// Proper shutdown of core
 	BNShutdown();
 
 	// Method for testing getInstruction();

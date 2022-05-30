@@ -196,7 +196,7 @@ class MMU
 
 
 
-	void getBytes(int addr)
+	unsigned char* getBytes(int addr)
 	{
 		// Allocate bytes and buffer
 		size_t numBytesRead;

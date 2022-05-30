@@ -272,7 +272,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		//MMU *memUnit = NULL;
+		MMU *memUnit = NULL;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -288,7 +288,7 @@ class EmulatedCPU
 		{
 			bv = bc;
 
-			MMU memUnit = MMU(is64bit, bc);
+			memUnit = &MMU(is64bit, bc);
 
 			int i;
 			pc = 0;
@@ -308,6 +308,18 @@ class EmulatedCPU
 			{
 				// do nothing
 			}
+		}
+
+		uint32_t debugGetValue(int address)
+		{
+			// First, get bytes
+			uint32_t retVal;
+			char* bytes = memUnit->getBytes(address);
+			retVal += (bytes[0] << 24);
+			retVal += (bytes[1] << 16);
+			retVal += (bytes[2] << 8);
+			retVal += (bytes[3]);
+			return retVal;
 		}
 
 		BinaryView *makeBinaryView(char *args)
@@ -2345,6 +2357,7 @@ static string GetPluginsDirectory()
 int main(int argn, char ** args)
 {	
 	BinaryView *bv;
+	printf("Creating BV: %s\n",  args[1]);
 
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
@@ -2359,15 +2372,26 @@ int main(int argn, char ** args)
 			break;
 		}
 	}
+	
+	if (!bv)
+	{
+		printf("bv not created\n");
+		return -1;
+	}
 
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
+		printf("Binary type of raw\n");
 		return -1;
 	}
 	
 	bv->UpdateAnalysisAndWait();
 
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
+	
+	// This should get us the value of something interesting.
+	// Should give us 3c1c0043 in unsigned decimal
+	printf("Lover of the russian queen. %u\n", electricrock->debugGetValue(0x00400160));
 
 	// Method for testing getInstruction();
 	//uint32_t address = 0;

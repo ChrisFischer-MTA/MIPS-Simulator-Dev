@@ -314,6 +314,7 @@ class EmulatedCPU
 		{
 			printf("Entering debuggetvalue...\n");
 			// First, get bytes
+			int testZero = 0;
 			int retVal;
 			
 			printf("memUnit: %x\n", memUnit);

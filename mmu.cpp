@@ -203,6 +203,9 @@ class MMU
 			printf("Binary View is not initalized in this getBytes call!\n");
 		}
 		printf("Help me 1\n");
+
+		printf("0x%08lx\n", (bv->GetSegments())->GetStart());
+
 		// Allocate bytes and buffer
 		size_t numBytesRead;
 		printf("Help me 2\n");

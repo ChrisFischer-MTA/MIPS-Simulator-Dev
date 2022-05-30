@@ -272,7 +272,7 @@ class EmulatedCPU
 		int16_t signedImmediate; // Immediate
 
 		//Meta
-		MMU memUnit = NULL;
+		MMU *memUnit = NULL;
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
@@ -293,7 +293,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 					
-			memUnit = MMU(is64bit, bv);
+			memUnit = &MMU(is64bit, bv);
 
 		}
 

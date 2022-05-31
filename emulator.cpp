@@ -341,7 +341,7 @@ class EmulatedCPU
 		// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
 		// and return it. 
 		uint32_t getInstruction(int PC) {
-			// Make PC a memory address (THIS SHOULD EVENTUALLY BE A CONVERSION FROM PC int TO AN ADDRESS OF MEMORY)
+			// Make PC a memory address
 			int address = PC;
 			uint32_t retVal = 0;
 			

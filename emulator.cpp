@@ -1594,11 +1594,7 @@ class EmulatedCPU
 			}
 
 
-			if (mipsTarget == 4)
-			{
-				if (immediate & 3 > 0)
-					immediate &= 0xfffc0;
-			}
+		
 			if (is64bit)
 			{
 
@@ -1613,7 +1609,12 @@ class EmulatedCPU
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 
 				//Get bytes in-order from mmu
+				memUnit->printSections();
 				char *bytes = memUnit->getEffectiveAddress(vAddr, 4);
+				if(bytes == NULL)
+				{
+					signalException(MemoryFault);
+				}
 				//change their order depending on endianness??
 				gpr[rt] = 0;
 				if(BigEndian)

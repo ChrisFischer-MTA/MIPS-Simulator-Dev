@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <cassert>
+#include <string.h>
 
 #ifndef MMUCPP
 #define MMUCPP 1
@@ -50,6 +51,7 @@ class MMU
 			segments[i].end = tmp[i]->GetEnd();
 			segments[i].length = tmp[i]->GetLength();
 			int flags = tmp[i]->GetFlags();
+			
 			segments[i].setPerms(flags & 7);
 			segments[i].permissions = flags;
 			segments[i].ID = 0;
@@ -59,15 +61,27 @@ class MMU
 		}
 		auto sectionlist = bv->GetSections();
 		allSections = vector<section>(sectionlist.size());
+		char *secName;
 		for (int i = 0;i < sectionlist.size();i++)
 		{
 			//find parent segment
 			segment parent = segSearch(sectionlist[i]->GetStart());
 			//create section object
-			allSections[i] =
-				section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH);
+			
+
+			secName = (char *)calloc(sectionlist[i]->GetName().size(), sizeof(char));
+			strcpy(secName, sectionlist[i]->GetName().c_str());
+			printf("name2: %s\t", secName);
+			section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName);
+			allSections.push_back(token);
+			allSections[i] = token;
 			allSections[i].parent = (segment *)malloc(sizeof(segment));
 
+			//section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName);
+
+			printf("name2: %s\t", allSections[i].name);
+			printf("name3:%x\n", allSections[i].start);
+			
 			
 	
 				
@@ -89,19 +103,20 @@ class MMU
 	{
 		vector<section> sorted = vector<section>(allSections.size());
 		section least = allSections[0];
+		bool *disabled = (bool *)calloc(allSections.size(), sizeof(bool));
 		for (int j = 0;j < allSections.size();j++)
 		{
 			int leastindex = 0;
 			for (int i = 1;i < allSections.size();i++)
 			{
-				if (allSections[i] < least)
+				if (allSections[i] < least && !disabled[i])
 				{
 					least = allSections[i];
 					leastindex = i;
 				}
 			}
 			sorted[j] = least;
-			allSections[leastindex].start = 0;
+			disabled[leastindex] = true;
 		}
 		for (int i = 1;i < allSections.size();i++)
 		{
@@ -141,10 +156,13 @@ class MMU
 			for (int j = 0;j < segments[i].sections->size();j++)
 			{
 				segment tokenHold = segments[i];
+				printf("[FLUSH] %d, %d\n", i, j);
 				section token = (*(tokenHold.sections))[j];
+				printf("[FLUSH] 1\n");
 				//Is it valid? (within bounds)
 				if (address >= token.start && address <= token.end)
 				{
+					printf("[FLUSH] 1\n");
 					//Is it readable?
 					if (token.readable)
 					{
@@ -154,7 +172,9 @@ class MMU
 							
 							//Yes, could have a dirty state in memory:
 							//block access arithmetic, token[depth][blockOffset] should be starting point
+							printf("[FLUSH] 1\n");
 							printf("%ld, %ld token start, width\n", token.start, token.width);
+							printf("[FLUSH] 1\n");
 							uint64_t offset = address - token.start;
 							printf("[FLUSH] 1\n");
 							uint64_t depth = (int)(offset / token.width);
@@ -268,6 +288,14 @@ class MMU
 		while (1)
 		{
 			// do nothing
+		}
+	}
+	void printSections()
+	{
+		printf("Sections:\n");
+		for(int i=0;i<allSections.size();i++)
+		{
+			printf("Start: %lx, Size: %lx, Name %s\n", allSections[i].start, allSections[i].end - allSections[i].start, allSections[i].name);
 		}
 	}
 };

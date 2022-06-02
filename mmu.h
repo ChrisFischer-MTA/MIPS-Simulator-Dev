@@ -27,17 +27,19 @@ public:
 	bool executable;
 	uint64_t ID;
 	segment* parent;
+	char *name;
 
 	//Chunk of memory
 	char** array;
 	int width;
 	bool* initialized;
 	bool* writtenTo;
-	section(int start, int length, char permissions, int width = 1024) {
+	section(int start, int length, char permissions, int width, char *name) {
 		this->start = start;
 		this->length = length;
 		this->end = start + length;
 		this->width = width;
+		this->name = name;
 
 		this->setPerms(permissions);
 

@@ -1,4 +1,4 @@
-// Christopher Fischerr
+// Christopher Fischer and Rose Newcomer
 // 03FEB2022
 // Emulator Specific Information
 
@@ -10,6 +10,7 @@
 
 
 #include "mmu.cpp"
+
 
 
 
@@ -71,6 +72,7 @@ const short int JTYPE = 3;
 // Exception Types
 const short int IntegerOverflow = 1;
 const short int MemoryFault = 2;
+const short int TrapFault = 3;
 
 class EmulatedCPU
 {
@@ -91,70 +93,70 @@ class EmulatedCPU
 		// A list of functions that are rtypes index by their ALU code.
 		// Indexed by their ALU code.
 		const EmulatedCPU::funct inst_handlers_rtypes[64] = {
-			& EmulatedCPU::unimplemented, // 0
+			& EmulatedCPU::sll, // 0
 			& EmulatedCPU::unimplemented, // 1
-			& EmulatedCPU::unimplemented, // 2
-			& EmulatedCPU::unimplemented, // 3
-			& EmulatedCPU::unimplemented, // 4
+			& EmulatedCPU::srl, // 2
+			& EmulatedCPU::sra, // 3
+			& EmulatedCPU::sllv, // 4
 			& EmulatedCPU::unimplemented, // 5
-			& EmulatedCPU::unimplemented, // 6
-			& EmulatedCPU::unimplemented, // 7
-			& EmulatedCPU::unimplemented, // 8
-			& EmulatedCPU::unimplemented, // 9
-			& EmulatedCPU::unimplemented, // 10
-			& EmulatedCPU::unimplemented, // 11
-			& EmulatedCPU::unimplemented, // 12
-			& EmulatedCPU::unimplemented, // 13
+			& EmulatedCPU::srlv, // 6
+			& EmulatedCPU::srav, // 7
+			& EmulatedCPU::jr, // 8
+			& EmulatedCPU::jalr, // 9
+			& EmulatedCPU::MOVZ, // 10
+			& EmulatedCPU::MOVN, // 11
+			& EmulatedCPU::syscall, // 12
+			& EmulatedCPU::break_, // 13
 			& EmulatedCPU::unimplemented, // 14
-			& EmulatedCPU::unimplemented, // 15
-			& EmulatedCPU::unimplemented, // 16
-			& EmulatedCPU::unimplemented, // 17
-			& EmulatedCPU::unimplemented, // 18
-			& EmulatedCPU::unimplemented, // 19
-			& EmulatedCPU::unimplemented, // 20
+			& EmulatedCPU::SYNC, // 15 SYNC
+			& EmulatedCPU::mfhi, // 16
+			& EmulatedCPU::mthi, // 17
+			& EmulatedCPU::mflo, // 18
+			& EmulatedCPU::mtlo, // 19
+			& EmulatedCPU::dsllv, // 20
 			& EmulatedCPU::unimplemented, // 21
-			& EmulatedCPU::unimplemented, // 22
-			& EmulatedCPU::unimplemented, // 23
-			& EmulatedCPU::unimplemented, // 24
-			& EmulatedCPU::unimplemented, // 25
-			& EmulatedCPU::unimplemented, // 26
-			& EmulatedCPU::unimplemented, // 27
-			& EmulatedCPU::unimplemented, // 28
-			& EmulatedCPU::unimplemented, // 29
-			& EmulatedCPU::unimplemented, // 30
-			& EmulatedCPU::unimplemented, // 31
+			& EmulatedCPU::dsrlv, // 22
+			& EmulatedCPU::dsrav, // 23
+			& EmulatedCPU::mult, // 24
+			& EmulatedCPU::multu, // 25
+			& EmulatedCPU::div, // 26
+			& EmulatedCPU::divu, // 27
+			& EmulatedCPU::dmult, // 28
+			& EmulatedCPU::dmultu, // 29
+			& EmulatedCPU::ddiv, // 30
+			& EmulatedCPU::ddivu, // 31
 			& EmulatedCPU::add, // 32
 			& EmulatedCPU::addu, // 33
-			& EmulatedCPU::unimplemented, // 34
-			& EmulatedCPU::unimplemented, // 35
+			& EmulatedCPU::sub, // 34
+			& EmulatedCPU::subu, // 35
 			& EmulatedCPU::andop, // 36
-			& EmulatedCPU::unimplemented, // 37
-			& EmulatedCPU::unimplemented, // 38
-			& EmulatedCPU::unimplemented, // 39
+			& EmulatedCPU::orop, // 37
+			& EmulatedCPU::xorop, // 38
+			& EmulatedCPU::nor, // 39
 			& EmulatedCPU::unimplemented, // 40
 			& EmulatedCPU::unimplemented, // 41
-			& EmulatedCPU::unimplemented, // 42
-			& EmulatedCPU::unimplemented, // 43
-			& EmulatedCPU::unimplemented, // 44
-			& EmulatedCPU::unimplemented, // 45
-			& EmulatedCPU::unimplemented, // 46
-			& EmulatedCPU::unimplemented, // 47
-			& EmulatedCPU::unimplemented, // 48
-			& EmulatedCPU::unimplemented, // 49
-			& EmulatedCPU::unimplemented, // 50
-			& EmulatedCPU::unimplemented, // 51
-			& EmulatedCPU::unimplemented, // 52
+			& EmulatedCPU::slt, // 42
+			& EmulatedCPU::sltu, // 43
+			& EmulatedCPU::dadd, // 44
+			& EmulatedCPU::daddu, // 45
+			& EmulatedCPU::dsub, // 46
+			& EmulatedCPU::dsubu, // 47
+			& EmulatedCPU::tge, // 48
+			& EmulatedCPU::tgeu, // 49
+			& EmulatedCPU::tlt, // 50
+			& EmulatedCPU::tltu, // 51
+			& EmulatedCPU::teq, // 52
 			& EmulatedCPU::unimplemented, // 53
-			& EmulatedCPU::unimplemented, // 54
+			& EmulatedCPU::tne, // 54
 			& EmulatedCPU::unimplemented, // 55
-			& EmulatedCPU::unimplemented, // 56
+			& EmulatedCPU::dsll, // 56
 			& EmulatedCPU::unimplemented, // 57
-			& EmulatedCPU::unimplemented, // 58
-			& EmulatedCPU::unimplemented, // 59
+			& EmulatedCPU::dsrl, // 58
+			& EmulatedCPU::dsra, // 59
 			& EmulatedCPU::unimplemented, // 60
-			& EmulatedCPU::unimplemented, // 61
-			& EmulatedCPU::unimplemented, // 62
-			& EmulatedCPU::unimplemented, // 63
+			& EmulatedCPU::dsll32, // 61
+			& EmulatedCPU::dsrl32, // 62
+			& EmulatedCPU::dsra32, // 63
 		};
 
 		// A list of functions that are other types then rtypes. 
@@ -162,68 +164,68 @@ class EmulatedCPU
 		const EmulatedCPU::funct inst_handlers_otypes[64] = {
 			& EmulatedCPU::unimplemented, // 0
 			& EmulatedCPU::unimplemented, // 1
-			& EmulatedCPU::unimplemented, // 2
-			& EmulatedCPU::unimplemented, // 3
+			& EmulatedCPU::j, // 2
+			& EmulatedCPU::jal, // 3
 			& EmulatedCPU::beq, // 4
-			& EmulatedCPU::unimplemented, // 5
-			& EmulatedCPU::unimplemented, // 6
-			& EmulatedCPU::unimplemented, // 7
+			& EmulatedCPU::bne, // 5
+			& EmulatedCPU::blez, // 6
+			& EmulatedCPU::bgtz, // 7
 			& EmulatedCPU::addi, // 8
 			& EmulatedCPU::addiu, // 9
-			& EmulatedCPU::unimplemented, // 10
-			& EmulatedCPU::unimplemented, // 11
+			& EmulatedCPU::slti, // 10
+			& EmulatedCPU::sltui, // 11
 			& EmulatedCPU::andi, // 12
-			& EmulatedCPU::unimplemented, // 13
-			& EmulatedCPU::unimplemented, // 14
-			& EmulatedCPU::unimplemented, // 15
-			& EmulatedCPU::unimplemented, // 16
-			& EmulatedCPU::unimplemented, // 17
-			& EmulatedCPU::unimplemented, // 18
-			& EmulatedCPU::unimplemented, // 19
-			& EmulatedCPU::unimplemented, // 20
-			& EmulatedCPU::unimplemented, // 21
-			& EmulatedCPU::unimplemented, // 22
-			& EmulatedCPU::unimplemented, // 23
-			& EmulatedCPU::unimplemented, // 24
-			& EmulatedCPU::unimplemented, // 25
-			& EmulatedCPU::unimplemented, // 26
-			& EmulatedCPU::unimplemented, // 27
-			& EmulatedCPU::unimplemented, // 28
-			& EmulatedCPU::unimplemented, // 29
-			& EmulatedCPU::unimplemented, // 30
-			& EmulatedCPU::unimplemented, // 31
-			& EmulatedCPU::unimplemented, // 32
-			& EmulatedCPU::unimplemented, // 33
-			& EmulatedCPU::unimplemented, // 34
-			& EmulatedCPU::unimplemented, // 35
-			& EmulatedCPU::unimplemented, // 36
-			& EmulatedCPU::unimplemented, // 37
-			& EmulatedCPU::unimplemented, // 38
-			& EmulatedCPU::unimplemented, // 39
-			& EmulatedCPU::unimplemented, // 40
-			& EmulatedCPU::unimplemented, // 41
-			& EmulatedCPU::unimplemented, // 42
-			& EmulatedCPU::unimplemented, // 43
-			& EmulatedCPU::unimplemented, // 44
-			& EmulatedCPU::unimplemented, // 45
-			& EmulatedCPU::unimplemented, // 46
-			& EmulatedCPU::unimplemented, // 47
-			& EmulatedCPU::unimplemented, // 48
-			& EmulatedCPU::unimplemented, // 49
-			& EmulatedCPU::unimplemented, // 50
-			& EmulatedCPU::unimplemented, // 51
-			& EmulatedCPU::unimplemented, // 52
-			& EmulatedCPU::unimplemented, // 53
-			& EmulatedCPU::unimplemented, // 54
-			& EmulatedCPU::unimplemented, // 55
-			& EmulatedCPU::unimplemented, // 56
-			& EmulatedCPU::unimplemented, // 57
-			& EmulatedCPU::unimplemented, // 58
-			& EmulatedCPU::unimplemented, // 59
-			& EmulatedCPU::unimplemented, // 60
-			& EmulatedCPU::unimplemented, // 61
-			& EmulatedCPU::unimplemented, // 62
-			& EmulatedCPU::unimplemented, // 63
+			& EmulatedCPU::ori, // 13
+			& EmulatedCPU::xori, // 14
+			& EmulatedCPU::lui, // 15
+			& EmulatedCPU::unimplemented, // 16 Coprocessor 1
+			& EmulatedCPU::unimplemented, // 17 Coprocessor 2
+			& EmulatedCPU::unimplemented, // 18 Coprocessor 3
+			& EmulatedCPU::unimplemented, // 19 Coprocessor 4
+			& EmulatedCPU::beql, // 20
+			& EmulatedCPU::bnel, // 21
+			& EmulatedCPU::blezl, // 22
+			& EmulatedCPU::bgtzl, // 23
+			& EmulatedCPU::daddi, // 24
+			& EmulatedCPU::daddiu, // 25
+			& EmulatedCPU::LDL, // 26
+			& EmulatedCPU::LDR, // 27
+			& EmulatedCPU::unimplemented, // 28 ? (skipped)
+			& EmulatedCPU::unimplemented, // 29 ? (skipped)
+			& EmulatedCPU::unimplemented, // 30 ? (skipped)
+			& EmulatedCPU::unimplemented, // 31 ? (skipped)
+			& EmulatedCPU::lb, // 32
+			& EmulatedCPU::lh, // 33
+			& EmulatedCPU::lwl, // 34
+			& EmulatedCPU::lw, // 35
+			& EmulatedCPU::lbu, // 36
+			& EmulatedCPU::lhu, // 37
+			& EmulatedCPU::lwr, // 38
+			& EmulatedCPU::LWU, // 39
+			& EmulatedCPU::sb, // 40
+			& EmulatedCPU::sh, // 41
+			& EmulatedCPU::swl, // 42
+			& EmulatedCPU::sw, // 43
+			& EmulatedCPU::SDL, // 44
+			& EmulatedCPU::SDR, // 45
+			& EmulatedCPU::swr, // 46
+			& EmulatedCPU::unimplemented, // 47 ? (skipped)
+			& EmulatedCPU::LL, // 48
+			& EmulatedCPU::unimplemented, // 49 coprocessor 1
+			& EmulatedCPU::unimplemented, // 50 coprocessor 2
+			& EmulatedCPU::PREF, // 51
+			& EmulatedCPU::LLD, // 52 
+			& EmulatedCPU::unimplemented, // 53 coprocessor 1
+			& EmulatedCPU::unimplemented, // 54 coprocessor 2
+			& EmulatedCPU::LD, // 55
+			& EmulatedCPU::SC, // 56
+			& EmulatedCPU::unimplemented, // 57 coprocessor 1
+			& EmulatedCPU::unimplemented, // 58 coprocessor 2
+			& EmulatedCPU::unimplemented, // 59 coprocessor 3
+			& EmulatedCPU::SCD, // 60
+			& EmulatedCPU::unimplemented, // 61 Coprocessor 1
+			& EmulatedCPU::unimplemented, // 62 Coprocessor 2
+			& EmulatedCPU::SD, // 63
 		};
 
 		const EmulatedCPU::funct inst_handlers_regimm[32] = {
@@ -287,16 +289,15 @@ class EmulatedCPU
 		EmulatedCPU(bool is64bit, BinaryView* bc)
 		{
 			bv = bc;
-
-			memUnit = &MMU(is64bit, bc);
-
+			fflush(stdout);
+			memUnit = new MMU(is64bit, bc);
+			fflush(stdout);
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)
 			{
 				gpr[i] = 0;	
 			}
-					
 			//memUnit = &MMU(is64bit, bv);
 		}
 
@@ -312,7 +313,7 @@ class EmulatedCPU
 
 		uint32_t debugGetValue(int address, int retVal)
 		{	
-			char* bytes = memUnit->getBytes(address);
+			unsigned char* bytes = memUnit->getBytes(address);
 				
 			retVal += ((bytes[0] & 0xff) << 24);
 			retVal += ((bytes[1] & 0xff) << 16);
@@ -380,6 +381,7 @@ class EmulatedCPU
 		void runEmulation(int entryPoint)
 		{
 			pc = entryPoint;
+			char *pweasenosteppy = (char *) calloc(2, sizeof(char));
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
 
@@ -407,6 +409,8 @@ class EmulatedCPU
 				}
 				else
 					pc += 4;
+				
+				//scanf("%s", pweasenosteppy);
 			}
 			
 
@@ -1500,7 +1504,20 @@ class EmulatedCPU
 		}
 		void lb(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TLTIU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TLTIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+			uint64_t comparison = (int64_t) signedImmediate;
+			if(gpr[rs] < comparison)
+			{
+				signalException(TrapFault);
+			}
 		}
 		void lbu(uint32_t instruction)
 		{
@@ -1547,12 +1564,25 @@ class EmulatedCPU
 		// MIPS 1
 		void lui(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for LUI\n");
+			}
 
+			if (debugPrint)
+			{
+
+				printf("LUI %s, %x", getName(rt).c_str(), immediate);
+			}
+			int32_t hold = (int32_t) immediate;
+			gpr[rt] = hold << 16;
 		}
 
 		//MIPS I
 		void lw(uint32_t instruction)
 		{
+			bool BigEndian = true;
+			is64bit = false;
 			if (mipsTarget < 1)
 			{
 				printf("Invalid mips target for LW\n");
@@ -1563,10 +1593,11 @@ class EmulatedCPU
 				printf("LW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 
+
 			if (mipsTarget == 4)
 			{
 				if (immediate & 3 > 0)
-					1 + 2;
+					immediate &= 0xfffc0;
 			}
 			if (is64bit)
 			{
@@ -1575,7 +1606,30 @@ class EmulatedCPU
 			else
 			{
 				int32_t offset = immediate;
+				if(immediate & 3 > 0)
+					signalException(MemoryFault);
+				
+				//Destination address
+				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 
+				//Get bytes in-order from mmu
+				char *bytes = memUnit->getEffectiveAddress(vAddr, 4);
+				//change their order depending on endianness??
+				gpr[rt] = 0;
+				if(BigEndian)
+				{
+					for(int i=0;i<4;i++)
+					{
+						gpr[rt] &= bytes[i] << i*8;
+					}
+				}
+				else
+				{
+					for(int i=0;i<4;i++)
+					{
+						gpr[rt] &= bytes[3-i] << i*8;
+					}
+				}
 			}
 
 		}
@@ -1817,7 +1871,7 @@ class EmulatedCPU
 			gpr[rt] = extended | gpr[rs];
 		}
 		// MIPS 4
-		void PERF(uint32_t instruction)
+		void PREF(uint32_t instruction)
 		{
 
 		}
@@ -2127,55 +2181,229 @@ class EmulatedCPU
 		// MIPS 2
 		void teq(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TEQ\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TEQ %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			if(gpr[rs] == gpr[rt])
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void teqi(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TEQI\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TEQI %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			if(gpr[rs] == signedImmediate)
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tge(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TGE\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TGE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+			int64_t comp1 = (int64_t) gpr[rs];
+			int64_t comp2 = (int64_t) gpr[rt];
+			if(comp1 >= comp2)
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
+		//@check comparison
 		void tgei(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TGEI\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TGEI %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+
+			if(gpr[rs] >= signedImmediate)
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tgeiu(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TGEIU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TGEIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+			uint64_t comparison = (int64_t) signedImmediate;
+			if(gpr[rs] >= comparison)
+			{
+				signalException(TrapFault);
+			}
 		}
 		void tgeu(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TGEU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TGEU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			if(gpr[rs] >= gpr[rt])
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tlt(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TLT\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TLT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			int64_t comp1 = (int64_t) gpr[rs];
+			int64_t comp2 = (int64_t) gpr[rt];
+			if(comp1 < comp2)
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tlti(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TLTI\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TLTI %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+			int64_t comparison = (int64_t) signedImmediate;
+			if(gpr[rs] < comparison)
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tltiu(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TLTIU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TLTIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+			uint64_t comparison = (int64_t) signedImmediate;
+			if(gpr[rs] < comparison)
+			{
+				signalException(TrapFault);
+			}
 		}
-		void tltui(uint32_t instruction)
-		{
 
-		}
+		//MIPS II
 		void tltu(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TLTU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TLTU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+			
+			if(gpr[rs] < gpr[rt])
+			{
+				signalException(TrapFault);
+			}
 		}
+
+		//MIPS II
 		void tne(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TNE\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TNE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+			}
+			
+			if(gpr[rs] != gpr[rt])
+			{
+				signalException(TrapFault);
+			}
 		}
 		void tnei(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for TNEI\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("TNEI %s, %d\n", getName(rs).c_str(), signedImmediate);
+			}
+			
+			if(gpr[rs] != signedImmediate)
+			{
+				signalException(TrapFault);
+			}
 		}
 
 		//MIPS 1
@@ -2298,6 +2526,7 @@ class EmulatedCPU
 		// pg. 40
 		void runInstruction(uint32_t instruction)
 		{
+			printf("PC: [0x%x], Instruction: [0x%08x]\n", pc, instruction);
 			// First, let's determine the instruction type.
 			rs = (instruction & 0x3E00000) >> 21;
 			rt = (instruction & 0x1F0000) >> 16;
@@ -2316,23 +2545,27 @@ class EmulatedCPU
 			}
 			
 			printf("immediate signed: %d immediate unsigned: %d\n", signedImmediate, immediate);
-			
+			printf("Rtype [%d]\n", (instruction & 0b111111));
+			printf("Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
+			printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
+			// TODO: add bounds checking : )
 			// If the upper 26-31 bits are set to zero, then, we have an R-Type instruction
 			if ((instruction & 0xfc000000) == 0)
 			{
 				// Essentially, this is a list of r type functions indexed by opcode.
-				printf("Rtype [%d]\n", (instruction & 0b111111));
+				printf("Selected Rtype [%d]\n", (instruction & 0b111111));
 				(this->*inst_handlers_rtypes[(instruction & 0b111111)])(instruction);
 							
 			}
 			// If the upper 26-31 bits are set to one, then, we have a REGIMM instruction
-			else if ((instruction & 0xfc000000) == 1)
+			else if ((instruction & 0xfc000000) >> 26 == 1)
 			{
-				printf(" ");
+				printf("Selected Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
+				(this->*inst_handlers_regimm[((instruction & 0x1f0000) >> 16)])(instruction);
 			}
 			else
 			{
-				printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
+				printf("Selected Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
 				(this->*inst_handlers_otypes[(instruction & 0xfc000000) >> 26])(instruction);
 			}			
 		}
@@ -2365,12 +2598,15 @@ int main(int argn, char ** args)
 	// of where bundled plugins directory is must be set. Since
 	// libbinaryninjacore is in the path get the path to it and use it to
 	// determine the plugins directory
+	
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
 	printf("[INFO] Plugins initialized!\n");
-
+	printf("[INFO] %s\n", args[1]);
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv = NULL;
+	printf("[INFO] BV Instantiated!\n");
+	fflush(stdout);
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
 		if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
@@ -2395,8 +2631,9 @@ int main(int argn, char ** args)
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
 	// This should get us the value of something interesting.
-	// Should give us 3c1c0043 in unsigned decimal
-	printf("Entry point:0x%x\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
+	// Should give us 3c1c0025 in unsigned decimal (using the a.out test file)
+	printf("Entry point:0x%lx\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
+	fflush(stdout);
 	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
 
 	// Proper shutdown of core

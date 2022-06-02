@@ -33,7 +33,7 @@ public:
 	int width;
 	bool* initialized;
 	bool* writtenTo;
-	section(int start, int length, char permissions, int width) {
+	section(int start, int length, char permissions, int width = 1024) {
 		this->start = start;
 		this->length = length;
 		this->end = start + length;
@@ -51,6 +51,15 @@ public:
 		this->writtenTo = (bool*)calloc(depth, sizeof(bool));
 		ID = 0;
 
+	}
+	section()
+	{
+		this->start = 0;
+		this->length = 0;
+		this->end = 0;
+		this->width = 0;
+		this->setPerms(0);
+		ID = 0;
 	}
 	void setPerms(char permissions)
 	{
@@ -75,9 +84,8 @@ public:
 	uint64_t ID;
 
 	//Data
-	vector<section> sections;
-	section operator [](int i) const { return sections[i]; }
-	section& operator [](int i) { return sections[i]; }
+	vector<section> *sections;
+	
 	void setPerms(char permissions)
 	{
 		readable = (permissions >> 2) & 1;
@@ -86,13 +94,14 @@ public:
 	}
 };
 
+/*
 class MMU
 {
 public:
-	ArrayList<segment> segments;
-	ArrayList<section> allSections;
-	//vector<segment> segments;
-	//vector<section> allSections;
+	//ArrayList<segment> segments;
+	//ArrayList<section> allSections;
+	vector<segment> segments;
+	vector<section> allSections;
 	int alloLength;
 	bool is64Bit;
 	BinaryNinja::BinaryView* bv;
@@ -103,6 +112,6 @@ public:
 	void store(uint64_t address, void* data, int datalength);
 
 };
-
+*/
 
 

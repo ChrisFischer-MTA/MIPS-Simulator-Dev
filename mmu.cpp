@@ -7,8 +7,8 @@
 #define MMUCPP 1
 #endif
 
-
 #include "binja.h"
+#include "mmu.h"
 
 #define BLOCKWIDTH 1024
 
@@ -26,17 +26,23 @@ void generallyPause();
 class MMU
 {
 	public:
+	vector<segment> segments;
+	vector<section> allSections;
+	int alloLength;
+	bool is64Bit;
 	BinaryView* bv = NULL;
+
 	MMU(bool is64bit, BinaryView* bc)
 	{	
 	
 		// Assign the passed BinaryView into our class.
 		bv = bc;
 		
-		/*
+		
 		// At some point need to check bv->platform->architecture for is64bit bool
 		auto tmp = bv->GetSegments();
 		segments = vector<segment>(tmp.size());
+		
 		this->is64Bit = is64bit;
 		for (int i = 0;i < tmp.size(); i++)
 		{
@@ -49,36 +55,36 @@ class MMU
 			segments[i].ID = 0;
 
 			// Rose I need help
-			//vector<section> v(5,section());
-			//segments[i].sections = v;
+			segments[i].sections = new vector<section>(5);
 		}
-
 		auto sectionlist = bv->GetSections();
 		allSections = vector<section>(sectionlist.size());
 		for (int i = 0;i < sectionlist.size();i++)
 		{
 			//find parent segment
 			segment parent = segSearch(sectionlist[i]->GetStart());
-
 			//create section object
 			allSections[i] =
 				section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH);
+			allSections[i].parent = (segment *)malloc(sizeof(segment));
+
+			
+	
 				
 			*(allSections[i].parent) = parent;	
 
 		}
 		//sort sections
-		secSort();
+		this->secSort();
 
 		for (int i = 0;i < allSections.size();i++)
 		{
 			//couple segment and section
-			allSections[i].parent->sections.push_back(allSections[i]);
+			allSections[i].parent->sections->push_back(allSections[i]);
 		}
-		*/
 	}
 
-	/*
+	
 	void secSort()
 	{
 		vector<section> sorted = vector<section>(allSections.size());
@@ -104,9 +110,9 @@ class MMU
 		return;
 			
 	}
-	*/
+	
 
-	/*
+	
 	segment segSearch(uint64_t index)
 	{
 		for (int i = 0;i < segments.size();i++)
@@ -118,23 +124,24 @@ class MMU
 		}
 		return segment();
 	}
-	*/
+	
 		
 	//Returns a pointer to a stream of bytes that can be read as necessary
 	//the stream of bytes is either the mmu memory segments (ideally) or a reconstructed short block
 	//of unwritable straight from binja
 	//numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
 	
-	/*
-	char * MMU::getEffectiveAddress(uint64_t address, int numBytes)
+	
+	char * getEffectiveAddress(uint64_t address, int numBytes)
 	{	
 		//For each segment,
 		for (int i = 0;i < segments.size();i++)
 		{
 			//For each section,
-			for (int j = 0;j < allSections.size();j++)
+			for (int j = 0;j < segments[i].sections->size();j++)
 			{
-				section token = segments[i].sections[j];
+				segment tokenHold = segments[i];
+				section token = (*(tokenHold.sections))[j];
 				//Is it valid? (within bounds)
 				if (address >= token.start && address <= token.end)
 				{
@@ -144,12 +151,16 @@ class MMU
 						//Is it writable? Exists to avoid loading unwritable data when unnecessary
 						if (token.writable)
 						{
+							
 							//Yes, could have a dirty state in memory:
 							//block access arithmetic, token[depth][blockOffset] should be starting point
-							int offset = address - token.start;
-							int depth = offset / token.width;
-							int blockOffset = depth % token.width;
-
+							printf("%ld, %ld token start, width\n", token.start, token.width);
+							uint64_t offset = address - token.start;
+							printf("[FLUSH] 1\n");
+							uint64_t depth = (int)(offset / token.width);
+							uint64_t blockOffset = depth % token.width;
+							printf("[FLUSH] 2\n");
+							fflush(stdout);
 							//Not even initialized, pull and return 
 							if (!token.initialized[depth])
 							{
@@ -159,12 +170,13 @@ class MMU
 								token.initialized[depth] = true;
 
 							}
+							printf("[FLUSH] 3\n");
 							if (blockOffset + numBytes > token.width)
 							{
 								printf("something weird happened\n");
 								generallyPause();
 							}
-
+							printf("[FLUSH] 3\n");
 							return token.array[depth] + blockOffset;
 
 
@@ -192,7 +204,33 @@ class MMU
 		// Rose I will need your help on a more permanent solution for this - Sean
 		return NULL;
 	}
-	*/
+	
+	/*int writeToBytes(char *data, int length)
+	{
+		//For each segment,
+		for (int i = 0;i < segments.size();i++)
+		{
+			//For each section,
+			for (int j = 0;j < allSections.size();j++)
+			{
+				segment tokenHold = segments[i];
+				section token = (*(tokenHold.sections))[j];
+				//Is it valid? (within bounds)
+				if (address >= token.start && address <= token.end)
+				{
+					if (token.writable)
+					{
+						//Yes, could have a dirty state in memory:
+						//block access arithmetic, token[depth][blockOffset] should be starting point
+						int offset = address - token.start;
+						int depth = offset / token.width;
+						int blockOffset = depth % token.width;
+					{
+
+				}
+			}
+		}
+	}*/
 
 
 

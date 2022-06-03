@@ -98,9 +98,11 @@ class MMU
 			segment parent = segSearch(sectionlist[i]->GetStart());
 			//create section object
 			
-
-			secName = (char *)calloc(sectionlist[i]->GetName().size(), sizeof(char));
-			strcpy(secName, sectionlist[i]->GetName().c_str());
+			secName = (char *)calloc((sectionlist[i]->GetName().size())+1, sizeof(char));
+			
+			// Ironically, this is a heap overflow.
+			
+			strncpy(secName, sectionlist[i]->GetName().c_str(), sectionlist[i]->GetName().size());
 
 			section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName, parent);
 			

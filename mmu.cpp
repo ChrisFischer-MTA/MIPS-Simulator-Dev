@@ -344,4 +344,5 @@ class MMU
 			printf("Start: 0x%lx, Size: %lx, Name %s\n", allSections[i].start, allSections[i].end - allSections[i].start, allSections[i].name);
 		}
 	}
+	
 };

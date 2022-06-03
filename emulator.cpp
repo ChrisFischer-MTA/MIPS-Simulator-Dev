@@ -1477,7 +1477,14 @@ class EmulatedCPU
 			gpr[rd] = pc + 8;
 
 			runInstruction(getNextInstruction());
-
+			
+			// TODO:
+			// Before we do, let's verify that we're not about to jump into the GOT
+			// Equivilent python coode is bv.get_sections_at(pc)[0].name OR .type (name will be .got and type will be PROGBITS)
+			// If we're about to jump to the GOT, let's resolve the external call.
+			
+			// equivilent code is bv.get_symbol_at(addr).full_name
+			// Then use dlsym to bind the symbol and open
 			pc = temp;
 		}
 
@@ -1617,6 +1624,7 @@ class EmulatedCPU
 				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
 				if(bytes == NULL)
 				{
+					printf("bytes==NULL\n");
 					signalException(MemoryFault);
 				}
 				printf("victory? %s, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3]);

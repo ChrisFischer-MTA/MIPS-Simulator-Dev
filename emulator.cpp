@@ -478,11 +478,11 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %dx\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
+				printf("ADDIU %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
 			}
 
 			//this->signExtend(&immediate, 16, 32);
-			uint64_t temp = gpr[rs] + immediate;
+			int64_t temp = gpr[rs] + signedImmediate;
 			if (!is64bit)
 				temp &= 0xffffffff;
 			gpr[rt] = temp;
@@ -1603,21 +1603,32 @@ class EmulatedCPU
 			{
 				int32_t offset = immediate;
 				if(immediate & 3 > 0)
+				{
+					printf("what?\n");
 					signalException(MemoryFault);
+				}
+					
 				
 				//Destination address
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
-
+				registerDump();
 				//Get bytes in-order from mmu
 				memUnit->printSections();
-				char *bytes = memUnit->getEffectiveAddress(vAddr, 4);
+				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
 				if(bytes == NULL)
 				{
 					signalException(MemoryFault);
 				}
+				printf("victory? %s, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3]);
+				fflush(stdout);
 				//change their order depending on endianness??
 				gpr[rt] = 0;
-				if(BigEndian)
+				gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
+				gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
+				gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+				printf("%llx\n", gpr[rt]);
+				/*if(BigEndian)
 				{
 					for(int i=0;i<4;i++)
 					{
@@ -1630,7 +1641,7 @@ class EmulatedCPU
 					{
 						gpr[rt] &= bytes[3-i] << i*8;
 					}
-				}
+				}*/
 			}
 
 		}
@@ -1926,7 +1937,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLL %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(sa).c_str());
+				printf("SLL %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(sa).c_str());
 			}
 
 			gpr[rd] = gpr[rt] << sa;
@@ -1943,7 +1954,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLLV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("SLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] << (gpr[rs] & 0x1f);
@@ -1960,7 +1971,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLT %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("SLT %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = (gpr[rs] < gpr[rt]);
@@ -1977,7 +1988,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLTI %s, %s, %x", getName(rt).c_str(), getName(rs).c_str(), immediate);
+				printf("SLTI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 
 			int64_t extended = (int64_t) immediate;
@@ -1996,7 +2007,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLTIU %s, %s, %x", getName(rt).c_str(), getName(rs).c_str(), immediate);
+				printf("SLTIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 			if (is64bit)
 			{
@@ -2020,13 +2031,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLUT\n");
+				printf("Invalid mips target for SLTU\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLUT %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("SLTU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			uint64_t a = gpr[rs], b = gpr[rt];
@@ -2042,7 +2053,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SRA %s, %s, %x", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printf("SRA %s, %s, %x\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			int32_t hold = gpr[rt] & 0xffffffff;
@@ -2067,7 +2078,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SRAV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("SRAV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			int32_t hold = gpr[rt] & 0xffffffff;
@@ -2090,7 +2101,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SRL %s, %s, %d", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printf("SRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			uint32_t hold = gpr[rt];
@@ -2107,7 +2118,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SRLV %s, %s, %s", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printf("SRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			uint32_t hold = gpr[rt];
@@ -2603,7 +2614,6 @@ int main(int argn, char ** args)
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
 	printf("[INFO] Plugins initialized!\n");
-	printf("[INFO] %s\n", args[1]);
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv = NULL;
 	printf("[INFO] BV Instantiated!\n");
@@ -2617,18 +2627,16 @@ int main(int argn, char ** args)
 		}
 	}
 	printf("[INFO] BVs initialized!\n");
-
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
 		fprintf(stderr, "Input file does not appear to be an exectuable\n");
 		return -1;
 	}
 	printf("[INFO] Starting Analysis.\n");
-
 	bv->UpdateAnalysisAndWait();
-	
 	printf("[INFO] Finished Analysis.\n");
 
+	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
 	// This should get us the value of something interesting.

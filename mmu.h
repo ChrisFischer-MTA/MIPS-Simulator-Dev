@@ -34,26 +34,7 @@ public:
 	int width;
 	bool* initialized;
 	bool* writtenTo;
-	section(int start, int length, char permissions, int width, char *name) {
-		this->start = start;
-		this->length = length;
-		this->end = start + length;
-		this->width = width;
-		this->name = name;
-
-		this->setPerms(permissions);
-
-		int depth = (length / width) + 1;
-		this->array = (char**)calloc(depth, sizeof(char*));
-		for (int i = 0;i < depth;i++)
-		{
-			this->array[i] = (char*)calloc(width, sizeof(char));
-		}
-		this->initialized = (bool*)calloc(depth, sizeof(bool));
-		this->writtenTo = (bool*)calloc(depth, sizeof(bool));
-		ID = 0;
-
-	}
+	section(int start, int length, char permissions, int width, char *name, segment parent);
 	section()
 	{
 		this->start = 0;
@@ -62,6 +43,11 @@ public:
 		this->width = 0;
 		this->setPerms(0);
 		ID = 0;
+	}
+
+	section(uint64_t start)
+	{
+		this->start = start;
 	}
 	void setPerms(char permissions)
 	{

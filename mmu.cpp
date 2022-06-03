@@ -23,19 +23,49 @@ using namespace std;
 //const short int MemoryFault = 2;
 
 
+section::section(int start, int length, char permissions, int width, char *name, segment parent)
+{
+	this->start = start;
+	this->length = length;
+	this->end = start + length;
+	this->width = width;
+	this->name = name;
+
+	this->setPerms(permissions);
+
+	int depth = (length / width) + 1;
+	this->array = (char**)calloc(depth, sizeof(char*));
+	for (int i = 0;i < depth;i++)
+	{
+		this->array[i] = (char*)calloc(width, sizeof(char));
+	}
+	this->initialized = (bool*)calloc(depth, sizeof(bool));
+	this->writtenTo = (bool*)calloc(depth, sizeof(bool));
+	ID = 0;
+
+	this->parent = (segment *)malloc(sizeof(segment));
+	*(this->parent) = parent;
+	printf("%xsegmentstart\n", this->parent->start);
+}
+
 void generallyPause();
 class MMU
 {
 	public:
 	vector<segment> segments;
 	vector<section> allSections;
+	vector<char> stack;
+	uint64_t stackBase;
 	int alloLength;
 	bool is64Bit;
 	BinaryView* bv = NULL;
 
-	MMU(bool is64bit, BinaryView* bc)
+	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0)
 	{	
-	
+		//Allocate the stack
+		this->stack = vector<char>();
+		this->stackBase = stackBase;
+
 		// Assign the passed BinaryView into our class.
 		bv = bc;
 		
@@ -56,12 +86,12 @@ class MMU
 			segments[i].permissions = flags;
 			segments[i].ID = 0;
 
-			// Rose I need help
-			segments[i].sections = new vector<section>(5);
+			segments[i].sections = new vector<section>();
 		}
 		auto sectionlist = bv->GetSections();
-		allSections = vector<section>(sectionlist.size());
+		allSections = vector<section>();
 		char *secName;
+
 		for (int i = 0;i < sectionlist.size();i++)
 		{
 			//find parent segment
@@ -71,22 +101,14 @@ class MMU
 
 			secName = (char *)calloc(sectionlist[i]->GetName().size(), sizeof(char));
 			strcpy(secName, sectionlist[i]->GetName().c_str());
-			printf("name2: %s\t", secName);
-			section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName);
+
+			section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName, parent);
+			
 			allSections.push_back(token);
-			allSections[i] = token;
-			allSections[i].parent = (segment *)malloc(sizeof(segment));
+			//allSections[i].parent = (segment *)malloc(sizeof(segment));
 
 			//section token = section(sectionlist[i]->GetStart(), sectionlist[i]->GetLength(), parent.permissions, BLOCKWIDTH, secName);
-
-			printf("name2: %s\t", allSections[i].name);
-			printf("name3:%x\n", allSections[i].start);
 			
-			
-	
-				
-			*(allSections[i].parent) = parent;	
-
 		}
 		//sort sections
 		this->secSort();
@@ -101,26 +123,32 @@ class MMU
 	
 	void secSort()
 	{
-		vector<section> sorted = vector<section>(allSections.size());
-		section least = allSections[0];
+		vector<section> sorted = vector<section>();
 		bool *disabled = (bool *)calloc(allSections.size(), sizeof(bool));
+		section least;
+		int leastIndex;
+
+		fflush(stdout);
 		for (int j = 0;j < allSections.size();j++)
 		{
-			int leastindex = 0;
-			for (int i = 1;i < allSections.size();i++)
+			
+			least = section(0xffffffffffffffff);
+			
+			for (int i = 0;i < allSections.size();i++)
 			{
 				if (allSections[i] < least && !disabled[i])
 				{
 					least = allSections[i];
-					leastindex = i;
+					leastIndex = i;
 				}
 			}
-			sorted[j] = least;
-			disabled[leastindex] = true;
+			sorted.push_back(least);
+			disabled[leastIndex] = true;
+
 		}
 		for (int i = 1;i < allSections.size();i++)
 		{
-			allSections[i] = sorted[i];
+			allSections = sorted;
 		}
 		return;
 			
@@ -145,10 +173,24 @@ class MMU
 	//the stream of bytes is either the mmu memory segments (ideally) or a reconstructed short block
 	//of unwritable straight from binja
 	//numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
-	
-	
-	char * getEffectiveAddress(uint64_t address, int numBytes)
-	{	
+	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
+	{
+		//For Stack pointer access
+		if(gpr == 29)
+		{
+			if(contents > stackBase + stack.size())
+			{
+				stack.resize(contents - stackBase + 1);
+			}
+			if(address > contents)
+			{
+				stack.resize(address - stackBase + 1);
+			}
+
+			uint64_t stackOffset = address - stackBase;
+			return stack.data() + stackOffset;
+		}
+		//For Binja binary accesses	
 		//For each segment,
 		for (int i = 0;i < segments.size();i++)
 		{
@@ -156,13 +198,11 @@ class MMU
 			for (int j = 0;j < segments[i].sections->size();j++)
 			{
 				segment tokenHold = segments[i];
-				printf("[FLUSH] %d, %d\n", i, j);
 				section token = (*(tokenHold.sections))[j];
-				printf("[FLUSH] 1\n");
 				//Is it valid? (within bounds)
 				if (address >= token.start && address <= token.end)
 				{
-					printf("[FLUSH] 1\n");
+					fflush(stdout);
 					//Is it readable?
 					if (token.readable)
 					{
@@ -172,21 +212,17 @@ class MMU
 							
 							//Yes, could have a dirty state in memory:
 							//block access arithmetic, token[depth][blockOffset] should be starting point
-							printf("[FLUSH] 1\n");
-							printf("%ld, %ld token start, width\n", token.start, token.width);
-							printf("[FLUSH] 1\n");
+							fflush(stdout);
 							uint64_t offset = address - token.start;
-							printf("[FLUSH] 1\n");
 							uint64_t depth = (int)(offset / token.width);
-							uint64_t blockOffset = depth % token.width;
-							printf("[FLUSH] 2\n");
+							uint64_t blockOffset = offset % token.width;
 							fflush(stdout);
 							//Not even initialized, pull and return 
 							if (!token.initialized[depth])
 							{
 								//token[depth] = binja.access(token.start + depth*width, width);
 								if (bv->Read(token.array[depth], address - blockOffset, token.width) != token.width)
-									generallyPause();
+									1 + 1;
 								token.initialized[depth] = true;
 
 							}
@@ -196,7 +232,15 @@ class MMU
 								printf("something weird happened\n");
 								generallyPause();
 							}
-							printf("[FLUSH] 3\n");
+							printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
+
+							char * testing = token.array[depth];
+							for(int i=0;i<16;i++)
+							{
+								printf("%x", testing[i]);
+							}
+							printf("\n");
+
 							return token.array[depth] + blockOffset;
 
 
@@ -295,7 +339,7 @@ class MMU
 		printf("Sections:\n");
 		for(int i=0;i<allSections.size();i++)
 		{
-			printf("Start: %lx, Size: %lx, Name %s\n", allSections[i].start, allSections[i].end - allSections[i].start, allSections[i].name);
+			printf("Start: 0x%lx, Size: %lx, Name %s\n", allSections[i].start, allSections[i].end - allSections[i].start, allSections[i].name);
 		}
 	}
 };

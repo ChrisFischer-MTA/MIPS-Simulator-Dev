@@ -328,6 +328,29 @@ class MMU
 	{
 
 	}
+	
+	// This function uses the Binary Ninja API to validate that the address we're about to jump to 
+	// is not an external symbol that would need to be resolved by the linker.
+	bool checkAddrForExtern(uint64_t address)
+	{
+		address=0x418820;
+		printf("Validating the PC of 0x%x\n", address);
+		vector<Ref<Section>> sections = bv->GetSectionsAt(address);
+		
+		// Check for sections
+		if(sections.size() == 0)
+		{
+			printf("Invalid section size!\n");
+			return false;
+			
+		}
+		
+		
+		printf("GetType: [0x%x] and GetName: [%s]", sections[0]->GetType(), sections[0]->GetName().c_str());
+		while(true);
+		
+		return true;
+	}
 
 	void generallyPause()
 	{

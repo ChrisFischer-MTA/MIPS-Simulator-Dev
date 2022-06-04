@@ -1485,6 +1485,12 @@ class EmulatedCPU
 			
 			// equivilent code is bv.get_symbol_at(addr).full_name
 			// Then use dlsym to bind the symbol and open
+			
+			if(memUnit->checkAddrForExtern(pc))
+			{
+				printf("intercepting call!\n");
+				generallyPause();
+			}
 			pc = temp;
 		}
 
@@ -2652,6 +2658,9 @@ int main(int argn, char ** args)
 	printf("Entry point:0x%lx\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
 	fflush(stdout);
 	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
+
+	//bv->
+	// First, let's get some stuff 0x410864
 
 	// Proper shutdown of core
 	BNShutdown();

@@ -2655,12 +2655,13 @@ int main(int argn, char ** args)
 	
 	// This should get us the value of something interesting.
 	// Should give us 3c1c0025 in unsigned decimal (using the a.out test file)
-	printf("Entry point:0x%lx\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
-	fflush(stdout);
-	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
+	//printf("Entry point:0x%lx\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
+	//fflush(stdout);
 
-	//bv->
-	// First, let's get some stuff 0x410864
+	// Test for isAddrExtern
+	printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
+
+	//electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
 
 	// Proper shutdown of core
 	BNShutdown();

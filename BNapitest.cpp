@@ -91,8 +91,6 @@ int main(int argc, char* argv[])
                     seg->GetLength(), readable, writable, executable);
         }
 
-
-
         // Go through all functions in the binary
         for (auto& func : bv->GetAnalysisFunctionList())
         {

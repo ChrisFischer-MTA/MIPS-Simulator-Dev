@@ -259,15 +259,8 @@ class MMU
 						}
 					}
 				}
-				else
-				{
-					//emulator->signalException(MemoryFault);
-				}
-
 			}
 		}
-		// It is possible to reach this point so we need to return some value, however I dont believe it should be NULL
-		// Rose I will need your help on a more permanent solution for this - Sean
 		return NULL;
 	}
 	
@@ -331,25 +324,30 @@ class MMU
 	
 	// This function uses the Binary Ninja API to validate that the address we're about to jump to 
 	// is not an external symbol that would need to be resolved by the linker.
-	bool checkAddrForExtern(uint64_t address)
+	bool isAddrExtern(uint64_t address)
 	{
-		address=0x418820;
+		/*
+		// Address is currently for puts() in our a.out
+		//address=0x410864;
 		printf("Validating the PC of 0x%x\n", address);
 		vector<Ref<Section>> sections = bv->GetSectionsAt(address);
+
+		Symbol* s = bv->GetSymbolByAddress(address);
+        printf("**%s**\n", s->GetFullName().c_str());
+		printf("%d\n", bv->IsOffsetExternSemantics(address));
 		
 		// Check for sections
 		if(sections.size() == 0)
 		{
 			printf("Invalid section size!\n");
 			return false;
-			
 		}
 		
+		printf("GetType: [0x%x] and GetName: [%s]\n", sections[0]->GetType(), sections[0]->GetName().c_str());
+		//while(true);
+		*/
 		
-		printf("GetType: [0x%x] and GetName: [%s]", sections[0]->GetType(), sections[0]->GetName().c_str());
-		while(true);
-		
-		return true;
+		return bv->IsOffsetExternSemantics(address);
 	}
 
 	void generallyPause()

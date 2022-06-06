@@ -345,6 +345,13 @@ class EmulatedCPU
 			// Make PC a memory address
 			int address = PC;
 			uint32_t retVal = 0;
+			
+			printf("FLUSH 1\n");
+			Segment *test = bv->GetSegmentAt(address);
+			printf("FLUSH 2\n");
+			bool executable = test->GetFlags() & 1;
+			printf("FLUSH 3\n");
+
 
 			if(bv->GetSegmentAt(address)->GetFlags() & 1 == 0)
 			{

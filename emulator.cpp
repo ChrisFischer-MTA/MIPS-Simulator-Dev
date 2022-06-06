@@ -346,23 +346,14 @@ class EmulatedCPU
 			int address = PC;
 			uint32_t retVal = 0;
 			
-			printf("FLUSH 1\n");
-			Segment *test = bv->GetSegmentAt(address);
-			printf("FLUSH 2\n");
-			bool executable = test->GetFlags() & 1;
-			printf("FLUSH 3\n");
-
-
-			if(bv->GetSegmentAt(address)->GetFlags() & 1 == 0)
+			
+			if(!memUnit->segSearch(PC).executable)
 			{
 				signalException(MemoryFault);
 			}
-
 			
-			// Get opcode from binja using address
-			size_t numBytesRead;
-			unsigned char* bytes = (unsigned char*) malloc(sizeof(char) * 4);
-			numBytesRead = bv->Read(bytes, address, 4);
+			// Get opcode from the mmu using address
+			unsigned char* bytes = memUnit->getEffectiveAddress(PC, 4, 0, 0);
 			
 			// Convert to uint32_t
 			retVal += (bytes[0] << 24);

@@ -345,6 +345,7 @@ class MMU
 	// is not an external symbol that would need to be resolved by the linker.
 	bool isAddrExtern(uint64_t address)
 	{
+		printf("Checking address [0x%x]!\n", address);
 		/*
 		// Address is currently for puts() in our a.out
 		//address=0x410864;

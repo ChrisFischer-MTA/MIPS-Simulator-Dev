@@ -1492,9 +1492,9 @@ class EmulatedCPU
 			// equivilent code is bv.get_symbol_at(addr).full_name
 			// Then use dlsym to bind the symbol and open
 			
-			if(memUnit->isAddrExtern(pc))
+			if(memUnit->isAddrExtern(temp))
 			{
-				printf("intercepting call!\n");
+				printf("Found a call to an external function, this functionality isn't implemented!\n");
 				generallyPause();
 			}
 			pc = temp;

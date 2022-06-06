@@ -345,6 +345,12 @@ class EmulatedCPU
 			// Make PC a memory address
 			int address = PC;
 			uint32_t retVal = 0;
+
+			if(bv->GetSegmentAt(address)->GetFlags() & 1 == 0)
+			{
+				signalException(MemoryFault);
+			}
+
 			
 			// Get opcode from binja using address
 			size_t numBytesRead;
@@ -410,7 +416,9 @@ class EmulatedCPU
 				else
 					pc += 4;
 				
-				//scanf("%s", pweasenosteppy);
+				registerDump();
+
+				scanf("%s", pweasenosteppy);
 			}
 			
 
@@ -478,7 +486,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
+				printf("ADDIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 
 			//this->signExtend(&immediate, 16, 32);
@@ -1486,7 +1494,7 @@ class EmulatedCPU
 			// equivilent code is bv.get_symbol_at(addr).full_name
 			// Then use dlsym to bind the symbol and open
 			
-			if(memUnit->checkAddrForExtern(pc))
+			if(memUnit->isAddrExtern(pc))
 			{
 				printf("intercepting call!\n");
 				generallyPause();
@@ -1633,7 +1641,8 @@ class EmulatedCPU
 					printf("bytes==NULL\n");
 					signalException(MemoryFault);
 				}
-				printf("victory? %s, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3]);
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																						bytes[0], bytes[1], bytes[2], bytes[3]);
 				fflush(stdout);
 				//change their order depending on endianness??
 				gpr[rt] = 0;
@@ -2659,9 +2668,9 @@ int main(int argn, char ** args)
 	//fflush(stdout);
 
 	// Test for isAddrExtern
-	printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
+	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 
-	//electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
+	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
 
 	// Proper shutdown of core
 	BNShutdown();

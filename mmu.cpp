@@ -45,7 +45,7 @@ section::section(int start, int length, char permissions, int width, char *name,
 
 	this->parent = (segment *)malloc(sizeof(segment));
 	*(this->parent) = parent;
-	printf("%xsegmentstart\n", this->parent->start);
+	printf("0x%x segmentstart\n", this->parent->start);
 }
 
 void generallyPause();
@@ -63,8 +63,10 @@ class MMU
 	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0)
 	{	
 		//Allocate the stack
-		this->stack = vector<char>();
+		this->stack = vector<char>(5);
 		this->stackBase = stackBase;
+		stackWrite(0, "abcd", 4);
+
 
 		// Assign the passed BinaryView into our class.
 		bv = bc;
@@ -169,12 +171,28 @@ class MMU
 		}
 		return segment();
 	}
+
+	void stackWrite(uint64_t startIndex, char *data, int length)
+	{
+		if(startIndex > stack.size())
+		{
+			stack.resize(startIndex + length);
+		}
+		for(int i = 0;i< length; i++)
+		{
+			stack[startIndex + i] = data[i];
+		}
+		return;
+	}
 	
 		
 	//Returns a pointer to a stream of bytes that can be read as necessary
 	//the stream of bytes is either the mmu memory segments (ideally) or a reconstructed short block
 	//of unwritable straight from binja
 	//numBytes doesn't make it grab n bytes, it's just there to make sure a block boundary isn't being crossed
+	//address: ptr to virtual memory
+	//gpr: which register is used to access memory
+	//contents: contents of gpr
 	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
 		//For Stack pointer access
@@ -190,6 +208,7 @@ class MMU
 			}
 
 			uint64_t stackOffset = address - stackBase;
+			printf("stackData: %x\n", stack.data());
 			return stack.data() + stackOffset;
 		}
 		//For Binja binary accesses	

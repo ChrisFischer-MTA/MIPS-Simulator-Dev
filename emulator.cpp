@@ -385,7 +385,7 @@ class EmulatedCPU
 		void runEmulation(int entryPoint)
 		{
 			pc = entryPoint;
-			char *pweasenosteppy = (char *) calloc(2, sizeof(char));
+			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
 

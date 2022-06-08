@@ -64,7 +64,10 @@ class MMU
 	{	
 		//Allocate the stack
 		this->stack = vector<char>(5);
-		this->stackBase = stackBase;
+		//gap is left side of gap, right side of gap, section to the right of the gap
+		int *gap = getLargestGap();
+		this->stackBase = gap[1] - 0xf;
+		this->stackMaxLength = gap[1] - 0xf - gap[0];
 		stackWrite(0, "abcd", 4);
 
 
@@ -122,6 +125,7 @@ class MMU
 			//couple segment and section
 			allSections[i].parent->sections->push_back(allSections[i]);
 		}
+
 	}
 
 	
@@ -172,6 +176,54 @@ class MMU
 		return segment();
 	}
 
+	//calculates the largest gap between sections
+	//returns the left and right border of the gap
+	int *getLargestGap(bool * excluded = NULL)
+	{
+		
+		if(excluded == NULL)
+		{
+			excluded = (bool *) calloc(allSections.size(), sizeof(bool));
+		}
+		int l=0,r=0;
+		int maxl=0,maxr=0, maxWidth = 0, maxI = 0;
+		
+		for(int i=0;i<allSections.size();i++)
+		{
+			
+			r = allSections[i].start;
+			if(r-l > maxWidth && !excluded[i])
+			{
+				maxWidth = r - l;
+				maxr = r;
+				maxl = l;
+				maxI = i;
+			}
+
+			l = allSections[i].end;
+			
+		
+		}
+		printf("Troy and Abed after getLargestGap\n");
+		fflush(stdout);
+		r = 0x0fffffff;
+		if(r - l > maxWidth)
+		{
+			maxWidth = r - l;
+			maxr = r;
+			maxl = l;
+			maxI = allSections.size();
+		}
+		int *out = (int *)calloc(3, sizeof(int));
+		out[0] = l;
+		out[1] = r;
+		out[2] = maxI;
+		printf("Troy and Abed checking out %x %x %d\n", out[0], out[1], out[2]);
+		fflush(stdout);
+		free(excluded);
+		return out;
+	}
+
 	void stackWrite(uint64_t startIndex, char *data, int length)
 	{
 		if(startIndex > stack.size())
@@ -198,16 +250,16 @@ class MMU
 		//For Stack pointer access
 		if(gpr == 29)
 		{
-			if(contents > stackBase + stack.size())
+			if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);
 			}
-			if(address > contents)
+			if(address < contents)
 			{
-				stack.resize(address - stackBase + 1);
+				stack.resize(stackBase - address + 1);
 			}
 
-			uint64_t stackOffset = address - stackBase;
+			uint64_t stackOffset = stackBase - address;
 			printf("stackData: %x\n", stack.data());
 			return stack.data() + stackOffset;
 		}
@@ -281,6 +333,88 @@ class MMU
 			}
 		}
 		return NULL;
+	}
+
+	char *getWriteAddresss(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
+	{
+		//For Stack pointer access
+		if(gpr == 29)
+		{
+			if(contents < stackBase - stack.size())
+			{
+				stack.resize(contents - stackBase + 1);
+			}
+			if(address < contents)
+			{
+				stack.resize(stackBase - address + 1);
+			}
+
+			uint64_t stackOffset = stackBase - address;
+			printf("stackData: %x\n", stack.data());
+			return stack.data() + stackOffset;
+		}
+		//For Binja binary accesses	
+		//For each segment,
+		for (int i = 0;i < segments.size();i++)
+		{
+			//For each section,
+			for (int j = 0;j < segments[i].sections->size();j++)
+			{
+				segment tokenHold = segments[i];
+				section token = (*(tokenHold.sections))[j];
+				//Is it valid? (within bounds)
+				if (address >= token.start && address <= token.end)
+				{
+					fflush(stdout);
+					//Is it readable?
+					if (token.readable)
+					{
+						//Is it writable?
+						if (token.writable)
+						{
+							//Yes, could have a dirty state in memory:
+							//block access arithmetic, token[depth][blockOffset] should be starting point
+							fflush(stdout);
+							uint64_t offset = address - token.start;
+							uint64_t depth = (int)(offset / token.width);
+							uint64_t blockOffset = offset % token.width;
+							fflush(stdout);
+							//Not even initialized, pull and return 
+							if (!token.initialized[depth])
+							{
+								//token[depth] = binja.access(token.start + depth*width, width);
+								//this if is nullified because when bv reads the right edge of a section it doesn't read a full block of data
+								if (bv->Read(token.array[depth], address - blockOffset, token.width) != token.width)
+									1 + 1;
+								token.initialized[depth] = true;
+
+							}
+							printf("[FLUSH] 3\n");
+							if (blockOffset + numBytes > token.width)
+							{
+								printf("something weird happened\n");
+								generallyPause();
+							}
+							printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
+
+							char * testing = token.array[depth];
+							for(int i=0;i<16;i++)
+							{
+								printf("%x", testing[i]);
+							}
+							printf("\n");
+
+							return token.array[depth] + blockOffset;
+						}
+						else
+						{
+							printf("Unwritable Token On Write Exception");
+							return NULL;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/*int writeToBytes(char *data, int length)

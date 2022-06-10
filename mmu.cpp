@@ -71,6 +71,8 @@ class heap
 	{
 
 	}
+	heap()
+	{}
 
 };
 
@@ -160,7 +162,7 @@ class MMU
 
 		//Allocate the heap
 		vector<gap> binaryGaps = vector<gap>();
-		heap MMUHeap
+		heap MMUHeap;
 		int l=0,r=0;
 		gap ptr;
 		for(int i=0;i<allSections.size();i++)
@@ -276,17 +278,28 @@ class MMU
 		return out;
 	}
 
+	//Writes to the stack in increasing memory index (the emulated stack is backwards)
 	void stackWrite(uint64_t startIndex, char *data, int length)
 	{
 		if(startIndex > stack.size())
 		{
 			stack.resize(startIndex + length);
 		}
+		int finalIndex = startIndex + length;
 		for(int i = 0;i< length; i++)
 		{
-			stack[startIndex + i] = data[i];
+			stack[finalIndex - i] = data[i];
 		}
 		return;
+	}
+	
+	bool isInStack(uint64_t address)
+	{
+		if(address <= stackBase && address > stackBase - stackMaxLength)
+		{
+			return true;
+		}
+		return false;
 	}
 	
 		

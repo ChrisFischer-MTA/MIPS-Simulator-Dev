@@ -291,6 +291,7 @@ class EmulatedCPU
 			bv = bc;
 			fflush(stdout);
 			memUnit = new MMU(is64bit, bc);
+			
 			fflush(stdout);
 			int i;
 			pc = 0;
@@ -298,7 +299,8 @@ class EmulatedCPU
 			{
 				gpr[i] = 0;	
 			}
-			//memUnit = &MMU(is64bit, bv);
+			//Instantiates the stack pointer;
+			gpr[29] = memUnit->stackBase;
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
@@ -1643,11 +1645,25 @@ class EmulatedCPU
 																						bytes[0], bytes[1], bytes[2], bytes[3]);
 				fflush(stdout);
 				//change their order depending on endianness??
-				gpr[rt] = 0;
-				gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
-				gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
-				gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) << 16;
-				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+
+				//Emulated stack pointer is backwards. have to reverse it for writes
+				if(memUnit->isInStack(vAddr))
+				{
+					gpr[rt] = 0;
+					gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
+					gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
+					gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+				}
+				else
+				{
+					gpr[rt] = 0;
+					gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
+					gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
+					gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+				}
+				
 				printf("%llx\n", gpr[rt]);
 				/*if(BigEndian)
 				{
@@ -2187,7 +2203,80 @@ class EmulatedCPU
 		}
 		void sw(uint32_t instruction)
 		{
+			bool BigEndian = true;
+			is64bit = false;
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for sW\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("sW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+			}
+
+
+		
+			if (is64bit)
+			{
+
+			}
+			else
+			{
+				int32_t offset = immediate;
+				if(immediate & 3 > 0)
+				{
+					printf("what?\n");
+					signalException(MemoryFault);
+				}
+					
+				
+				//Destination address
+				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+				//Get bytes in-order from mmu
+				memUnit->printSections();
+				char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, gpr[rs]);
+				if(bytes == NULL)
+				{
+					printf("bytes==NULL\n");
+					signalException(MemoryFault);
+				}
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																						bytes[0], bytes[1], bytes[2], bytes[3]);
+				fflush(stdout);
+				//change their order depending on endianness??
+
+				//The emulated pointer for the stack is backwards. Have to reverse it for writes
+				if(memUnit->isInStack(vAddr))
+				{
+					bytes[3] = (gpr[rt] >> 24) & 0xff;
+					bytes[2] = (gpr[rt] >> 16) & 0xff;
+					bytes[1] = (gpr[rt] >> 8) & 0xff;
+					bytes[0] = (gpr[rt]) & 0xff;
+				}
+				else 
+				{
+					bytes[0] = (gpr[rt] >> 24) & 0xff;
+					bytes[1] = (gpr[rt] >> 16) & 0xff;
+					bytes[2] = (gpr[rt] >> 8) & 0xff;
+					bytes[3] = (gpr[rt]) & 0xff;
+				}
+				printf("%llx\n", *(uint32_t *)bytes);
+				/*if(BigEndian)
+				{
+					for(int i=0;i<4;i++)
+					{
+						gpr[rt] &= bytes[i] << i*8;
+					}
+				}
+				else
+				{
+					for(int i=0;i<4;i++)
+					{
+						gpr[rt] &= bytes[3-i] << i*8;
+					}
+				*/
+			}
 		}
 		void swcz(uint32_t instruction)
 		{

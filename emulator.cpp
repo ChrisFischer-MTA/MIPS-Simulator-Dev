@@ -425,6 +425,11 @@ class EmulatedCPU
 			return;
 		}
 
+		void scanCode(char *input)
+		{
+			
+		}
+
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
 		// TODO: Test with negative values.
 		void add(uint32_t opcode)
@@ -2207,12 +2212,12 @@ class EmulatedCPU
 			is64bit = false;
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for sW\n");
+				printf("Invalid mips target for SW\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("sW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printf("SW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 
 
@@ -2234,13 +2239,19 @@ class EmulatedCPU
 				//Destination address
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 				//Get bytes in-order from mmu
-				memUnit->printSections();
+				//memUnit->printSections();
+				printf("oogaflush");
+				fflush(stdout);
 				char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, gpr[rs]);
+				printf("oogaflush");
+				fflush(stdout);
 				if(bytes == NULL)
 				{
 					printf("bytes==NULL\n");
 					signalException(MemoryFault);
 				}
+				printf("oogaflush");
+				fflush(stdout);
 				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
 																						bytes[0], bytes[1], bytes[2], bytes[3]);
 				fflush(stdout);

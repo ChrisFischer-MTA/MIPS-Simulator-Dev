@@ -402,12 +402,16 @@ class MMU
 
 	char *getWriteAddresss(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
+		printf("address: %lx, gpr: %d\n", address, gpr);
+			fflush(stdout);
 		//For Stack pointer access
 		if(gpr == 29)
 		{
+			printf("%lx", address);
+			fflush(stdout);
 			if(contents < stackBase - stack.size())
 			{
-				stack.resize(contents - stackBase + 1);
+				stack.resize(stackBase - contents + 1);
 			}
 			if(address < contents)
 			{
@@ -416,6 +420,7 @@ class MMU
 
 			uint64_t stackOffset = stackBase - address;
 			printf("stackData: %x\n", stack.data());
+			fflush(stdout);
 			return stack.data() + stackOffset;
 		}
 		//For Binja binary accesses	

@@ -48,31 +48,55 @@ section::section(int start, int length, char permissions, int width, char *name,
 	printf("0x%x segmentstart\n", this->parent->start);
 }
 
+typedef struct gap_
+	{
+		//left boundary, right boundary, index of section to the right
+		int l;
+		int r;
+		int rightSection;
+		int width() {return r - l;}
+		vector<gap_> subGaps;
+	} gap;
+
+
+class heap
+{
+	public:
+	//MB first depth: gaps between sections of binary second depth: gaps between allocated segments of the heap
+	//MB represents EMPTY SPACE
+	vector<gap> MemoryBreakdown;
+	//same structure as MemoryBreakdown
+	vector<gap> allocations;
+	heap(vector<gap> binaryGaps)
+	{
+
+	}
+
+};
+
 void generallyPause();
 class MMU
 {
 	public:
+	
 	vector<segment> segments;
 	vector<section> allSections;
 	vector<char> stack;
+	heap MMUHeap;
 	uint64_t stackBase;
+	uint64_t stackMaxLength;
 	int alloLength;
 	bool is64Bit;
 	BinaryView* bv = NULL;
 
 	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0)
 	{	
-		//Allocate the stack
-		this->stack = vector<char>(5);
-		//gap is left side of gap, right side of gap, section to the right of the gap
-		int *gap = getLargestGap();
-		this->stackBase = gap[1] - 0xf;
-		this->stackMaxLength = gap[1] - 0xf - gap[0];
-		stackWrite(0, "abcd", 4);
+		
 
 
 		// Assign the passed BinaryView into our class.
 		bv = bc;
+		
 		
 		
 		// At some point need to check bv->platform->architecture for is64bit bool
@@ -126,6 +150,34 @@ class MMU
 			allSections[i].parent->sections->push_back(allSections[i]);
 		}
 
+		//Allocate the stack
+		this->stack = vector<char>(5);
+		gap bigGap = getLargestGap();
+		this->stackBase = bigGap.r - 0xf;
+		this->stackMaxLength = bigGap.r - 0xf - bigGap.l;
+		//Fill with fuzzing data
+		stackWrite(0, "abcd", 4);
+
+		//Allocate the heap
+		vector<gap> binaryGaps = vector<gap>();
+		heap MMUHeap
+		int l=0,r=0;
+		gap ptr;
+		for(int i=0;i<allSections.size();i++)
+		{
+			r = allSections[i].start;
+			if(r - l > 0 && i != bigGap.rightSection)
+			{
+				ptr.l = l;
+				ptr.r = r;
+				ptr.rightSection = i;
+				ptr.subGaps = vector<gap_>();
+				binaryGaps.push_back(ptr);
+			}
+		}
+		MMUHeap.MemoryBreakdown = binaryGaps;
+
+		printSections();
 	}
 
 	
@@ -158,6 +210,7 @@ class MMU
 		{
 			allSections = sorted;
 		}
+		free(disabled);
 		return;
 			
 	}
@@ -178,7 +231,7 @@ class MMU
 
 	//calculates the largest gap between sections
 	//returns the left and right border of the gap
-	int *getLargestGap(bool * excluded = NULL)
+	gap getLargestGap(bool * excluded = NULL)
 	{
 		
 		if(excluded == NULL)
@@ -204,7 +257,6 @@ class MMU
 			
 		
 		}
-		printf("Troy and Abed after getLargestGap\n");
 		fflush(stdout);
 		r = 0x0fffffff;
 		if(r - l > maxWidth)
@@ -214,11 +266,11 @@ class MMU
 			maxl = l;
 			maxI = allSections.size();
 		}
-		int *out = (int *)calloc(3, sizeof(int));
-		out[0] = l;
-		out[1] = r;
-		out[2] = maxI;
-		printf("Troy and Abed checking out %x %x %d\n", out[0], out[1], out[2]);
+		gap out;
+
+		out.l = l;
+		out.r = r;
+		out.rightSection = maxI;
 		fflush(stdout);
 		free(excluded);
 		return out;

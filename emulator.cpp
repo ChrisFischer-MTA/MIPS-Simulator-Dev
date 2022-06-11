@@ -288,7 +288,7 @@ class EmulatedCPU
 		int32_t tgt_offset = 0;
 		int instructionsRun = 0;
 
-		int32_t mipsTarget = 1;
+		int32_t mipsTarget = 32;
 		bool debugPrint = true;
 		
 
@@ -1657,7 +1657,7 @@ class EmulatedCPU
 		}
 		void lb(uint32_t instruction)
 		{
-			if (mipsTarget < 2)
+			if (mipsTarget < 1)
 			{
 				printf("Invalid mips target for LB\n");
 			}
@@ -1666,15 +1666,13 @@ class EmulatedCPU
 			{
 				printf("LB %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
-			uint64_t comparison = (int64_t) signedImmediate;
-			if(gpr[rs] < comparison)
-			{
-				signalException(TrapFault);
-			}
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			char *byte = memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
+			gpr[rt] = (int64_t)(*byte);
 		}
 		void lbu(uint32_t instruction)
 		{
-			if (mipsTarget < 2)
+			if (mipsTarget < 1)
 			{
 				printf("Invalid mips target for LBU\n");
 			}
@@ -1691,40 +1689,71 @@ class EmulatedCPU
 		// MIPS 3
 		void LD(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 2, likely going to be unimplemented
 		void LDCz(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 3
 		void LDL(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void LDR(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 1
 		void lh(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void lhu(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for LHU\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("LHU %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+			}
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			char *bytes = memUnit->getEffectiveAddress(vAddr, 2, rs, gpr[rs]);
+			if(bytes == NULL)
+			{
+				printf("bytes==NULL\n");
+				signalException(MemoryFault);
+			}
+			if(memUnit->isInStack(vAddr))
+			{
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+																					bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+				gpr[rt] = 0;
+				gpr[rt] |= ((uint64_t)(bytes[-1] & 0xff));
+				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
+			}
+			else
+			{
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																					bytes[0], bytes[1], bytes[2], bytes[3]);
+				gpr[rt] = 0;
+				gpr[rt] |= ((uint64_t)(bytes[1] & 0xff));
+				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
+			}
 		}
 		// MIPS 2
 		void LL(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 3
 		void LLD(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 1
 		void lui(uint32_t instruction)
@@ -1831,20 +1860,20 @@ class EmulatedCPU
 		// Likely to be unimplemented
 		void lwcz(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void lwl(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void lwr(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 3
 		void LWU(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 
 		// MIPS 1
@@ -2088,7 +2117,7 @@ class EmulatedCPU
 		// MIPS 4
 		void PREF(uint32_t instruction)
 		{
-
+			printf("Passing a PREF...\n");
 		}
 
 		// MIPS 32-2
@@ -2109,40 +2138,81 @@ class EmulatedCPU
 		// MIPS 1
 		void sb(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SB\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("SB %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+			}
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			char *bytes = memUnit->getWriteAddresss(vAddr, 1, rs, gpr[rs]);
+			bytes[0] = gpr[rt] & 0xff;
+			
 		}
 		// MIPS 2
 		void SC(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 3
 		void SCD(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void SD(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 2
 		void SDCz(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 3
 		void SDL(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void SDR(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 1
 		void sh(uint32_t instruction)
 		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SH\n");
+			}
 
+			if (debugPrint)
+			{
+				printf("SH %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+			}
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			char *bytes = memUnit->getWriteAddresss(vAddr, 2, rs, gpr[rs]);
+			if(bytes == NULL)
+			{
+				printf("bytes==NULL\n");
+				signalException(MemoryFault);
+			}
+			if(memUnit->isInStack(vAddr))
+			{
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+																					bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+				bytes[0] = (gpr[rt] >> 8) & 0xff;
+				bytes[-1] = (gpr[rt]) & 0xff;
+			}
+			else
+			{
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																					bytes[0], bytes[1], bytes[2], bytes[3]);
+				bytes[0] = (gpr[rt] >> 8) & 0xff;
+				bytes[1] = (gpr[rt]) & 0xff;
+			}
 		}
 
 		//MIPS I
@@ -2462,20 +2532,20 @@ class EmulatedCPU
 		}
 		void swcz(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void swl(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		void swr(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 2
 		void SYNC(uint32_t instruction)
 		{
-
+			unimplemented(instruction);
 		}
 		// MIPS 1
 		void syscall(uint32_t instruction)

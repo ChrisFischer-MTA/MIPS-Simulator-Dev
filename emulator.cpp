@@ -195,10 +195,10 @@ class EmulatedCPU
 			& EmulatedCPU::daddiu, // 25
 			& EmulatedCPU::LDL, // 26
 			& EmulatedCPU::LDR, // 27
-			& EmulatedCPU::unimplemented, // 28 ? (skipped)
+			& EmulatedCPU::mul, // 28 ? (skipped)
 			& EmulatedCPU::unimplemented, // 29 ? (skipped)
 			& EmulatedCPU::unimplemented, // 30 ? (skipped)
-			& EmulatedCPU::unimplemented, // 31 ? (skipped)
+			& EmulatedCPU::rdhwr, // 31 ? (skipped)
 			& EmulatedCPU::lb, // 32
 			& EmulatedCPU::lh, // 33
 			& EmulatedCPU::lwl, // 34
@@ -270,6 +270,7 @@ class EmulatedCPU
 
 		//registers and instruction fields
 		uint64_t gpr[32];
+		uint64_t hwr[32];
 		uint8_t rs; // 1st Source
 		uint8_t rt; // 2nd Source
 		uint8_t rd; // Register
@@ -285,6 +286,7 @@ class EmulatedCPU
 		bool delaySlot = false;
 		char* instructions;
 		int32_t tgt_offset = 0;
+		int instructionsRun = 0;
 
 		int32_t mipsTarget = 1;
 		bool debugPrint = true;
@@ -431,6 +433,8 @@ class EmulatedCPU
 				{
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
+					instructionsRun++;
+					printf("Instructions run: %x\n", instructionsRun);
 				}
 				//If the instruction is nullified, cancel the nullification
 				else
@@ -662,7 +666,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
+				printf("ANDI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
 			}
 			gpr[rt] = gpr[rs] & immediate;
 		}
@@ -1655,12 +1659,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TLTIU\n");
+				printf("Invalid mips target for LB\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TLTIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printf("LB %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			uint64_t comparison = (int64_t) signedImmediate;
 			if(gpr[rs] < comparison)
@@ -1670,6 +1674,18 @@ class EmulatedCPU
 		}
 		void lbu(uint32_t instruction)
 		{
+			if (mipsTarget < 2)
+			{
+				printf("Invalid mips target for LBU\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("LBU %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			char *byte = memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
+			gpr[rt] = (uint64_t)(*byte);
 
 		}
 		// MIPS 3
@@ -1936,6 +1952,8 @@ class EmulatedCPU
 			LO = gpr[rs];
 		}
 
+
+
 		//MIPS I
 		void mult(uint32_t instruction)
 		{
@@ -1998,6 +2016,24 @@ class EmulatedCPU
 
 		}
 
+		//MIPS 32
+		void mul(uint32_t instruction)
+		{
+			if (mipsTarget < 32)
+			{
+				printf("Invalid mips target for MUL\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("MUL %s, %s, %S\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+			}
+
+			mult(instruction);
+			gpr[rd] = LO;
+
+		}
+
 		//MIPS I
 		void nor(uint32_t instruction)
 		{
@@ -2053,6 +2089,22 @@ class EmulatedCPU
 		void PREF(uint32_t instruction)
 		{
 
+		}
+
+		// MIPS 32-2
+		void rdhwr(uint32_t instruction)
+		{
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for RDHWR\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("RDHWR %s, %s", getName(rt).c_str(), getName(rd).c_str());
+			}
+
+			gpr[rt] = hwr[rd];
 		}
 		// MIPS 1
 		void sb(uint32_t instruction)
@@ -2889,8 +2941,8 @@ int main(int argn, char ** args)
 
 	// Test for isAddrExtern
 	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
-
-	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
+	//(uint32_t)bv->GetEntryPoint()
+	electricrock->runEmulation(0x400400);
 
 	// Proper shutdown of core
 	BNShutdown();

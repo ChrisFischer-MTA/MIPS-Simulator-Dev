@@ -2428,7 +2428,10 @@ class EmulatedCPU
 		// MIPS 1
 		void syscall(uint32_t instruction)
 		{
-
+			printf("Syscall preformed. Unimplemented, generally!\n");
+			printf("$v0 is 0x%x.\n", gpr[2]);
+			generallyPause();
+			
 		}
 		// MIPS 2
 		void teq(uint32_t instruction)

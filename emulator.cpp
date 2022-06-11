@@ -402,6 +402,7 @@ class EmulatedCPU
 		void runEmulation(int entryPoint)
 		{
 			pc = entryPoint;
+			int index = 0;
 			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
@@ -412,7 +413,6 @@ class EmulatedCPU
 				
 				// Code to get some helpful stuff.
 				auto findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), pc);
-				int index = 0;
 				
 				if(findIterator != basicBlocks.end())
 				{

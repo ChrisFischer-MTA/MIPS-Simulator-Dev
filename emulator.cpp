@@ -75,6 +75,10 @@ const short int IntegerOverflow = 1;
 const short int MemoryFault = 2;
 const short int TrapFault = 3;
 
+// Coverage Information
+std::vector<uint32_t> basicBlocks;
+std::vector<std::string> basicBlockNames;
+
 class EmulatedCPU
 {
 	public:
@@ -302,6 +306,16 @@ class EmulatedCPU
 			}
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28;
+			
+			for(auto& func : bv ->GetAnalysisFunctionList())
+			{
+				for(auto& block : func->GetBasicBlocks())
+				{
+					// add to a vector
+					basicBlocks.push_back(block->GetStart());
+					basicBlockNames.push_back(func->GetSymbol()->GetFullName().c_str());
+				}
+			}
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
@@ -395,8 +409,23 @@ class EmulatedCPU
 			//While nothing has exploded,
 			while (validState == true)
 			{
-				printf("current pc: 0x%lx\n", pc);
-
+				
+				// Code to get some helpful stuff.
+				auto findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), pc);
+				int index = 0;
+				
+				if(findIterator != basicBlocks.end())
+				{
+					// Get the index
+					index = findIterator-basicBlocks.begin();
+					printf("Current PC:  0x%lx - Start of a Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
+				}
+				else
+				{
+					printf("Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
+				}
+				
+				
 				//If the instruction is not nullified, fetch and run it.
 				if (!instructionNullify)
 				{
@@ -426,7 +455,7 @@ class EmulatedCPU
 				else
 					pc += 4;
 				
-				registerDump();
+				//registerDump();
 				int flags = 0;
 				next = 0;
 				while(next == 0 && skip <= 0)

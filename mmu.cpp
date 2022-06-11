@@ -158,8 +158,19 @@ class MMU
 		this->stackBase = bigGap.r - 0xf;
 		this->stackMaxLength = bigGap.r - 0xf - bigGap.l;
 		//Fill with fuzzing data
-		char *nulls = (char *)calloc(0xe4f, sizeof(char));
-		stackWrite(0, nulls, 0xe4f);
+		
+		printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
+		stackWrite(this->stackBase - 20, "static_hello_world", 19); //18 chars +1\0
+		int filenameptr = this->stackBase-20;
+		char data[4];
+		for(int i=0;i<4;i++)
+			data[i] = (filenameptr >> i*8) & 0xff;
+		stackWrite(this->stackBase - 24, data, 4);
+		for(int i=0;i<3;i++)
+			data[i] = 0;
+		data[3] = 1;
+		stackWrite(this->stackBase - 28, data, 4);
+		this->stack.resize(30);
 
 		//Allocate the heap
 		vector<gap> binaryGaps = vector<gap>();
@@ -279,16 +290,19 @@ class MMU
 	}
 
 	//Writes to the stack in increasing memory index (the emulated stack is backwards)
-	void stackWrite(uint64_t startIndex, char *data, int length)
+	//^No it doesn't, that's dumb
+	//Writes to the stack in increasing memory address. 
+	void stackWrite(uint64_t address, char *data, int length)
 	{
-		if(startIndex + length > stack.size())
+		fflush(stdout);
+		if(stackBase - address + 1 > stack.size())
 		{
-			stack.resize(startIndex + length);
+			stack.resize(stackBase - address + 1);
 		}
-		int finalIndex = startIndex + length;
-		for(int i = 0;i< length; i++)
+		int startingIndex = stackBase-address;
+		for(int i = startingIndex;i > startingIndex - length; i--)
 		{
-			stack[finalIndex - i - 1] = data[i];
+			stack[i] = data[i - startingIndex + length - 1];
 		}
 		return;
 	}

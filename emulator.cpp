@@ -301,7 +301,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 			//Instantiates the stack pointer;
-			gpr[29] = memUnit->stackBase - 0xe4f;
+			gpr[29] = memUnit->stackBase - 28;
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
@@ -450,8 +450,9 @@ class EmulatedCPU
 					{
 						skip = flags;
 					}
-					skip--;
+					
 				}
+				skip--;
 				
 			}
 			
@@ -461,7 +462,7 @@ class EmulatedCPU
 
 		//goals: step, cancel step mode, print registers, print section of memory
 		//s for step
-		//play for step cancel
+		//play n to cancel step for n steps.
 		//reg for registers
 		//mem address n to print n bytes from address address
 		int scanCode(char *input, int address = 0, int n = 0)
@@ -484,6 +485,14 @@ class EmulatedCPU
 			}
 			if(strncmp(input, "mem", 1) == 0)
 			{
+				if(memUnit->isInStack(address))
+				{
+					int startingIndex = memUnit->stackBase-address;
+					for(int i = startingIndex;i > startingIndex - n; i--)
+					{
+						printf("%x", memUnit->stack[i]);
+					}
+				}
 				if(memUnit->isInBinary(address))
 				{
 					char* hold = (char*)(calloc(n, sizeof(char)));
@@ -512,6 +521,7 @@ class EmulatedCPU
 					}
 				}
 			}
+			return 0;
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
@@ -1721,7 +1731,6 @@ class EmulatedCPU
 				
 				//Destination address
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
-				registerDump();
 				//Get bytes in-order from mmu
 				memUnit->printSections();
 				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
@@ -1730,14 +1739,15 @@ class EmulatedCPU
 					printf("bytes==NULL\n");
 					signalException(MemoryFault);
 				}
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																						bytes[0], bytes[1], bytes[2], bytes[3]);
+				
 				fflush(stdout);
 				//change their order depending on endianness??
 
 				//Emulated stack pointer is backwards. have to reverse it for writes
 				if(memUnit->isInStack(vAddr))
 				{
+					printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+																						bytes[0], bytes[-1], bytes[-2], bytes[-3]);
 					gpr[rt] = 0;
 					gpr[rt] |= (uint64_t)(bytes[-3] & 0xff);
 					gpr[rt] |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
@@ -1746,6 +1756,8 @@ class EmulatedCPU
 				}
 				else
 				{
+					printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																						bytes[0], bytes[1], bytes[2], bytes[3]);
 					gpr[rt] = 0;
 					gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
 					gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;

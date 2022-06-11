@@ -392,23 +392,32 @@ class EmulatedCPU
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
 			int next = 0, skip = 0;
+			//While nothing has exploded,
 			while (validState == true)
 			{
 				printf("current pc: 0x%lx\n", pc);
 
+				//If the instruction is not nullified, fetch and run it.
 				if (!instructionNullify)
 				{
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
 				}
+				//If the instruction is nullified, cancel the nullification
 				else
 					instructionNullify = false;
 
+				//If this is the delay slot, remove the flag and do the pc
 				if (delaySlot)
 				{
+					//The instruction that just executed in the function above is a branch.
+					//So tgt_offset is loaded, but we refuse entry with delay slot
+					//The while loop is going to cycle and execute the next scheduled instruction, and then enter tgt_offset
 					delaySlot = false;
 					pc += 4;
 				}
+				//If this is not the delay slot and there's a loaded offset, (It must be the next next instruction from a Branch)
+				//execute the loaded offset
 				else if (tgt_offset != 0)
 				{
 					pc += tgt_offset;
@@ -420,7 +429,7 @@ class EmulatedCPU
 				registerDump();
 				int flags = 0;
 				next = 0;
-				while(next == 0 && skip == 0)
+				while(next == 0 && skip <= 0)
 				{
 					scanf("%s", pweasenosteppy);
 					if(strncmp(pweasenosteppy, "mem", 3) == 0)
@@ -439,8 +448,9 @@ class EmulatedCPU
 						next = 1;
 					if(flags > 1)
 					{
-						skip = 1;
+						skip = flags;
 					}
+					skip--;
 				}
 				
 			}
@@ -463,7 +473,9 @@ class EmulatedCPU
 			}
 			if(strncmp(input, "play", 4) == 0)
 			{
-				return 2;
+				int n;
+				scanf("%d", &n);
+				return n;
 			}
 			if(strncmp(input, "reg", 3) == 0)
 			{
@@ -724,7 +736,7 @@ class EmulatedCPU
 
 			if (gpr[rs] >= 0)
 			{
-				// If the two registers equal, we increment PC by the offset.
+				// If the two registers greater than or equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
 			}
 		}

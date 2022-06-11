@@ -288,7 +288,7 @@ class MMU
 		int finalIndex = startIndex + length;
 		for(int i = 0;i< length; i++)
 		{
-			stack[finalIndex - i] = data[i];
+			stack[finalIndex - i - 1] = data[i];
 		}
 		return;
 	}

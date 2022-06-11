@@ -158,7 +158,8 @@ class MMU
 		this->stackBase = bigGap.r - 0xf;
 		this->stackMaxLength = bigGap.r - 0xf - bigGap.l;
 		//Fill with fuzzing data
-		stackWrite(0, "abcd", 4);
+		char *nulls = (char *)calloc(0xe4f, sizeof(char));
+		stackWrite(0, nulls, 0xe4f);
 
 		//Allocate the heap
 		vector<gap> binaryGaps = vector<gap>();
@@ -257,7 +258,6 @@ class MMU
 
 			l = allSections[i].end;
 			
-		
 		}
 		fflush(stdout);
 		r = 0x0fffffff;
@@ -281,7 +281,7 @@ class MMU
 	//Writes to the stack in increasing memory index (the emulated stack is backwards)
 	void stackWrite(uint64_t startIndex, char *data, int length)
 	{
-		if(startIndex > stack.size())
+		if(startIndex + length > stack.size())
 		{
 			stack.resize(startIndex + length);
 		}
@@ -302,6 +302,27 @@ class MMU
 		return false;
 	}
 	
+	bool isInBinary(uint64_t address)
+	{
+		//For Binja binary accesses	
+		//For each segment,
+		for (int i = 0;i < segments.size();i++)
+		{
+			//For each section,
+			for (int j = 0;j < segments[i].sections->size();j++)
+			{
+				segment tokenHold = segments[i];
+				section token = (*(tokenHold.sections))[j];
+				//Is it valid? (within bounds)
+				if (address >= token.start && address <= token.end)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 		
 	//Returns a pointer to a stream of bytes that can be read as necessary
 	//the stream of bytes is either the mmu memory segments (ideally) or a reconstructed short block
@@ -313,8 +334,9 @@ class MMU
 	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
 		//For Stack pointer access
-		if(gpr == 29)
+		if(address < stackBase && address > stackBase - stackMaxLength)
 		{
+			printf("Searching the stack!\n");
 			if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);
@@ -340,6 +362,7 @@ class MMU
 				//Is it valid? (within bounds)
 				if (address >= token.start && address <= token.end)
 				{
+					
 					fflush(stdout);
 					//Is it readable?
 					if (token.readable)
@@ -405,9 +428,10 @@ class MMU
 		printf("address: %lx, gpr: %d\n", address, gpr);
 			fflush(stdout);
 		//For Stack pointer access
-		if(gpr == 29)
+		if(address < stackBase && address > stackBase - stackMaxLength)
 		{
-			printf("%lx", address);
+			printf("Searching the stack!\n");
+			printf("%lx\n", address);
 			fflush(stdout);
 			if(contents < stackBase - stack.size())
 			{

@@ -22,6 +22,7 @@
 #define BIT(n) (uint64_t) 1 << (n-1)
 #define LOWERMASK(n) ((uint64_t) 1 << (n)) - 1
 
+
 const short int MIP_ISA_32 = 1;
 
 const short int MIPSI = 1;
@@ -300,7 +301,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 			//Instantiates the stack pointer;
-			gpr[29] = memUnit->stackBase;
+			gpr[29] = memUnit->stackBase - 0xe4f;
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
@@ -390,7 +391,7 @@ class EmulatedCPU
 			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
-
+			int next = 0, skip = 0;
 			while (validState == true)
 			{
 				printf("current pc: 0x%lx\n", pc);
@@ -417,17 +418,88 @@ class EmulatedCPU
 					pc += 4;
 				
 				registerDump();
-
-				scanf("%s", pweasenosteppy);
+				int flags = 0;
+				next = 0;
+				while(next == 0 && skip == 0)
+				{
+					scanf("%s", pweasenosteppy);
+					if(strncmp(pweasenosteppy, "mem", 3) == 0)
+					{
+						int address, n;
+						scanf("%x", &address);
+						scanf("%x", &n);
+						flags = scanCode(pweasenosteppy, address, n);
+						
+					}
+					else
+					{
+						flags = scanCode(pweasenosteppy);
+					}
+					if(flags == 1)
+						next = 1;
+					if(flags > 1)
+					{
+						skip = 1;
+					}
+				}
+				
 			}
 			
 
 			return;
 		}
 
-		void scanCode(char *input)
+		//goals: step, cancel step mode, print registers, print section of memory
+		//s for step
+		//play for step cancel
+		//reg for registers
+		//mem address n to print n bytes from address address
+		int scanCode(char *input, int address = 0, int n = 0)
 		{
-			
+			int LineWidth = 16;
+			if(strncmp(input, "s", 1) == 0)
+			{
+				return 1;
+			}
+			if(strncmp(input, "play", 4) == 0)
+			{
+				return 2;
+			}
+			if(strncmp(input, "reg", 3) == 0)
+			{
+				registerDump();
+				return 0;
+			}
+			if(strncmp(input, "mem", 1) == 0)
+			{
+				if(memUnit->isInBinary(address))
+				{
+					char* hold = (char*)(calloc(n, sizeof(char)));
+					if (bv->Read(hold, address, n) != n)
+						generallyPause();
+					else
+					{
+						int linePos=0, word=0;
+						for(int i=0;i<n;i++)
+						{
+							
+							printf("%x", hold[i]);
+							word++;
+							linePos++;
+							if(word > 3)
+							{
+								printf(" ");
+								word = 0;
+							}
+							if(linePos > LineWidth)
+							{
+								printf("\n");
+								linePos = 0;
+							}
+						}
+					}
+				}
+			}
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
@@ -1655,9 +1727,9 @@ class EmulatedCPU
 				if(memUnit->isInStack(vAddr))
 				{
 					gpr[rt] = 0;
-					gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
-					gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
-					gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+					gpr[rt] |= (uint64_t)(bytes[-3] & 0xff);
+					gpr[rt] |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
+					gpr[rt] |= ((uint64_t)(bytes[-1] & 0xff)) << 16;
 					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
 				}
 				else
@@ -2240,30 +2312,23 @@ class EmulatedCPU
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 				//Get bytes in-order from mmu
 				//memUnit->printSections();
-				printf("oogaflush");
 				fflush(stdout);
 				char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, gpr[rs]);
-				printf("oogaflush");
 				fflush(stdout);
 				if(bytes == NULL)
 				{
 					printf("bytes==NULL\n");
 					signalException(MemoryFault);
 				}
-				printf("oogaflush");
-				fflush(stdout);
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																						bytes[0], bytes[1], bytes[2], bytes[3]);
-				fflush(stdout);
 				//change their order depending on endianness??
 
 				//The emulated pointer for the stack is backwards. Have to reverse it for writes
 				if(memUnit->isInStack(vAddr))
 				{
-					bytes[3] = (gpr[rt] >> 24) & 0xff;
-					bytes[2] = (gpr[rt] >> 16) & 0xff;
-					bytes[1] = (gpr[rt] >> 8) & 0xff;
-					bytes[0] = (gpr[rt]) & 0xff;
+					bytes[0] = (gpr[rt] >> 24) & 0xff;
+					bytes[-1] = (gpr[rt] >> 16) & 0xff;
+					bytes[-2] = (gpr[rt] >> 8) & 0xff;
+					bytes[-3] = (gpr[rt]) & 0xff;
 				}
 				else 
 				{
@@ -2272,7 +2337,8 @@ class EmulatedCPU
 					bytes[2] = (gpr[rt] >> 8) & 0xff;
 					bytes[3] = (gpr[rt]) & 0xff;
 				}
-				printf("%llx\n", *(uint32_t *)bytes);
+				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+																						bytes[0], bytes[1], bytes[2], bytes[3]);
 				/*if(BigEndian)
 				{
 					for(int i=0;i<4;i++)

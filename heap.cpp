@@ -1,8 +1,6 @@
 
 /*
 
-Note: This is a draft version of the heap implementation that we will be implementing into MMU.CPP
-
 Global TODOs for the heap.
 TODO: Implement free checks when writing and reading.
 TODO: Implement PC metadata.
@@ -133,7 +131,7 @@ class Heap
 			
 			if(vaddr == 0)
 			{
-				printf("[ERROR] Read Heap Memory on a virtual address of NULL.\n");
+				printHeap("Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr);
 				return 0;
 			}
 			
@@ -170,19 +168,19 @@ class Heap
 				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
-					printf("reading from Guard page memory!\n");
+					printHeap("Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST)
 				{
-					printf("reading from Uninit memory!\n");
+					printHeap("Reading from uninitialized memory!\n", i, 0,0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printf("reading from Free'd memory!\n");
+					printHeap("Reading from Free'd memory! (Use after free bug)\n", i, 0,0);
 					return NULL;	
 				}
 				
@@ -203,13 +201,13 @@ class Heap
 			
 			if(vaddr == 0)
 			{
-				printf("[ERROR] Write Heap Memory on a virtual address of NULL.\n");
+				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL. (Improper Malloc/Null Dereference)\n", vaddr);
 				return 0;
 			}
 			
 			if(size == 0)
 			{
-				printf("[ERROR] Write Heap Memory on a size of NULL.\n");
+				printHeap("[ERROR] Write Heap Memory on a size of NULL. (Improper Malloc/Null Dereference)\n", vaddr);
 				return 0;
 			}
 			
@@ -217,7 +215,7 @@ class Heap
 			// Make sure we're accessing something larger then the heap base
 			if(vaddr < (this->heapBase))
 			{
-				printf("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n");
+				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr);
 				return 0;
 			}
 			
@@ -226,7 +224,7 @@ class Heap
 			// But does not check the corrosponding claim to size. We should check this!
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
-				printf("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
+				printHeap("Read Heap Memory on a virtual address of more then heap base.\n", vaddr);
 				return 0;
 			}
 			
@@ -240,13 +238,13 @@ class Heap
 				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
-					printf("writing to guard page memory!\n");
+					printHeap("writing to guard page memory (Buffer Overflow)!\n", i, 0, 0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printf("reading from Free'd memory!\n");
+					printHeap("reading from previously free'd memory (Use After Free)!\n", i, 0, 0);
 					return NULL;	
 				}
 				
@@ -258,14 +256,14 @@ class Heap
 		
 		uint8_t freeHeapMemory(uint32_t vaddr)
 		{
-			printf("Freeing vaddr [0x%lx].\n", (vaddr-this->heapBase));
+			//printf("Freeing vaddr [0x%lx].\n", (vaddr-this->heapBase));
 			// First thing we need to do is check to ensure we're in range.
 			int index = vaddr - this->heapBase;
 			int i = 0;
 			
 			if(vaddr == 0)
 			{
-				printf("[ERROR] Write Heap Memory on a virtual address of NULL.\n");
+				printHeap("Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr);
 				return 0;
 			}
 			
@@ -273,14 +271,14 @@ class Heap
 			// Make sure we're accessing something larger then the heap base
 			if(vaddr < (this->heapBase))
 			{
-				printf("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n");
+				printHeap("Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr);
 				return 0;
 			}
 			
 			// Make sure we're accessing something less then the heap size.
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
-				printf("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
+				printHeap("Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr);
 				return 0;
 			}
 			
@@ -290,19 +288,19 @@ class Heap
 			
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printf("We have found a dobule free!\n");
+				printHeap("We have found a dobule free!\n", index, 0, 0);
 				return 0;
 			}
 			
 			if(this->initializedMemory[index] & GUARDPAGE_MEMORY_CONST)
 			{
-				printf("We are attempting to free memory in a guard page!\n");
+				printHeap("We are attempting to free memory in a guard page!\n", index, 0,0);
 				return 0;
 			}
 			
 			if(!(this->initializedMemory[index-1] & GUARDPAGE_MEMORY_CONST))
 			{
-				printf("We are attempting to free memory that is not the first chunk of the allocation.\n");
+				printHeap("We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0,0);
 				return 0;
 			}
 			
@@ -311,13 +309,78 @@ class Heap
 			{
 				this->initializedMemory[i] = FREED_MEMORY_CONS;
 			}
-			printf("just freed [%d] bytes!\n", i-index);
+			
 			return i;
 			
 		}
 		
 		// Stub
-		void printHeap();
+		void printHeap(char* warning, int triggeringVirtualAddress)
+		{
+			printHeap(warning, triggeringVirtualAddress, 0);
+		}
+		
+		void printHeap(char* warning, int triggeringVirtualAddress, int _, int trash)
+		{
+			// Convert index to triggeringVirtualAddress 
+			printHeap(warning, this->heapBase+triggeringVirtualAddress, 0);
+		}
+		
+		void printHeap(char* warning, int triggeringVirtualAddress, int triggeringPC)
+		{
+		
+			// ----------------------------
+			// | 0x00 0x00 0x00 0x00 0x00 | 0-7
+			// ----------------------------
+			// |                          | 
+			// |          BYTES           | 8-24
+			// |                          |
+			// ----------------------------
+			// |       GUARD PAGE         | 25-31
+			// ----------------------------
+			int i = 0;
+			
+			printf("Possible anomolous behavior in the heap has been detected.\n");
+			printf("Warning: %s\n", warning);
+			printf("This warning was generated by PC 0x%x accessing 0x%08x in memory.\n", triggeringPC, triggeringVirtualAddress);
+			
+			printf("LEGEND (in order of priority):\n");
+			printf("\x1b[31m\x1b[44m- GUARD PAGE\x1b[0m\n");
+			printf("\x1b[33m- Free'd Memory\x1b[0m\n");
+			printf("\x1b[32m- Unitinialized Memory\x1b[0m\n");
+			printf("Note: Memory can have multiple attributes. In this debug view,");
+			printf("it'll take the highest priority tag it has.\n\n\n");
+			
+			printf("           |----------------------------------------- |\n");
+			for(i = 0 ; i < this->initializedMemory.size(); i++)
+			{
+				if(i%8 == 0)
+				{
+					if(i != 0)
+						printf(" |\n0x%08x | ", this->heapBase+i);
+					else
+						printf("0x%08x | ", this->heapBase+i);
+				}
+				
+				
+				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
+					printf("\x1b[31m\x1b[44m");
+				else if(this->initializedMemory[i] & FREED_MEMORY_CONS)
+					printf("\x1b[33m");
+				else if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST)
+					printf("\x1b[32m");
+				
+				
+				printf("0x%02x ", backingMemory[i]);
+				
+				// Reset the colors.
+				printf("\x1b[0m");
+				
+			}
+			printf(" |\n           |----------------------------------------- |\n");
+			
+			while(true);
+		}
 		
 };
 
@@ -378,7 +441,8 @@ int main(int argn, char** args)
 	array = heapyboi.readHeapMemory(pntr, 7);
 	
 	heapyboi.freeHeapMemory(pntr);
-	heapyboi.readHeapMemory(pntr, 6);
+	heapyboi.freeHeapMemory(pntr);
+	//heapyboi.readHeapMemory(pntr, 6);
 	
 	
 	

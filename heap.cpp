@@ -361,7 +361,9 @@ class Heap
 					else
 						printf("0x%08x | ", this->heapBase+i);
 				}
-				
+				// Bold the bad byte
+				if(this->heapBase+i == triggeringVirtualAddress)
+					printf("\u001b[1m");
 				
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 					printf("\x1b[31m\x1b[44m");
@@ -437,14 +439,13 @@ int main(int argn, char** args)
 	array = heapyboi.readHeapMemory(pntr, 6);
 	printf("test print: %s\n", array);
 	
-	// This throws an error for uninit memory usage
-	array = heapyboi.readHeapMemory(pntr, 7);
-	
-	heapyboi.freeHeapMemory(pntr);
-	heapyboi.freeHeapMemory(pntr);
+	heapyboi.freeHeapMemory(heapyboi.allocMem(0x24));
+	heapyboi.allocMem(0x24);
+	//heapyboi.freeHeapMemory(pntr);
+	//heapyboi.freeHeapMemory(pntr);
 	//heapyboi.readHeapMemory(pntr, 6);
 	
-	
+	heapyboi.readHeapMemory(HEAP_BASE+7, 1);
 	
 	
 	

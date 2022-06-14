@@ -1,14 +1,10 @@
 
 /*
-
 Global TODOs for the heap.
 TODO: Implement free checks when writing and reading.
 TODO: Implement PC metadata.
 TODO: Implement use of metadata period.
 TODO: 
-
-
-
 */
 
 
@@ -71,8 +67,6 @@ class Heap
 		// This is essentially the wrapper for the memory.
 		uint32_t allocMem(uint32_t size)
 		{
-			int i;
-
 			// This is implementation specific, however, we return a NULL pntr.
 			if(size == 0)
 				return 0;
@@ -83,10 +77,14 @@ class Heap
 				return 0;
 			}
 		
+			int i = 0;
+			int indexCount = 0;
+			
 			// Get the size of two guard pages.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				int totalHeap = this->heapBase + heapSize;
+				printf("Guard Page 1: vaddr: [0x%x] and index [%d].\n", totalHeap, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -98,9 +96,10 @@ class Heap
 			
 			uint32_t toReturn = (this->heapSize + this->heapBase);
 			
-			for(i = 0; i < size; i++)
+			for(; i < size + GUARD_PAGE_LENGTH; i++)
 			{
-				printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				int totalHeap = this->heapBase + heapSize;
+				printf("Normal Memory: vaddr: [0x%x] and index [%d].\n", totalHeap, i);
 				this->backingMemory.push_back(0);
 				this->initializedMemory.push_back(UNINITIALIZED_MEMORY_CONST);
 				this->heapSize++;
@@ -108,9 +107,10 @@ class Heap
 			
 			
 			// Get the size of the second guard page.
-			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
+			for(; i < GUARD_PAGE_LENGTH + size + GUARD_PAGE_LENGTH; i++)
 			{
-				printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				int totalHeap = this->heapBase + heapSize;
+				printf("Guard Page 2: vaddr: [0x%x] and index [%d].\n", totalHeap, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -166,7 +166,8 @@ class Heap
 			printf("Preamble. vaddr_base [0x%lx] and vaddr [0x%lx].\n", (vaddr-this->heapBase), (vaddr));
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
-				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
+				int tmp = vaddr-this->heapBase;
+				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, tmp, i);
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
 					printHeap("Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
@@ -216,16 +217,16 @@ class Heap
 			// Make sure we're accessing something larger then the heap base
 			if(vaddr < (this->heapBase))
 			{
-				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr);
+				printHeap("[ERROR] Write Heap Memory on a virtual address of less then heap base.\n", vaddr);
 				return 0;
 			}
 			
 			// Make sure we're accessing something less then the heap size.
 			// TODO: This bounds check is insufficent. it checks to ensure that the first vaddr is in range of the heap.
-			// But does not check the corrosponding claim to size. We should check this!
-			if(vaddr >= (this->heapBase + this->heapSize))
+			// But does not check the corrosponding claim to size. We should check this! (vaddr+size)
+			if((vaddr+size) >= (this->heapBase + this->heapSize))
 			{
-				printHeap("Read Heap Memory on a virtual address of more then heap base.\n", vaddr);
+				printHeap("[ERROR] Write Heap Memory on a virtual address of more then heap base.\n", vaddr);
 				return 0;
 			}
 			
@@ -237,6 +238,7 @@ class Heap
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
 				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
+
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
 					printHeap("writing to guard page memory (Buffer Overflow)!\n", i, 0, 0);
@@ -289,7 +291,7 @@ class Heap
 			
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printHeap("We have found a dobule free!\n", index, 0, 0);
+				printHeap("We have found a double free!\n", index, 0, 0);
 				return 0;
 			}
 			
@@ -313,22 +315,6 @@ class Heap
 			
 			return i;
 			
-		}
-
-		bool isInHeap(uint32_t vaddr)
-		{
-			// Make sure we're accessing something larger then the heap base
-			if(vaddr < (this->heapBase))
-			{
-				return 0;
-			}
-			
-			// Make sure we're accessing something less then the heap size.
-			if(vaddr >= (this->heapBase + this->heapSize))
-			{
-				return 0;
-			}
-			return 1;
 		}
 		
 		// Stub
@@ -426,10 +412,10 @@ int main(int argn, char** args)
 	// |       GUARD PAGE         | 0-7
 	// ----------------------------
 	// |                          | 
-	// |          BYTES           | 8-24
+	// |          BYTES           | 8-32
 	// |                          |
 	// ----------------------------
-	// |       GUARD PAGE         | 25-31
+	// |       GUARD PAGE         | 33-40
 	// ----------------------------
 	
 	
@@ -438,6 +424,9 @@ int main(int argn, char** args)
 	printf("Addr: %0x\n", heapyboi.writeHeapMemory(pntr, 6));
 	uint8_t* array = heapyboi.writeHeapMemory(pntr, 6);
 	
+	/*
+	// This should work
+	// Writes 'hello' to memory
 	array = heapyboi.writeHeapMemory(pntr+0, 1);
 	array[0] = 'h';
 	array = heapyboi.writeHeapMemory(pntr+1, 1);
@@ -450,19 +439,42 @@ int main(int argn, char** args)
 	array[0] = 'o';
 	array = heapyboi.writeHeapMemory(pntr+5, 1);
 	array[0] = '\0';
-	
-	
-	
+
+	// Read 'hello'
 	array = heapyboi.readHeapMemory(pntr, 6);
-	printf("test print: %s\n", array);
+	printf("test print 1: %s\n", array);
+	*/
+
 	
-	heapyboi.freeHeapMemory(heapyboi.allocMem(0x24));
-	heapyboi.allocMem(0x24);
+	// This should work
+	array = heapyboi.writeHeapMemory(pntr+18, 1);
+	array[0] = 'w';
+	array = heapyboi.writeHeapMemory(pntr+19, 1);
+	array[0] = 'o';
+	array = heapyboi.writeHeapMemory(pntr+20, 1);
+	array[0] = 'r';
+	array = heapyboi.writeHeapMemory(pntr+21, 1);
+	array[0] = 'l';
+	array = heapyboi.writeHeapMemory(pntr+22, 1);
+	array[0] = 'd';
+	// This should fail
+	array = heapyboi.writeHeapMemory(pntr+23, 1);
+	array[0] = '\0';
+	
+	// Read 'world'
+	array = heapyboi.readHeapMemory(pntr+18, 6);
+	printf("test print 2: %s\n", array);
+
+	// Free memory previously allocated
+	heapyboi.freeHeapMemory(pntr);
+
+
+	//heapyboi.allocMem(0x24);
 	//heapyboi.freeHeapMemory(pntr);
 	//heapyboi.freeHeapMemory(pntr);
 	//heapyboi.readHeapMemory(pntr, 6);
 	
-	heapyboi.readHeapMemory(HEAP_BASE+7, 1);
+	//heapyboi.readHeapMemory(HEAP_BASE+7, 1);
 	
 	
 	
@@ -544,4 +556,3 @@ int main(int argn, char** args)
 	heapyboi.allocMem(0x24);
 	heapyboi.allocMem(0x24);*/
 }
-

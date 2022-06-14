@@ -74,6 +74,7 @@ const short int JTYPE = 3;
 const short int IntegerOverflow = 1;
 const short int MemoryFault = 2;
 const short int TrapFault = 3;
+const short int ReservedInstructionException = 4;
 
 // Coverage Information
 std::vector<uint32_t> basicBlocks;
@@ -528,6 +529,7 @@ class EmulatedCPU
 				}
 				if(memUnit->isInBinary(address))
 				{
+					printf("bytes:");
 					char* hold = (char*)(calloc(n, sizeof(char)));
 					if (bv->Read(hold, address, n) != n)
 						generallyPause();
@@ -2132,6 +2134,10 @@ class EmulatedCPU
 			{
 				printf("RDHWR %s, %s", getName(rt).c_str(), getName(rd).c_str());
 			}
+			if(rd > 3 && rd < 29)
+				signalException(ReservedInstructionException);
+			if(rd >29)
+				signalException(ReservedInstructionException);
 
 			gpr[rt] = hwr[rd];
 		}
@@ -3012,7 +3018,7 @@ int main(int argn, char ** args)
 	// Test for isAddrExtern
 	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 	//(uint32_t)bv->GetEntryPoint()
-	electricrock->runEmulation(0x400400);
+	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
 
 	// Proper shutdown of core
 	BNShutdown();

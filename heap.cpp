@@ -71,6 +71,8 @@ class Heap
 		// This is essentially the wrapper for the memory.
 		uint32_t allocMem(uint32_t size)
 		{
+			int i;
+
 			// This is implementation specific, however, we return a NULL pntr.
 			if(size == 0)
 				return 0;
@@ -81,7 +83,6 @@ class Heap
 				return 0;
 			}
 		
-			int i = 0;
 			// Get the size of two guard pages.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
@@ -312,6 +313,22 @@ class Heap
 			
 			return i;
 			
+		}
+
+		bool isInHeap(uint32_t vaddr)
+		{
+			// Make sure we're accessing something larger then the heap base
+			if(vaddr < (this->heapBase))
+			{
+				return 0;
+			}
+			
+			// Make sure we're accessing something less then the heap size.
+			if(vaddr >= (this->heapBase + this->heapSize))
+			{
+				return 0;
+			}
+			return 1;
 		}
 		
 		// Stub

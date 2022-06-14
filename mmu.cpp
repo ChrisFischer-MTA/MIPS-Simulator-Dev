@@ -531,17 +531,24 @@ class MMU
 		//Fill with fuzzing data
 		
 		printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
-		stackWrite(this->stackBase - 20, "static_hello_world", 19); //18 chars +1\0
+		char *filename = (char *)calloc(20, sizeof(char));
+		strncpy(filename, "static_hello_world", 19);
+		char *empty = (char *)calloc(400, sizeof(char));
+		for(int i=0;i<400;i++)
+			empty[i] = 0;
+		stackWrite(this->stackBase-396, empty, 396);
+
+		stackWrite(this->stackBase - 20 - 396, filename, 19); //18 chars +1\0
 		int filenameptr = this->stackBase-20;
 		char data[4];
 		for(int i=0;i<4;i++)
 			data[i] = (filenameptr >> i*8) & 0xff;
-		stackWrite(this->stackBase - 24, data, 4);
-		for(int i=0;i<3;i++)
+		stackWrite(this->stackBase - 24 - 396, data, 4);
+		for(int i=1;i<4;i++)
 			data[i] = 0;
-		data[3] = 1;
-		stackWrite(this->stackBase - 28, data, 4);
-		this->stack.resize(30);
+		data[0] = 1;
+		stackWrite(this->stackBase - 28 - 396, data, 4);
+		this->stack.resize(500);
 
 		//Allocate the heap
 		bool *excluded = (bool *)calloc(allSections.size() + 1, sizeof(bool));

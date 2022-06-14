@@ -308,7 +308,7 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 			//Instantiates the stack pointer;
-			gpr[29] = memUnit->stackBase - 28;
+			gpr[29] = memUnit->stackBase - 28 - 396;
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{
@@ -2232,7 +2232,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("SLL %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(sa).c_str());
+				printf("SLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			gpr[rd] = gpr[rt] << sa;
@@ -2558,7 +2558,7 @@ class EmulatedCPU
 		{
 			printf("Syscall preformed. Unimplemented, generally!\n");
 			printf("$v0 is 0x%x.\n", gpr[2]);
-			generallyPause();
+			//generallyPause();
 			
 		}
 		// MIPS 2
@@ -3018,7 +3018,7 @@ int main(int argn, char ** args)
 	// Test for isAddrExtern
 	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 	//(uint32_t)bv->GetEntryPoint()
-	electricrock->runEmulation((uint32_t)bv->GetEntryPoint());
+	electricrock->runEmulation(0x400400);
 
 	// Proper shutdown of core
 	BNShutdown();

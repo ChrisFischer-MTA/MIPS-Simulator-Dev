@@ -714,6 +714,7 @@ class MMU
 	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
 		//For Stack pointer access
+		printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		if(isInStack(address))
 		{
 			printf("Searching the stack!\n");

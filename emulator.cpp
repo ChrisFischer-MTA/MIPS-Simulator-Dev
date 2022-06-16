@@ -309,6 +309,11 @@ class EmulatedCPU
 			}
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28 - 396;
+
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(100000) + 50000;
+			hwr[29] = UserLocalPtr;
+
+
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{

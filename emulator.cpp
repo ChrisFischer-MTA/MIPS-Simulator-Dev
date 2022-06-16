@@ -80,6 +80,13 @@ const short int ReservedInstructionException = 4;
 std::vector<uint32_t> basicBlocks;
 std::vector<std::string> basicBlockNames;
 
+// Function Information (for hooking)
+std::vector<uint32_t> functionVirtualAddress;
+// Array offset in our hooked functions table which dictates which function the emualator calls
+std::vector<short int> functionVirtualFunction; 
+
+const short int NUM_FUNCTIONS_HOOKED = 1;
+
 class EmulatedCPU
 {
 	public:
@@ -269,6 +276,19 @@ class EmulatedCPU
 			&EmulatedCPU::unimplemented, // 31
 		};
 
+
+		// These are function hooks included with the emulator, used
+		// for common libc functions which are problematic to fully
+		// emulate.
+		const EmulatedCPU::funct static_function_hooks[NUM_FUNCTIONS_HOOKED] = {
+			&EmulatedCPU::hooked_libc_write,		
+		};
+		
+		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
+		{
+			"__WRITE",
+		};
+
 		//registers and instruction fields
 		uint64_t gpr[32];
 		uint64_t hwr[32];
@@ -279,6 +299,7 @@ class EmulatedCPU
 		uint64_t LO, HI; // Multiplication and division registers
 		uint16_t immediate; // Immediate
 		int16_t signedImmediate; // Immediate
+		vector<uint64_t> hookedFunctions;
 
 		//Meta
 		MMU *memUnit = NULL;
@@ -324,6 +345,27 @@ class EmulatedCPU
 					basicBlockNames.push_back(func->GetSymbol()->GetFullName().c_str());
 				}
 			}
+			
+			// First, get a list of functions. 
+			// Get the name, loop through our hooked functions linked
+			for(auto& func : bv ->GetAnalysisFunctionList())
+			{
+				Ref<Symbol> sym = func->GetSymbol();
+				if (sym)
+				{
+					std::string currentFunctionName = sym->GetFullName();
+					for(i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
+					{
+						if(currentFunctionName == static_function_hook_matching[i])
+						{
+							functionVirtualAddress.push_back(func->GetStart());
+							functionVirtualFunction.push_back(i);
+						}
+					}
+				}
+			}
+			
+			
 		}
 
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
@@ -419,7 +461,7 @@ class EmulatedCPU
 			while (validState == true)
 			{
 				
-				// Code to get some helpful stuff.
+				// Code to determine if we are able to find the current PC in a basic block.
 				auto findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), pc);
 				
 				if(findIterator != basicBlocks.end())
@@ -432,6 +474,23 @@ class EmulatedCPU
 				{
 					printf("Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 				}
+				
+				// Code to search iteratively through our hooked functions and find if PC is a hooked address.
+				findIterator = std::find(functionVirtualAddress.begin(), functionVirtualAddress.end(), pc);
+				if(findIterator != functionVirtualAddress.end())
+				{
+					printf("Found a hooked function, calling a thing!\n");
+					index = findIterator-functionVirtualAddress.begin();
+					printf("Index: [%d] \n", index);
+					(this->*static_function_hooks[index])(0x0);
+					registerDump();
+					
+					while(true);
+					// TODO: Manually set up the stack after intercepting a function call.
+				}
+				
+				
+				//
 				
 				
 				//If the instruction is not nullified, fetch and run it.
@@ -562,6 +621,22 @@ class EmulatedCPU
 				}
 			}
 			return 0;
+		}
+		
+		void EmulatedCPU::hooked_libc_write(uint32_t opcode)
+		{
+			// Size should be in $a2
+			// s0 has the output stream
+			// s1 has the buffer
+			printf("Called hooked libc write");
+			printf("$v0 0x%x\n", gpr[2]);
+			printf("$s0 0x%x\n", gpr[16]);
+			printf("$s1 0x%x\n", gpr[17]);
+			// TODO: Denote the output buffer if we care.
+			printf("Intercepted WRITE call");
+			printf("Write size: 0x%0x\n", gpr[2]);
+			printf("[%s]\n", memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]));
+			return;
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
@@ -2143,7 +2218,7 @@ class EmulatedCPU
 				signalException(ReservedInstructionException);
 			if(rd >29)
 				signalException(ReservedInstructionException);
-
+			printf("hwr[rd] is [%d]\n", hwr[rd]);
 			gpr[rt] = hwr[rd];
 		}
 		// MIPS 1

@@ -56,7 +56,7 @@ section::section(int start, int length, char permissions, int width, char *name,
 
 	this->parent = (segment *)malloc(sizeof(segment));
 	*(this->parent) = parent;
-	printf("0x%x segmentstart\n", this->parent->start);
+	//printf("0x%x segmentstart\n", this->parent->start);
 }
 
 typedef struct gap_
@@ -131,7 +131,7 @@ class Heap
 			// Get the size of two guard pages.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				//printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -145,7 +145,7 @@ class Heap
 			
 			for(i = 0; i < size; i++)
 			{
-				printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				//printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(0);
 				this->initializedMemory.push_back(UNINITIALIZED_MEMORY_CONST);
 				this->heapSize++;
@@ -155,7 +155,7 @@ class Heap
 			// Get the size of the second guard page.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				//printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -208,25 +208,25 @@ class Heap
 			// Why isn't this linear? In case of multiple heap allocations being used 
 			// linearly (shouldn't EVER happen really)
 			
-			printf("Preamble. vaddr_base [0x%lx] and vaddr [0x%lx].\n", (vaddr-this->heapBase), (vaddr));
+			//printf("Preamble. vaddr_base [0x%lx] and vaddr [0x%lx].\n", (vaddr-this->heapBase), (vaddr));
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
-				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
+				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
-					printHeap("Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
+					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST)
 				{
-					printHeap("Reading from uninitialized memory!\n", i, 0,0);
+					printHeap("[ERROR] Reading from uninitialized memory!\n", i, 0,0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printHeap("Reading from Free'd memory! (Use after free bug)\n", i, 0,0);
+					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", i, 0,0);
 					return NULL;	
 				}
 				
@@ -270,7 +270,7 @@ class Heap
 			// But does not check the corrosponding claim to size. We should check this!
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
-				printHeap("Read Heap Memory on a virtual address of more then heap base.\n", vaddr);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr);
 				return 0;
 			}
 			
@@ -281,16 +281,16 @@ class Heap
 			
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
-				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
+				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
-					printHeap("writing to guard page memory (Buffer Overflow)!\n", i, 0, 0);
+					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", i, 0, 0);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printHeap("reading from previously free'd memory (Use After Free)!\n", i, 0, 0);
+					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", i, 0, 0);
 					return NULL;	
 				}
 				
@@ -309,7 +309,7 @@ class Heap
 			
 			if(vaddr == 0)
 			{
-				printHeap("Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr);
+				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr);
 				return 0;
 			}
 			
@@ -317,14 +317,14 @@ class Heap
 			// Make sure we're accessing something larger then the heap base
 			if(vaddr < (this->heapBase))
 			{
-				printHeap("Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr);
 				return 0;
 			}
 			
 			// Make sure we're accessing something less then the heap size.
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
-				printHeap("Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr);
 				return 0;
 			}
 			
@@ -334,19 +334,19 @@ class Heap
 			
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printHeap("We have found a dobule free!\n", index, 0, 0);
+				printHeap("[ERROR] We have found a dobule free!\n", index, 0, 0);
 				return 0;
 			}
 			
 			if(this->initializedMemory[index] & GUARDPAGE_MEMORY_CONST)
 			{
-				printHeap("We are attempting to free memory in a guard page!\n", index, 0,0);
+				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", index, 0,0);
 				return 0;
 			}
 			
 			if(!(this->initializedMemory[index-1] & GUARDPAGE_MEMORY_CONST))
 			{
-				printHeap("We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0,0);
+				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0,0);
 				return 0;
 			}
 			
@@ -530,7 +530,7 @@ class MMU
 		this->stackMaxLength = bigGap.r - 0xf - bigGap.l;
 		//Fill with fuzzing data
 		
-		printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
+		//printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
 		char *filename = (char *)calloc(20, sizeof(char));
 		strncpy(filename, "static_hello_world", 19);
 		char *empty = (char *)calloc(400, sizeof(char));
@@ -714,10 +714,10 @@ class MMU
 	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
 		//For Stack pointer access
-		printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
+		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		if(isInStack(address))
 		{
-			printf("Searching the stack!\n");
+			//printf("Searching the stack!\n");
 			if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);
@@ -728,7 +728,7 @@ class MMU
 			}
 
 			uint64_t stackOffset = stackBase - address;
-			printf("stackData: %x\n", stack.data());
+			//printf("stackData: %x\n", stack.data());
 			return stack.data() + stackOffset;
 		}
 		//For Heap Pointer access
@@ -778,13 +778,13 @@ class MMU
 								token.initialized[depth] = true;
 
 							}
-							printf("[FLUSH] 3\n");
+							//printf("[FLUSH] 3\n");
 							if (blockOffset + numBytes > token.width)
 							{
 								printf("something weird happened\n");
 								generallyPause();
 							}
-							printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
+							//printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
 
 							char * testing = token.array[depth];
 							for(int i=0;i<16;i++)
@@ -816,13 +816,13 @@ class MMU
 
 	char *getWriteAddresss(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
 	{
-		printf("address: %lx, gpr: %d\n", address, gpr);
-			fflush(stdout);
+		//printf("address: %lx, gpr: %d\n", address, gpr);
+		//fflush(stdout);
 		//For Stack pointer access
 		if(address < stackBase && address > stackBase - stackMaxLength)
 		{
-			printf("Searching the stack!\n");
-			printf("%lx\n", address);
+			//printf("Searching the stack!\n");
+			//printf("%lx\n", address);
 			fflush(stdout);
 			if(contents < stackBase - stack.size())
 			{
@@ -834,7 +834,7 @@ class MMU
 			}
 
 			uint64_t stackOffset = stackBase - address;
-			printf("stackData: %x\n", stack.data());
+			//printf("stackData: %x\n", stack.data());
 			fflush(stdout);
 			return stack.data() + stackOffset;
 		}
@@ -885,13 +885,13 @@ class MMU
 								token.initialized[depth] = true;
 
 							}
-							printf("[FLUSH] 3\n");
+							//printf("[FLUSH] 3\n");
 							if (blockOffset + numBytes > token.width)
 							{
 								printf("something weird happened\n");
 								generallyPause();
 							}
-							printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
+							//printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
 
 							char * testing = token.array[depth];
 							for(int i=0;i<16;i++)

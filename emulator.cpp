@@ -482,7 +482,7 @@ class EmulatedCPU
 		char* instructions;
 		int32_t tgt_offset = 0;
 		int instructionsRun = 0;
-		uint32_t endOfMain;
+		uint32_t endOfMain, startOfMain;
 
 		int32_t mipsTarget = 32;
 		bool debugPrint = true;
@@ -507,19 +507,7 @@ class EmulatedCPU
 
 			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(10) + 5;
 			hwr[29] = UserLocalPtr;
-			printf("FLUSH");
-				fflush(stdout);
-			for (auto& func : bv->GetAnalysisFunctionList())
-			{	
-				auto addRanges = func->GetAddressRanges();
-				printf("FLUSH");
-				fflush(stdout);
-				printf("%llx, %llx", addRanges[0].start, addRanges[0].end);
-				fflush(stdout);
-				Ref<Symbol> sym = func->GetSymbol();
-				uint64_t lastAddress = func->GetHighestAddress();
-				printf("Name: %s Last Address: %x\n", sym->GetFullName().c_str(), lastAddress);
-			}
+			
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{
@@ -530,7 +518,10 @@ class EmulatedCPU
 					basicBlockNames.push_back(func->GetSymbol()->GetFullName().c_str());
 					if(strncmp(func->GetSymbol()->GetFullName().c_str(), "main", 4) == 0)
 					{
-						endOfMain = func->GetHighestAddress();
+						auto addRanges = func->GetAddressRanges();
+						endOfMain = addRanges[0].end;
+						startOfMain = addRanges[0].start;
+						printf("%llx, %llx", startOfMain, endOfMain);
 					}
 				}
 			}
@@ -1974,7 +1965,16 @@ class EmulatedCPU
 			
 			uint64_t temp = gpr[rs];
 
+			if(pc >= startOfMain && pc < endOfMain && rs == 31)
+			{
+				printf("Exiting gracefully\n");
+				BNShutdown();
+				exit(0);
+			}
+
 			runInstruction(getNextInstruction());
+
+			
 
 			pc = temp;
 		}

@@ -554,6 +554,8 @@ class MMU
 		bool *excluded = (bool *)calloc(allSections.size() + 1, sizeof(bool));
 		excluded[bigGap.rightSection] = true;
 		gap secondBiggestGap = getLargestGap(excluded);
+		if(secondBiggestGap.l == 0)
+			secondBiggestGap.l += 0xffff;
 		
 		printf("%x, %x gap left sides\n", bigGap.l, secondBiggestGap.l);
 		printf("%x, %x gap right sides\n", bigGap.r, secondBiggestGap.r);
@@ -680,7 +682,7 @@ class MMU
 	
 	bool isInStack(uint64_t address)
 	{
-		printf("stack check address: %x, stackBase %x, stackmaxlength %x", address, stackBase, stackMaxLength);
+		//printf("stack check address: %x, stackBase %x, stackmaxlength %x", address, stackBase, stackMaxLength);
 		if(address <= stackBase && address > stackBase - stackMaxLength)
 		{
 			return true;
@@ -722,11 +724,11 @@ class MMU
 		//For Stack pointer access
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		
-		printf("numBytes: [%x]\n", numBytes);
+		//printf("numBytes: [%x]\n", numBytes);
 		
 		if(isInStack(address))
 		{
-			printf("Searching the stack! %lld\n", stackBase - address);
+			//printf("Searching the stack! %lld\n", stackBase - address);
 			/*if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);

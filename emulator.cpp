@@ -504,7 +504,7 @@ class EmulatedCPU
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28 - 396;
 
-			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(100000) + 50000;
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(10) + 5;
 			hwr[29] = UserLocalPtr;
 
 

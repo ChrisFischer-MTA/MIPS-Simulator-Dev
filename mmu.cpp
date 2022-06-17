@@ -145,7 +145,7 @@ class Heap
 			
 			for(i = 0; i < size; i++)
 			{
-				printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				//printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(0);
 				this->initializedMemory.push_back(UNINITIALIZED_MEMORY_CONST);
 				this->heapSize++;
@@ -554,6 +554,10 @@ class MMU
 		bool *excluded = (bool *)calloc(allSections.size() + 1, sizeof(bool));
 		excluded[bigGap.rightSection] = true;
 		gap secondBiggestGap = getLargestGap(excluded);
+		
+		printf("%x, %x gap left sides\n", bigGap.l, secondBiggestGap.l);
+		printf("%x, %x gap right sides\n", bigGap.r, secondBiggestGap.r);
+		printf("%x, %x gap right section\n", bigGap.rightSection, secondBiggestGap.rightSection);
 		//Left and right bounds of SBG padded by 8 bytes
 		MMUHeap = Heap(secondBiggestGap.l + 8, secondBiggestGap.r - secondBiggestGap.r -16);
 
@@ -648,8 +652,8 @@ class MMU
 		}
 		gap out;
 
-		out.l = l;
-		out.r = r;
+		out.l = maxl;
+		out.r = maxr;
 		out.rightSection = maxI;
 		fflush(stdout);
 		free(excluded);
@@ -676,6 +680,7 @@ class MMU
 	
 	bool isInStack(uint64_t address)
 	{
+		printf("stack check address: %x, stackBase %x, stackmaxlength %x", address, stackBase, stackMaxLength);
 		if(address <= stackBase && address > stackBase - stackMaxLength)
 		{
 			return true;

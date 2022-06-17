@@ -482,6 +482,7 @@ class EmulatedCPU
 		char* instructions;
 		int32_t tgt_offset = 0;
 		int instructionsRun = 0;
+		uint32_t endOfMain;
 
 		int32_t mipsTarget = 32;
 		bool debugPrint = true;
@@ -506,8 +507,19 @@ class EmulatedCPU
 
 			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(10) + 5;
 			hwr[29] = UserLocalPtr;
-
-
+			printf("FLUSH");
+				fflush(stdout);
+			for (auto& func : bv->GetAnalysisFunctionList())
+			{	
+				auto addRanges = func->GetAddressRanges();
+				printf("FLUSH");
+				fflush(stdout);
+				printf("%llx, %llx", addRanges[0].start, addRanges[0].end);
+				fflush(stdout);
+				Ref<Symbol> sym = func->GetSymbol();
+				uint64_t lastAddress = func->GetHighestAddress();
+				printf("Name: %s Last Address: %x\n", sym->GetFullName().c_str(), lastAddress);
+			}
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{
@@ -516,6 +528,10 @@ class EmulatedCPU
 					// add to a vector
 					basicBlocks.push_back(block->GetStart());
 					basicBlockNames.push_back(func->GetSymbol()->GetFullName().c_str());
+					if(strncmp(func->GetSymbol()->GetFullName().c_str(), "main", 4) == 0)
+					{
+						endOfMain = func->GetHighestAddress();
+					}
 				}
 			}
 			
@@ -3203,13 +3219,15 @@ class EmulatedCPU
 			vector<int> validRegIndices = vector<int>();
 			uint32_t *hold = (uint32_t *)calloc(sizeof(uint32_t), 2);
 			printf("+-----------------------+---\n");
+			bool isValidMemoryPtr;
 			char *memTest;
 			//Check registers for pointers
 			for(int i=0;i<32;i++)
 			{
-				memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
-				if(memTest != NULL)
+				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
+				if(isValidMemoryPtr)
 				{
+					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
 					validRegIndices.push_back(i);
 					validPointers.push_back(memTest);
 				}
@@ -3218,14 +3236,14 @@ class EmulatedCPU
 			for(int i=0;i<32;i++)
 			{
 				//Print the registers
-				memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
+				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
 				printf("|");
-				if(memTest != NULL)
+				if(isValidMemoryPtr)
 				{
 					printf("\x1b[42m");
 				}
 				printf("%4s -> 0x%08lx\t", getName(i).c_str(), gpr[i]);
-				if(memTest != NULL)
+				if(isValidMemoryPtr)
 					printf("\x1b[0m");
 				//For single cases in meta
 				switch(i)
@@ -3490,13 +3508,8 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 	printf("[INFO] Finished Analysis.\n");
 
+	// Name: main Last Address: 56527bb27790
 	
-	for (auto& func : bv->GetAnalysisFunctionList())
-	{	
-		Ref<Symbol> sym = func->GetSymbol();
-		uint64_t lastAddress = func->GetHighestAddress();
-		printf("Name: %s Last Address: %lx\n", sym->GetFullName().c_str());
-	}
 
 
 	// Begin Emulation

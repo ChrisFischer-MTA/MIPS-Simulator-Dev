@@ -710,6 +710,19 @@ class MMU
 		}
 		return false;
 	}
+
+	
+	
+	bool isInMemory(uint64_t address)
+	{
+		if(isInStack(address))
+			return true;
+		if(isInBinary(address))
+			return true;
+		if(MMUHeap.isInHeap(address))
+			return true;
+		return false;
+	}
 	
 		
 	//Returns a pointer to a stream of bytes that can be read as necessary

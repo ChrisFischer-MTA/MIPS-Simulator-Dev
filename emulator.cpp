@@ -86,7 +86,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 1;
+const short int NUM_FUNCTIONS_HOOKED = 2;
 
 class EmulatedCPU
 {
@@ -451,13 +451,15 @@ class EmulatedCPU
 		// for common libc functions which are problematic to fully
 		// emulate.
 		const EmulatedCPU::funct static_function_hooks[NUM_FUNCTIONS_HOOKED] = {
-			&EmulatedCPU::hooked_libc_write,		
+			&EmulatedCPU::hooked_libc_write,
+			&EmulatedCPU::hooked_libc_malloc,		
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
 		{
 			//"__WRITE",
 			"__stdio_WRITE",
+			"__libc_malloc",
 		};
 
 		//registers and instruction fields
@@ -656,8 +658,8 @@ class EmulatedCPU
 				{
 					printf("Found a hooked function, calling a thing!\n");
 					index = findIterator-functionVirtualAddress.begin();
-					printf("Index: [%d] \n", index);
-					(this->*static_function_hooks[index])(0x0);
+					printf("Index: [%d] name of [%s] \n", index, static_function_hook_matching[functionVirtualFunction[index]].c_str());
+					(this->*static_function_hooks[functionVirtualFunction[index]])(0x0);
 					//registerDump();
 					
 					//while(true);
@@ -818,8 +820,22 @@ class EmulatedCPU
 			// TODO: Denote the output buffer if we care.
 			//printf("Intercepted WRITE call\n");
 			//printf("Write size: 0x%0x\n", gpr[2]);
-			printf("Getting string address 0x%x of size 0x%0x.\n", gpr[17], gpr[2]);
-			printf("%s\n", memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]));
+			printf("Getting string address 0x%x of size 0x%0x.\n", gpr[17], gpr[6]);
+			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
+			printf("Addr send 0x%x\n", address);
+			printf("%c\n", address[0]);
+			printf("%c\n", address[1]);
+			printf("%c\n", address[2]);
+			printf("%c\n", address[3]);
+			printf("%c\n", address[4]);
+			printf("%c\n", address[5]);
+			printf("%c\n", address[6]);
+			printf("%c\n", address[7]);
+			printf("%c\n", address[8]);
+			printf("%c\n", address[9]);
+			printf("%c\n", address[10]);
+			printf("%c\n", address[11]);
+			printf("%c\n", address[12]);
 			
 			//this->pc = 0x0040a7b0;
 			
@@ -849,6 +865,15 @@ class EmulatedCPU
 			// memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
 			
 			return;
+		}
+		
+		// size is at $a0
+		// address goes in $v0
+		// void* __libc_malloc(int sizeToAllocate)
+		void EmulatedCPU::hooked_libc_malloc(uint32_t opcode)
+		{
+			gpr[2] = (uint32_t)this->memUnit->MMUHeap.allocMem(gpr[4]);
+			this->pc = gpr[31];
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000

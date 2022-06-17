@@ -131,7 +131,7 @@ class Heap
 			// Get the size of two guard pages.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				//printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -145,7 +145,7 @@ class Heap
 			
 			for(i = 0; i < size; i++)
 			{
-				//printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(0);
 				this->initializedMemory.push_back(UNINITIALIZED_MEMORY_CONST);
 				this->heapSize++;
@@ -155,7 +155,7 @@ class Heap
 			// Get the size of the second guard page.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				//printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -211,7 +211,7 @@ class Heap
 			//printf("Preamble. vaddr_base [0x%lx] and vaddr [0x%lx].\n", (vaddr-this->heapBase), (vaddr));
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
-				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x].\n", i, (vaddr-this->heapBase), (i));
+				printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x] w/ val [0x%x].\n", i, (vaddr-this->heapBase), (i), this->backingMemory[i]);
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
 					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
@@ -716,9 +716,12 @@ class MMU
 	{
 		//For Stack pointer access
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
+		
+		printf("numBytes: [%x]\n", numBytes);
+		
 		if(isInStack(address))
 		{
-			//printf("Searching the stack! %lld\n", stackBase - address);
+			printf("Searching the stack! %lld\n", stackBase - address);
 			/*if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);

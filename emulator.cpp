@@ -3447,6 +3447,15 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 	printf("[INFO] Finished Analysis.\n");
 
+	
+	for (auto& func : bv->GetAnalysisFunctionList())
+	{	
+		Ref<Symbol> sym = func->GetSymbol();
+		uint64_t lastAddress = func->GetHighestAddress();
+		printf("Name: %s Last Address: %lx\n", sym->GetFullName().c_str());
+	}
+
+
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
@@ -3458,6 +3467,7 @@ int main(int argn, char ** args)
 	// Test for isAddrExtern
 	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 	//(uint32_t)bv->GetEntryPoint()
+	//
 	electricrock->runEmulation(0x400400);
 
 	// Proper shutdown of core

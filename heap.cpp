@@ -509,7 +509,8 @@ int main(int argn, char** args)
 
 	// Free memory previously allocated
 	heapyboi.freeHeapMemory(pntr);
+	array = heapyboi.writeHeapMemory(pntr+0, 1);
 	
-	heapyboi.printHeap("Heap Dump",0,0);
+	//heapyboi.printHeap("Heap Dump",0,0);
 
 }

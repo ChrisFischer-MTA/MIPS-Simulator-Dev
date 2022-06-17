@@ -456,7 +456,8 @@ class EmulatedCPU
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
 		{
-			"__WRITE",
+			//"__WRITE",
+			"__stdio_WRITE",
 		};
 
 		//registers and instruction fields
@@ -657,9 +658,9 @@ class EmulatedCPU
 					index = findIterator-functionVirtualAddress.begin();
 					printf("Index: [%d] \n", index);
 					(this->*static_function_hooks[index])(0x0);
-					registerDump();
+					//registerDump();
 					
-					while(true);
+					//while(true);
 					// TODO: Manually set up the stack after intercepting a function call.
 				}
 				
@@ -810,14 +811,43 @@ class EmulatedCPU
 			// Size should be in $a2
 			// s0 has the output stream
 			// s1 has the buffer
-			printf("Called hooked libc write");
-			printf("$v0 0x%x\n", gpr[2]);
-			printf("$s0 0x%x\n", gpr[16]);
-			printf("$s1 0x%x\n", gpr[17]);
+			//printf("Called hooked libc write\n");
+			//printf("$v0 0x%x\n", gpr[2]);
+			//printf("$s0 0x%x\n", gpr[16]);
+			//printf("$s1 0x%x\n", gpr[17]);
 			// TODO: Denote the output buffer if we care.
-			printf("Intercepted WRITE call");
-			printf("Write size: 0x%0x\n", gpr[2]);
-			printf("[%s]\n", memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]));
+			//printf("Intercepted WRITE call\n");
+			//printf("Write size: 0x%0x\n", gpr[2]);
+			printf("Getting string address 0x%x of size 0x%0x.\n", gpr[17], gpr[2]);
+			printf("%s\n", memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]));
+			
+			//this->pc = 0x0040a7b0;
+			
+			/*
+			// Do the return.
+			// Move $sp, $fp  ($sp=$fp)
+			gpr[29] = gpr[30];
+			
+			printf("getting the first one\n");
+			// $ra = [$sp + 0x24 {__saved_$ra}].d
+			printf("Address %x:\n", (gpr[29] + 0x24));
+			printf("Dereferenced %x:\n",  memUnit->getEffectiveAddress((gpr[29] + 0x24), 1, 31, gpr[29]));
+			gpr[31] = (uint32_t)memUnit->getEffectiveAddress((gpr[29] + 0x24), 1, 31, gpr[29]);
+			
+			printf("getting the second one\n");
+			// $fp = [$sp + 0x20 {__saved_$fp}].d
+			printf("Address %x:\n", (gpr[29] + 0x20));
+			printf("Dereferenced %x:\n",  memUnit->getEffectiveAddress((gpr[29] + 0x20), 1, 31, gpr[29]));
+			gpr[30] = (uint32_t)memUnit->getEffectiveAddress((gpr[29] + 0x20), 1, 31, gpr[29]);
+			
+			// $sp = $sp + 0x28
+			gpr[29] = gpr[29] + 0x28;
+			*/
+			// jump to ra
+			this->pc = gpr[31];
+			
+			// memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
+			
 			return;
 		}
 

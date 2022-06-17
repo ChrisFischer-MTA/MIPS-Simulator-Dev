@@ -3523,8 +3523,8 @@ int main(int argn, char ** args)
 	// Test for isAddrExtern
 	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 	//(uint32_t)bv->GetEntryPoint()
-	//
-	electricrock->runEmulation(0x400400);
+	//electricrock->startOfMain
+	electricrock->runEmulation(electricrock->startOfMain);
 
 	// Proper shutdown of core
 	BNShutdown();

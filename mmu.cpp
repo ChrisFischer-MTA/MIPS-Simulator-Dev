@@ -618,6 +618,7 @@ class MMU
 		{
 			excluded = (bool *) calloc(allSections.size() + 1, sizeof(bool));
 		}
+		
 		int l=0,r=0;
 		int maxl=0,maxr=0, maxWidth = 0, maxI = 0;
 		

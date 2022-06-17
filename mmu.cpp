@@ -717,14 +717,18 @@ class MMU
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		if(isInStack(address))
 		{
-			//printf("Searching the stack!\n");
-			if(contents < stackBase - stack.size())
+			//printf("Searching the stack! %lld\n", stackBase - address);
+			/*if(contents < stackBase - stack.size())
 			{
 				stack.resize(contents - stackBase + 1);
 			}
 			if(address < contents)
 			{
 				stack.resize(stackBase - address + 1);
+			}*/
+			if(address < stackBase - stack.size())
+			{
+				stack.resize(stackBase - address + 8);
 			}
 
 			uint64_t stackOffset = stackBase - address;
@@ -785,13 +789,13 @@ class MMU
 								generallyPause();
 							}
 							//printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
-
+							/*
 							char * testing = token.array[depth];
 							for(int i=0;i<16;i++)
 							{
 								printf("%x", testing[i]);
 							}
-							printf("\n");
+							printf("\n");*/
 
 							return token.array[depth] + blockOffset;
 

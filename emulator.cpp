@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <inttypes.h>
+#include <iomanip>
 
 
 #include "mmu.cpp"
@@ -276,6 +277,175 @@ class EmulatedCPU
 			&EmulatedCPU::unimplemented, // 31
 		};
 
+		const char *rtype_names[64] = {
+			"sll", // 0
+			"unimplemented", // 1
+			"srl", // 2
+			"sra", // 3
+			"sllv", // 4
+			"unimplemented", // 5
+			"srlv", // 6
+			"srav", // 7
+			"jr", // 8
+			"jalr", // 9
+			"MOVZ", // 10
+			"MOVN", // 11
+			"syscall", // 12
+			"break_", // 13
+			"unimplemented", // 14
+			"SYNC", // 15 SYNC
+			"mfhi", // 16
+			"mthi", // 17
+			"mflo", // 18
+			"mtlo", // 19
+			"dsllv", // 20
+			"unimplemented", // 21
+			"dsrlv", // 22
+			"dsrav", // 23
+			"mult", // 24
+			"multu", // 25
+			"div", // 26
+			"divu", // 27
+			"dmult", // 28
+			"dmultu", // 29
+			"ddiv", // 30
+			"ddivu", // 31
+			"add", // 32
+			"addu", // 33
+			"sub", // 34
+			"subu", // 35
+			"and", // 36
+			"or", // 37
+			"xor", // 38
+			"nor", // 39
+			"unimplemented", // 40
+			"unimplemented", // 41
+			"slt", // 42
+			"sltu", // 43
+			"dadd", // 44
+			"daddu", // 45
+			"dsub", // 46
+			"dsubu", // 47
+			"tge", // 48
+			"tgeu", // 49
+			"tlt", // 50
+			"tltu", // 51
+			"teq", // 52
+			"unimplemented", // 53
+			"tne", // 54
+			"unimplemented", // 55
+			"dsll", // 56
+			"unimplemented", // 57
+			"dsrl", // 58
+			"dsra", // 59
+			"unimplemented", // 60
+			"dsll32", // 61
+			"dsrl32", // 62
+			"dsra32", // 63
+		};
+
+		const char *otype_names[64] = {
+			"unimplemented", // 0
+			"unimplemented", // 1
+			"j", // 2
+			"jal", // 3
+			"beq", // 4
+			"bne", // 5
+			"blez", // 6
+			"bgtz", // 7
+			"addi", // 8
+			"addiu", // 9
+			"slti", // 10
+			"sltui", // 11
+			"andi", // 12
+			"ori", // 13
+			"xori", // 14
+			"lui", // 15
+			"unimplemented", // 16 Coprocessor 1
+			"unimplemented", // 17 Coprocessor 2
+			"unimplemented", // 18 Coprocessor 3
+			"unimplemented", // 19 Coprocessor 4
+			"beql", // 20
+			"bnel", // 21
+			"blezl", // 22
+			"bgtzl", // 23
+			"daddi", // 24
+			"daddiu", // 25
+			"LDL", // 26
+			"LDR", // 27
+			"mul", // 28 ? (skipped)
+			"unimplemented", // 29 ? (skipped)
+			"unimplemented", // 30 ? (skipped)
+			"rdhwr", // 31 ? (skipped)
+			"lb", // 32
+			"lh", // 33
+			"lwl", // 34
+			"lw", // 35
+			"lbu", // 36
+			"lhu", // 37
+			"lwr", // 38
+			"LWU", // 39
+			"sb", // 40
+			"sh", // 41
+			"swl", // 42
+			"sw", // 43
+			"SDL", // 44
+			"SDR", // 45
+			"swr", // 46
+			"unimplemented", // 47 ? (skipped)
+			"LL", // 48
+			"unimplemented", // 49 coprocessor 1
+			"unimplemented", // 50 coprocessor 2
+			"PREF", // 51
+			"LLD", // 52 
+			"unimplemented", // 53 coprocessor 1
+			"unimplemented", // 54 coprocessor 2
+			"LD", // 55
+			"SC", // 56
+			"unimplemented", // 57 coprocessor 1
+			"unimplemented", // 58 coprocessor 2
+			"unimplemented", // 59 coprocessor 3
+			"SCD", // 60
+			"unimplemented", // 61 Coprocessor 1
+			"unimplemented", // 62 Coprocessor 2
+			"SD", // 63
+		};
+
+		const char *regimm_names[32] = {
+			"bltz", // 0
+			"bgez", // 1
+			"bltzl", // 2
+			"bgezl", // 3
+			"unimplemented", // 4
+			"unimplemented", // 5
+			"unimplemented", // 6
+			"unimplemented", // 7
+			"tgei", // 8
+			"tgeiu", // 9
+			"tlti", // 10
+			"tltiu", // 11
+			"teqi", // 12
+			"unimplemented", // 13
+			"tnei", // 14
+			"unimplemented", // 15
+			"bltzal", // 16
+			"bgezal", // 17
+			"bltzall", // 18
+			"bgezall", // 19
+			"unimplemented", // 20
+			"unimplemented", // 21
+			"unimplemented", // 22
+			"unimplemented", // 23
+			"unimplemented", // 24
+			"unimplemented", // 25
+			"unimplemented", // 26
+			"unimplemented", // 27
+			"unimplemented", // 28
+			"unimplemented", // 29
+			"unimplemented", // 30
+			"unimplemented", // 31
+		};
+
 
 		// These are function hooks included with the emulator, used
 		// for common libc functions which are problematic to fully
@@ -421,6 +591,10 @@ class EmulatedCPU
 			
 			// Get opcode from the mmu using address
 			unsigned char* bytes = memUnit->getEffectiveAddress(PC, 4, 0, 0);
+			if(bytes == NULL)
+			{
+				signalException(MemoryFault);
+			}
 			
 			// Convert to uint32_t
 			retVal += (bytes[0] << 24);
@@ -527,8 +701,10 @@ class EmulatedCPU
 				//registerDump();
 				int flags = 0;
 				next = 0;
+				
 				while(next == 0 && skip <= 0)
 				{
+					printf("\n>> ");
 					scanf("%s", pweasenosteppy);
 					if(strncmp(pweasenosteppy, "mem", 3) == 0)
 					{
@@ -566,6 +742,11 @@ class EmulatedCPU
 		int scanCode(char *input, int address = 0, int n = 0)
 		{
 			int LineWidth = 16;
+			if(strncmp(input, "state", 5) == 0)
+			{
+				stateDump();
+				return 0;
+			}
 			if(strncmp(input, "s", 1) == 0)
 			{
 				return 1;
@@ -581,6 +762,7 @@ class EmulatedCPU
 				registerDump();
 				return 0;
 			}
+			
 			if(strncmp(input, "mem", 1) == 0)
 			{
 				if(memUnit->isInStack(address))
@@ -2935,6 +3117,152 @@ class EmulatedCPU
 			return;
 		}
 
+		//Prints the state, shamelessly ripping off that one emulator.
+		//+---------------------+-----------------------+
+		//|Registers:           |                       |
+		//|zero:				|
+		//|at:					|
+		//|v0:					| Meta informations
+		//|v1:					|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						+--------------------------
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|Local instructions from PC
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						+-------------------------
+		//|						| Memory Increasing from sp
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//|						|
+		//+---------------------+----------------
+
+		void stateDump()
+		{
+			vector<char *> validPointers = vector<char *>();
+			vector<int> validRegIndices = vector<int>();
+			uint32_t *hold = (uint32_t *)calloc(sizeof(uint32_t), 2);
+			printf("+-----------------------+---\n");
+			char *memTest;
+			//Check registers for pointers
+			for(int i=0;i<32;i++)
+			{
+				memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
+				if(memTest != NULL)
+				{
+					validRegIndices.push_back(i);
+					validPointers.push_back(memTest);
+				}
+			}
+
+			for(int i=0;i<32;i++)
+			{
+				//Print the registers
+				memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
+				printf("|");
+				if(memTest != NULL)
+				{
+					printf("\x1b[42m");
+				}
+				printf("%4s -> 0x%08lx\t", getName(i).c_str(), gpr[i]);
+				if(memTest != NULL)
+					printf("\x1b[0m");
+				//For single cases in meta
+				switch(i)
+				{
+					case 0: printf("|");
+					break;
+					case 1: printf("| pc: 0x%llx", pc);
+					break;
+					case 2: printf("|");
+					break;
+					case 3: printf("|");
+					break;
+					case 4: printf("|");
+					break;
+					case 5: printf("|");
+					break;
+					case 6: printf("|");
+					break;
+					case 7: printf("+---");
+					break;
+					case 20: printf("+---");
+					break;
+					case 21: printf("| Pointers:");
+				}
+
+				//For the local instructions
+				if(i>7 && i <= 19)
+				{
+					int base = i - 8 - 6;
+					int offsetPc = pc + (4 * base);
+					uint32_t inst = getInstruction(offsetPc);
+					char *test = getInstructionName(inst);
+					printf("| ");
+					if(offsetPc == pc)
+						printf("\x1b[44m");
+					printf("0x%x: %s", offsetPc, getInstructionName(inst));
+					if(offsetPc == pc)
+						printf("\x1b[0m");
+				}
+				//For the pointers read
+				if(i > 21)
+				{
+					printf("| ");
+					//printf("%d, %d", validRegIndices.size(), validPointers.size());
+					if(i-22 < validRegIndices.size() && i-22 < validPointers.size())
+					{
+						uint32_t loadedWord;
+						uint64_t vAddr = gpr[validRegIndices[i-22]];
+						char *bytes = validPointers[i-22];
+						if(memUnit->isInStack(vAddr))
+						{
+							loadedWord = 0;
+							loadedWord |= (uint64_t)(bytes[-3] & 0xff);
+							loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
+							loadedWord |= ((uint64_t)(bytes[-1] & 0xff)) << 16;
+							loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+						}
+						else
+						{
+							loadedWord = 0;
+							loadedWord |= (uint64_t)(bytes[3] & 0xff);
+							loadedWord |= ((uint64_t)(bytes[2] & 0xff)) << 8;
+							loadedWord |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+							loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+						}
+						
+						if(i-22 >= 0 && i-22 < validPointers.size())
+						{
+							printf("%s: 0x%08x", getName(validRegIndices[i-22]).c_str(), loadedWord);
+						}
+					}
+					
+				}
+
+				printf("\n");
+			}
+			printf("+-----------------------+---\n");
+			
+			
+		}
 
 		void registerDump()
 		{
@@ -2984,6 +3312,38 @@ class EmulatedCPU
 			if (offset ==	30)	return "fp";
 			if (offset ==	31)	return "ra";
 			return "NULL";
+		}
+
+		char * getInstructionName(uint32_t instruction)
+		{
+			if ((instruction & 0xfc000000) == 0)
+			{
+				// Essentially, this is a list of r type functions indexed by opcode.
+				char * out = rtype_names[(instruction & 0b111111)];
+				return out;
+							
+			}
+			// If the upper 26-31 bits are set to one, then, we have a REGIMM instruction
+			else if ((instruction & 0xfc000000) >> 26 == 1)
+			{
+				char * out = regimm_names[((instruction & 0x1f0000) >> 16)];
+				return out;
+			}
+			else
+			{
+				char * out = otype_names[(instruction & 0xfc000000) >> 26];
+				return out;
+			}	
+			return "unimplemented";
+		}
+
+		std::string hexFromInt(uint32_t in)
+		{
+			std::stringstream out;
+			out << "0x" 
+				<< std::setfill ('0') << std::setw(sizeof(uint32_t)*2) 
+				<< std::hex << in;
+			return out.str();
 		}
 		
 		// pg. 40

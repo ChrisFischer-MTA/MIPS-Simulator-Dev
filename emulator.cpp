@@ -70,6 +70,9 @@ const short int RTYPE = 1;
 const short int ITYPE = 2;
 const short int JTYPE = 3;
 
+// Debug oprtions
+const short int SHUT_UP = 0;
+
 
 // Exception Types
 const short int IntegerOverflow = 1;
@@ -712,7 +715,7 @@ class EmulatedCPU
 				int flags = 0;
 				next = 0;
 				
-				while(next == 0 && skip <= 0)
+				while(next == 0 && skip <= 0 && (SHUT_UP < 1))
 				{
 					printf("\n>> ");
 					scanf("%s", pweasenosteppy);

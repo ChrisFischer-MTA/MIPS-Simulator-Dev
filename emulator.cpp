@@ -521,7 +521,7 @@ class EmulatedCPU
 						auto addRanges = func->GetAddressRanges();
 						endOfMain = addRanges[0].end;
 						startOfMain = addRanges[0].start;
-						printf("%llx, %llx", startOfMain, endOfMain);
+						printf("%x, %x", startOfMain, endOfMain);
 					}
 				}
 			}
@@ -815,7 +815,7 @@ class EmulatedCPU
 			return 0;
 		}
 		
-		void EmulatedCPU::hooked_libc_write(uint32_t opcode)
+		void hooked_libc_write(uint32_t opcode)
 		{
 			// Size should be in $a2
 			// s0 has the output stream
@@ -827,7 +827,7 @@ class EmulatedCPU
 			// TODO: Denote the output buffer if we care.
 			//printf("Intercepted WRITE call\n");
 			//printf("Write size: 0x%0x\n", gpr[2]);
-			printf("Getting string address 0x%x of size 0x%0x.\n", gpr[17], gpr[6]);
+			printf("Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
 			//printf("Addr send 0x%x\n", address);
 			printf("%s\n", address);
@@ -865,7 +865,7 @@ class EmulatedCPU
 		// size is at $a0
 		// address goes in $v0
 		// void* __libc_malloc(int sizeToAllocate)
-		void EmulatedCPU::hooked_libc_malloc(uint32_t opcode)
+		void hooked_libc_malloc(uint32_t opcode)
 		{
 			gpr[2] = (uint32_t)this->memUnit->MMUHeap.allocMem(gpr[4]);
 			this->pc = gpr[31];
@@ -2162,7 +2162,7 @@ class EmulatedCPU
 					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
 				}
 				
-				printf("%llx\n", gpr[rt]);
+				printf("%lx\n", gpr[rt]);
 				/*if(BigEndian)
 				{
 					for(int i=0;i<4;i++)
@@ -2378,7 +2378,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("MUL %s, %s, %S\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("MUL %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			mult(instruction);
@@ -2459,7 +2459,7 @@ class EmulatedCPU
 				signalException(ReservedInstructionException);
 			if(rd >29)
 				signalException(ReservedInstructionException);
-			printf("hwr[rd] is [%d]\n", hwr[rd]);
+			printf("hwr[rd] is [%ld]\n", hwr[rd]);
 			gpr[rt] = hwr[rd];
 		}
 		// MIPS 1
@@ -2878,7 +2878,7 @@ class EmulatedCPU
 		void syscall(uint32_t instruction)
 		{
 			printf("Syscall preformed. Unimplemented, generally!\n");
-			printf("$v0 is 0x%x.\n", gpr[2]);
+			printf("$v0 is 0x%lx.\n", gpr[2]);
 			//generallyPause();
 			
 		}
@@ -3250,7 +3250,7 @@ class EmulatedCPU
 				{
 					case 0: printf("|");
 					break;
-					case 1: printf("| pc: 0x%llx", pc);
+					case 1: printf("| pc: 0x%lx", pc);
 					break;
 					case 2: printf("|");
 					break;
@@ -3410,7 +3410,7 @@ class EmulatedCPU
 		// pg. 40
 		void runInstruction(uint32_t instruction)
 		{
-			printf("PC: [0x%x], Instruction: [0x%08x]\n", pc, instruction);
+			printf("PC: [0x%lx], Instruction: [0x%08x]\n", pc, instruction);
 			// First, let's determine the instruction type.
 			rs = (instruction & 0x3E00000) >> 21;
 			rt = (instruction & 0x1F0000) >> 16;

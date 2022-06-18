@@ -172,7 +172,7 @@ class Heap
 		
 		uint8_t* readHeapMemory(uint32_t vaddr, uint32_t size)
 		{
-			printf("[DEBUG] called readHeapMemory on vaddr:[0x%lx] with size:[%d] \n", vaddr, size);
+			printf("[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
 			int i = 0;
 			
 			if(vaddr == 0)
@@ -377,18 +377,18 @@ class Heap
 		}
 		
 		// Stub
-		void printHeap(char* warning, int triggeringVirtualAddress)
+		void printHeap(const char* warning, int triggeringVirtualAddress)
 		{
 			printHeap(warning, triggeringVirtualAddress, 0);
 		}
 		
-		void printHeap(char* warning, int triggeringVirtualAddress, int _, int trash)
+		void printHeap(const char* warning, int triggeringVirtualAddress, int _, int trash)
 		{
 			// Convert index to triggeringVirtualAddress 
 			printHeap(warning, this->heapBase+triggeringVirtualAddress, 0);
 		}
 		
-		void printHeap(char* warning, int triggeringVirtualAddress, int triggeringPC)
+		void printHeap(const char* warning, int triggeringVirtualAddress, int triggeringPC)
 		{
 		
 			// ----------------------------
@@ -419,9 +419,9 @@ class Heap
 				if(i%8 == 0)
 				{
 					if(i != 0)
-						printf(" |\n0x%08x | ", this->heapBase+i);
+						printf(" |\n0x%08lx | ", this->heapBase+i);
 					else
-						printf("0x%08x | ", this->heapBase+i);
+						printf("0x%08lx | ", this->heapBase+i);
 				}
 				// Bold the bad byte
 				if(this->heapBase+i == triggeringVirtualAddress)
@@ -939,6 +939,9 @@ class MMU
 				}
 			}
 		}
+
+		// TODO: this is probably incorrect but w/o it throws warning
+		return NULL;
 	}
 	
 	/*int writeToBytes(char *data, int length)
@@ -1003,7 +1006,7 @@ class MMU
 	// is not an external symbol that would need to be resolved by the linker.
 	bool isAddrExtern(uint64_t address)
 	{
-		printf("Checking address [0x%x]!\n", address);
+		printf("Checking address [0x%lx]!\n", address);
 		/*
 		// Address is currently for puts() in our a.out
 		//address=0x410864;

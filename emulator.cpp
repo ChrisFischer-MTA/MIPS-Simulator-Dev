@@ -492,10 +492,10 @@ class EmulatedCPU
 		EmulatedCPU(bool is64bit, BinaryView* bc)
 		{
 			bv = bc;
-			fflush(stdout);
+			//fflush(stdout);
 			memUnit = new MMU(is64bit, bc);
 			
-			fflush(stdout);
+			//fflush(stdout);
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)
@@ -521,7 +521,7 @@ class EmulatedCPU
 						auto addRanges = func->GetAddressRanges();
 						endOfMain = addRanges[0].end;
 						startOfMain = addRanges[0].start;
-						printf("%x, %x", startOfMain, endOfMain);
+						//printf("%x, %x", startOfMain, endOfMain);
 					}
 				}
 			}
@@ -663,7 +663,7 @@ class EmulatedCPU
 				findIterator = std::find(functionVirtualAddress.begin(), functionVirtualAddress.end(), pc);
 				if(findIterator != functionVirtualAddress.end())
 				{
-					printf("Found a hooked function, calling a thing!\n");
+					printf("Found a hooked function, calling appropriate hooked implementation!\n");
 					index = findIterator-functionVirtualAddress.begin();
 					printf("Index: [%d] name of [%s] \n", index, static_function_hook_matching[functionVirtualFunction[index]].c_str());
 					(this->*static_function_hooks[functionVirtualFunction[index]])(0x0);
@@ -683,7 +683,7 @@ class EmulatedCPU
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
 					instructionsRun++;
-					printf("Instructions run: %x\n", instructionsRun);
+					printf("Instructions run: %x\n\n", instructionsRun);
 				}
 				//If the instruction is nullified, cancel the nullification
 				else
@@ -2053,16 +2053,16 @@ class EmulatedCPU
 			}
 			if(memUnit->isInStack(vAddr))
 			{
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
-																					bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+				//? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+				//																	bytes[0], bytes[-1], bytes[-2], bytes[-3]);
 				gpr[rt] = 0;
 				gpr[rt] |= ((uint64_t)(bytes[-1] & 0xff));
 				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
 			}
 			else
 			{
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																					bytes[0], bytes[1], bytes[2], bytes[3]);
+				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+				//																	bytes[0], bytes[1], bytes[2], bytes[3]);
 				gpr[rt] = 0;
 				gpr[rt] |= ((uint64_t)(bytes[1] & 0xff));
 				gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
@@ -2129,7 +2129,7 @@ class EmulatedCPU
 				//Destination address
 				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 				//Get bytes in-order from mmu
-				memUnit->printSections();
+				//memUnit->printSections();
 				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
 				if(bytes == NULL)
 				{
@@ -2143,8 +2143,8 @@ class EmulatedCPU
 				//Emulated stack pointer is backwards. have to reverse it for writes
 				if(memUnit->isInStack(vAddr))
 				{
-					printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
-																						bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+					//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+					//																	bytes[0], bytes[-1], bytes[-2], bytes[-3]);
 					gpr[rt] = 0;
 					gpr[rt] |= (uint64_t)(bytes[-3] & 0xff);
 					gpr[rt] |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
@@ -2153,8 +2153,8 @@ class EmulatedCPU
 				}
 				else
 				{
-					printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																						bytes[0], bytes[1], bytes[2], bytes[3]);
+					//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+					//																	bytes[0], bytes[1], bytes[2], bytes[3]);
 					gpr[rt] = 0;
 					gpr[rt] |= (uint64_t)(bytes[3] & 0xff);
 					gpr[rt] |= ((uint64_t)(bytes[2] & 0xff)) << 8;
@@ -2162,7 +2162,7 @@ class EmulatedCPU
 					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 24;
 				}
 				
-				printf("%lx\n", gpr[rt]);
+				//printf("%lx\n", gpr[rt]);
 				/*if(BigEndian)
 				{
 					for(int i=0;i<4;i++)
@@ -2528,15 +2528,15 @@ class EmulatedCPU
 			}
 			if(memUnit->isInStack(vAddr))
 			{
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
-																					bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+				//																	bytes[0], bytes[-1], bytes[-2], bytes[-3]);
 				bytes[0] = (gpr[rt] >> 8) & 0xff;
 				bytes[-1] = (gpr[rt]) & 0xff;
 			}
 			else
 			{
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																					bytes[0], bytes[1], bytes[2], bytes[3]);
+				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+				//																	bytes[0], bytes[1], bytes[2], bytes[3]);
 				bytes[0] = (gpr[rt] >> 8) & 0xff;
 				bytes[1] = (gpr[rt]) & 0xff;
 			}
@@ -2839,8 +2839,8 @@ class EmulatedCPU
 					bytes[2] = (gpr[rt] >> 8) & 0xff;
 					bytes[3] = (gpr[rt]) & 0xff;
 				}
-				printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-																						bytes[0], bytes[1], bytes[2], bytes[3]);
+				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+				//																		bytes[0], bytes[1], bytes[2], bytes[3]);
 				/*if(BigEndian)
 				{
 					for(int i=0;i<4;i++)
@@ -3428,28 +3428,28 @@ class EmulatedCPU
 				}
 			}
 			
-			printf("immediate signed: %d immediate unsigned: %d\n", signedImmediate, immediate);
-			printf("Rtype [%d]\n", (instruction & 0b111111));
-			printf("Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
-			printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
+			//printf("immediate signed: %d immediate unsigned: %d\n", signedImmediate, immediate);
+			//printf("Rtype [%d]\n", (instruction & 0b111111));
+			//printf("Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
+			//printf("Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
 			// TODO: add bounds checking : )
 			// If the upper 26-31 bits are set to zero, then, we have an R-Type instruction
 			if ((instruction & 0xfc000000) == 0)
 			{
 				// Essentially, this is a list of r type functions indexed by opcode.
-				printf("Selected Rtype [%d]\n", (instruction & 0b111111));
+				//printf("Selected Rtype [%d]\n", (instruction & 0b111111));
 				(this->*inst_handlers_rtypes[(instruction & 0b111111)])(instruction);
 							
 			}
 			// If the upper 26-31 bits are set to one, then, we have a REGIMM instruction
 			else if ((instruction & 0xfc000000) >> 26 == 1)
 			{
-				printf("Selected Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
+				//printf("Selected Regimm [%d]\n", ((instruction & 0x1f0000) >> 16));
 				(this->*inst_handlers_regimm[((instruction & 0x1f0000) >> 16)])(instruction);
 			}
 			else
 			{
-				printf("Selected Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
+				//printf("Selected Otype [%d]\n", ((instruction & 0xfc000000) >> 26));
 				(this->*inst_handlers_otypes[(instruction & 0xfc000000) >> 26])(instruction);
 			}			
 		}

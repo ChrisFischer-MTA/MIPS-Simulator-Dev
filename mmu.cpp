@@ -143,7 +143,7 @@ class Heap
 			
 			uint32_t toReturn = (this->heapSize + this->heapBase);
 			
-			for(i = 0; i < size; i++)
+			for(i = 0; i < size + GUARD_PAGE_LENGTH; i++)
 			{
 				//printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(0);
@@ -153,7 +153,7 @@ class Heap
 			
 			
 			// Get the size of the second guard page.
-			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
+			for(i = 0; i < GUARD_PAGE_LENGTH + size + GUARD_PAGE_LENGTH; i++)
 			{
 				//printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
@@ -268,7 +268,7 @@ class Heap
 			// Make sure we're accessing something less then the heap size.
 			// TODO: This bounds check is insufficent. it checks to ensure that the first vaddr is in range of the heap.
 			// But does not check the corrosponding claim to size. We should check this!
-			if(vaddr >= (this->heapBase + this->heapSize))
+			if((vaddr+size) >= (this->heapBase + this->heapSize))
 			{
 				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr);
 				return 0;

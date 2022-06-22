@@ -13,7 +13,8 @@ if (NOT WIN32)
     dl)
 endif()
 
-set(CMAKE_CXX_FLAGS "-fpermissive")
+set(CMAKE_CXX_FLAGS "-fpermissive -g -fsanitize=address -fno-omit-frame-pointer")
+set(CMAKE_LINKER_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17

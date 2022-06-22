@@ -793,6 +793,12 @@ class EmulatedCPU
 						printf("%x", memUnit->stack[i]);
 					}
 				}
+				if(memUnit->MMUHeap.isInHeap(address))
+				{
+					uint8_t *backingMem = memUnit->MMUHeap.readHeapMemory(address, n, true);
+					memUnit->MMUHeap.printHeap("Debug Print", address, pc);
+					return 0;
+				}
 				if(memUnit->isInBinary(address))
 				{
 					printf("bytes:");
@@ -884,6 +890,8 @@ class EmulatedCPU
 		void hooked_libc_free(uint32_t opcode)
 		{
 			memUnit->MMUHeap.freeHeapMemory(gpr[4]);
+			// jump to ra
+			this->pc = gpr[31];
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
@@ -3242,7 +3250,7 @@ class EmulatedCPU
 				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
 				if(isValidMemoryPtr)
 				{
-					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
+					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0, true);
 					validRegIndices.push_back(i);
 					validPointers.push_back(memTest);
 				}
@@ -3260,6 +3268,7 @@ class EmulatedCPU
 				printf("%4s -> 0x%08lx\t", getName(i).c_str(), gpr[i]);
 				if(isValidMemoryPtr)
 					printf("\x1b[0m");
+
 				//For single cases in meta
 				switch(i)
 				{

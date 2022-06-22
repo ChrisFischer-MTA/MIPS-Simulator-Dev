@@ -170,7 +170,7 @@ class Heap
 		// VirtualAddress is zero or resides in heap space (guard pages are OK).
 		// We validate and return [vaddr, size)
 		
-		uint8_t* readHeapMemory(uint32_t vaddr, uint32_t size)
+		uint8_t* readHeapMemory(uint32_t vaddr, uint32_t size, bool suppress = false)
 		{
 			printf("[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
 			int i = 0;
@@ -178,13 +178,13 @@ class Heap
 			if(vaddr == 0)
 			{
 				printHeap("Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr);
-				return 0;
+				return NULL;
 			}
 			
 			if(size == 0)
 			{
 				printf("[ERROR] Read Heap Memory on a size of NULL.\n");
-				return 0;
+				return NULL;
 			}
 			
 			// First, let's ensure that the virtual address is valid.
@@ -192,7 +192,7 @@ class Heap
 			if(vaddr < (this->heapBase))
 			{
 				printf("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n");
-				return 0;
+				return NULL;
 			}
 			
 			// Make sure we're accessing something less then the heap size.
@@ -201,7 +201,7 @@ class Heap
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
 				printf("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
-				return 0;
+				return NULL;
 			}
 			
 			// We've validated the bounds. Let's grab memory and look for guard pages.
@@ -209,22 +209,23 @@ class Heap
 			// linearly (shouldn't EVER happen really)
 			
 			//printf("Preamble. vaddr_base [0x%lx] and vaddr [0x%lx].\n", (vaddr-this->heapBase), (vaddr));
+			
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
 				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x] w/ val [0x%x].\n", i, (vaddr-this->heapBase), (i), this->backingMemory[i]);
-				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
+				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST && !suppress)
 				{
 					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, 0);
 					return NULL;	
 				}
 				
-				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST)
+				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST && !suppress)
 				{
 					printHeap("[ERROR] Reading from uninitialized memory!\n", i, 0,0);
 					return NULL;	
 				}
 				
-				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
+				if(this->initializedMemory[i] & FREED_MEMORY_CONS && !suppress)
 				{
 					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", i, 0,0);
 					return NULL;	
@@ -377,6 +378,7 @@ class Heap
 		}
 		
 		// Stub
+		//
 		void printHeap(const char* warning, int triggeringVirtualAddress)
 		{
 			printHeap(warning, triggeringVirtualAddress, 0);
@@ -443,6 +445,10 @@ class Heap
 			}
 			printf(" |\n           |----------------------------------------- |\n");
 			
+			if(strlen(warning) >= 11)
+				if(strncmp(warning, "Debug Print", 11) == 0)
+					return;
+
 			while(true);
 		}
 		
@@ -555,7 +561,7 @@ class MMU
 		excluded[bigGap.rightSection] = true;
 		gap secondBiggestGap = getLargestGap(excluded);
 		if(secondBiggestGap.l == 0)
-			secondBiggestGap.l += 0xffff;
+			secondBiggestGap.l += 0x10000;
 		
 		//printf("%x, %x gap left sides\n", bigGap.l, secondBiggestGap.l);
 		//printf("%x, %x gap right sides\n", bigGap.r, secondBiggestGap.r);
@@ -732,7 +738,8 @@ class MMU
 	//address: ptr to virtual memory
 	//gpr: which register is used to access memory
 	//contents: contents of gpr
-	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0)
+	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0, 
+							   bool suppressHeap = 0)
 	{
 		//For Stack pointer access
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
@@ -762,7 +769,7 @@ class MMU
 		//For Heap Pointer access
 		if(MMUHeap.isInHeap(address))
 		{
-			uint8_t *out = MMUHeap.readHeapMemory(address, numBytes);
+			uint8_t *out = MMUHeap.readHeapMemory(address, numBytes, suppressHeap);
 			if(out == NULL)
 			{
 				printf("Fail heap write\n");

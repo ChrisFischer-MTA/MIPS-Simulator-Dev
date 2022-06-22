@@ -8,6 +8,7 @@
 #include <string>
 #include <inttypes.h>
 #include <iomanip>
+#include <signal.h>
 
 
 #include "mmu.cpp"
@@ -86,7 +87,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 2;
+const short int NUM_FUNCTIONS_HOOKED = 3;
 
 class EmulatedCPU
 {
@@ -452,7 +453,8 @@ class EmulatedCPU
 		// emulate.
 		const EmulatedCPU::funct static_function_hooks[NUM_FUNCTIONS_HOOKED] = {
 			&EmulatedCPU::hooked_libc_write,
-			&EmulatedCPU::hooked_libc_malloc,		
+			&EmulatedCPU::hooked_libc_malloc,	
+			&EmulatedCPU::hooked_libc_free	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -460,6 +462,7 @@ class EmulatedCPU
 			//"__WRITE",
 			"__stdio_WRITE",
 			"__libc_malloc",
+			"free"
 		};
 
 		//registers and instruction fields
@@ -505,7 +508,7 @@ class EmulatedCPU
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28 - 396;
 
-			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(10) + 5;
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12) + 6;
 			hwr[29] = UserLocalPtr;
 			
 			
@@ -772,6 +775,10 @@ class EmulatedCPU
 				registerDump();
 				return 0;
 			}
+			if(strncmp(input, "exit", 4) == 0)
+			{
+				raise(SIGKILL);
+			}
 			
 			if(strncmp(input, "mem", 1) == 0)
 			{
@@ -869,6 +876,11 @@ class EmulatedCPU
 		{
 			gpr[2] = (uint32_t)this->memUnit->MMUHeap.allocMem(gpr[4]);
 			this->pc = gpr[31];
+		}
+
+		void hooked_libc_free(uint32_t opcode)
+		{
+			memUnit->MMUHeap.freeHeapMemory(gpr[4]);
 		}
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
@@ -1969,7 +1981,7 @@ class EmulatedCPU
 			{
 				printf("Exiting gracefully\n");
 				BNShutdown();
-				exit(0);
+				raise(SIGKILL);
 			}
 
 			runInstruction(getNextInstruction());
@@ -3295,6 +3307,7 @@ class EmulatedCPU
 						char *bytes = validPointers[i-22];
 						if(memUnit->isInStack(vAddr))
 						{
+							printf("Thisisinstack");
 							loadedWord = 0;
 							loadedWord |= (uint64_t)(bytes[-3] & 0xff);
 							loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;

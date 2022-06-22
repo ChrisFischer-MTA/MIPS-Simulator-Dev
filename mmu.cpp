@@ -131,7 +131,7 @@ class Heap
 			// Get the size of two guard pages.
 			for(i = 0; i < GUARD_PAGE_LENGTH; i++)
 			{
-				//printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Guard Page 1: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -143,9 +143,9 @@ class Heap
 			
 			uint32_t toReturn = (this->heapSize + this->heapBase);
 			
-			for(i = 0; i < size + GUARD_PAGE_LENGTH; i++)
+			for(; i < size + GUARD_PAGE_LENGTH; i++)
 			{
-				//printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Normal Memory: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(0);
 				this->initializedMemory.push_back(UNINITIALIZED_MEMORY_CONST);
 				this->heapSize++;
@@ -153,9 +153,9 @@ class Heap
 			
 			
 			// Get the size of the second guard page.
-			for(i = 0; i < GUARD_PAGE_LENGTH + size + GUARD_PAGE_LENGTH; i++)
+			for(; i < GUARD_PAGE_LENGTH + size + GUARD_PAGE_LENGTH; i++)
 			{
-				//printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
+				printf("Guard Page 2: vaddr: [0x%lx] and index [%d].\n", this->heapBase + heapSize, i);
 				this->backingMemory.push_back(GUARD_PAGE_VAL);
 				this->initializedMemory.push_back(GUARDPAGE_MEMORY_CONST);
 				this->heapSize++;
@@ -839,6 +839,8 @@ class MMU
 				}
 			}
 		}
+		
+		// We should never hit this statement
 		return NULL;
 	}
 

@@ -28,41 +28,6 @@
 const short int MIP_ISA_32 = 1;
 
 const short int MIPSI = 1;
-/*
-LB Load Byte
-LBU Load Byte Unsigned
-SB Store Byte
-LH Load Halfword
-LHU Load Halfword Unsigned
-SH Store Halfword
-LWL Load Word Left
-LWR Load Word Right
-SWL Store Word Left
-SWR Store Word Right
-LWCz Load Word to Coprocessor-z (OUT OF SCOPE FOR NOW)
-SWCz Store Word from Coprocessor-z (OUT OF SCOPE FOR NOW)
-ADDI Addmmediate Word
-ADDIU Addmmediate Unsigned Word
-SLTI Set on Less Thanmmediate
-SLTIU Set on Less Thanmmediate Unsigned
-ANDI Andmmediate
-ORI Ormmediate
-XORI Exclusive Ormmediate
-LUI Load Uppermmediate
-ADD Add Word
-ADDU Add Unsigned Word
-SUB Subtract Word
-SUBU Subtract Unsigned Word
-SLT Set on Less Than
-SLTU Set on Less Than Unsigned
-AND And
-OR Or
-XOR Exclusive Or
-NOR Nor
-
--- Finished at A10
-
-*/
 const short int MIPSII = 2;
 const short int MIPSIII = 3;
 const short int MIPSIV = 4;
@@ -462,13 +427,12 @@ class EmulatedCPU
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
 		{
-			//"__WRITE",
 			"__stdio_WRITE",
 			"__libc_malloc",
 			"free"
 		};
 
-		//registers and instruction fields
+		// Registers and Instruction Fields
 		uint64_t gpr[32];
 		uint64_t hwr[32];
 		uint8_t rs; // 1st Source
@@ -558,10 +522,8 @@ class EmulatedCPU
 		// by a system call in the future.
 		void generallyPause()
 		{
-			while (1)
-			{
-				// do nothing
-			}
+			// TODO: Import please no steppy.
+			while(true);
 		}
 
 		uint32_t debugGetValue(int address, int retVal)
@@ -585,15 +547,11 @@ class EmulatedCPU
 		void signalException(int excpt)
 		{
 			printf("Exception occured! [%d]\n", excpt);
-			while (1)
-			{
-				// do nothing
-			}
+			while(true) generallyPause();
 		}
 
-		// TODO: Rose and Sean
-		// For this, instruction, we'll take the PC and turn it into a memory address and then get the opcode from binary ninja.
-		// and return it. 
+		// Get instructions located at a memory address and return them in a usable format.
+		// While doing some permissions checks.
 		uint32_t getInstruction(int PC) {
 			// Make PC a memory address
 			int address = PC;
@@ -629,11 +587,18 @@ class EmulatedCPU
 			return getInstruction(pc + 4);
 		}
 
+		// Call to bridge unimplemented instruction handlers with helpful debug information.
 		void unimplemented(uint32_t opcode)
 		{
-			printf("\n\nPLEASE HELP ME YOU CALLED AN UNIMPLEMEND HANDLER\n\n");
-			printf("TIME TO DIE");
-			generallyPause();
+			printf("Unimplemented emulation instruction was called.\n");
+			printf("Operation Code [0x%x], detected index:\n", opcode);
+			if ((opcode & 0xfc000000) == 0)
+				printf("Rtype [%d]\n", (opcode & 0b111111));
+			else if ((opcode & 0xfc000000) >> 26 == 1)
+				printf("Regimm [%d]\n", ((opcode & 0x1f0000) >> 16));
+			else
+				printf("Otype [%d]\n", ((opcode & 0xfc000000) >> 26));
+			while(true) generallyPause();
 			return;
 		}
 
@@ -804,7 +769,10 @@ class EmulatedCPU
 					printf("bytes:");
 					char* hold = (char*)(calloc(n, sizeof(char)));
 					if (bv->Read(hold, address, n) != n)
-						generallyPause();
+					{
+						printf("bv read generally pause\n");
+						while(true) generallyPause(); // Why was this put here?
+					}
 					else
 					{
 						int linePos=0, word=0;
@@ -831,56 +799,19 @@ class EmulatedCPU
 			return 0;
 		}
 		
+		//
+		// Hooked Functions
+		// 
+		
 		void hooked_libc_write(uint32_t opcode)
 		{
-			// Size should be in $a2
-			// s0 has the output stream
-			// s1 has the buffer
-			//printf("Called hooked libc write\n");
-			//printf("$v0 0x%x\n", gpr[2]);
-			//printf("$s0 0x%x\n", gpr[16]);
-			//printf("$s1 0x%x\n", gpr[17]);
-			// TODO: Denote the output buffer if we care.
-			//printf("Intercepted WRITE call\n");
-			//printf("Write size: 0x%0x\n", gpr[2]);
 			printf("Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
-			//printf("Addr send 0x%x\n", address);
 			printf("%s\n", address);
-			
-			//this->pc = 0x0040a7b0;
-			
-			/*
-			// Do the return.
-			// Move $sp, $fp  ($sp=$fp)
-			gpr[29] = gpr[30];
-			
-			printf("getting the first one\n");
-			// $ra = [$sp + 0x24 {__saved_$ra}].d
-			printf("Address %x:\n", (gpr[29] + 0x24));
-			printf("Dereferenced %x:\n",  memUnit->getEffectiveAddress((gpr[29] + 0x24), 1, 31, gpr[29]));
-			gpr[31] = (uint32_t)memUnit->getEffectiveAddress((gpr[29] + 0x24), 1, 31, gpr[29]);
-			
-			printf("getting the second one\n");
-			// $fp = [$sp + 0x20 {__saved_$fp}].d
-			printf("Address %x:\n", (gpr[29] + 0x20));
-			printf("Dereferenced %x:\n",  memUnit->getEffectiveAddress((gpr[29] + 0x20), 1, 31, gpr[29]));
-			gpr[30] = (uint32_t)memUnit->getEffectiveAddress((gpr[29] + 0x20), 1, 31, gpr[29]);
-			
-			// $sp = $sp + 0x28
-			gpr[29] = gpr[29] + 0x28;
-			*/
-			// jump to ra
 			this->pc = gpr[31];
-			
-			// memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
-			
 			return;
 		}
 		
-		// size is at $a0
-		// address goes in $v0
-		// void* __libc_malloc(int sizeToAllocate)
 		void hooked_libc_malloc(uint32_t opcode)
 		{
 			gpr[2] = (uint32_t)this->memUnit->MMUHeap.allocMem(gpr[4]);
@@ -893,6 +824,12 @@ class EmulatedCPU
 			// jump to ra
 			this->pc = gpr[31];
 		}
+
+
+		// 
+		// Emulationed Operation codes for the JIT. 
+		//
+
 
 		// This is the ADD function. Opcode of 0b000000 and ALU code of 0b100 000
 		// TODO: Test with negative values.
@@ -2551,15 +2488,11 @@ class EmulatedCPU
 			}
 			if(memUnit->isInStack(vAddr))
 			{
-				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
-				//																	bytes[0], bytes[-1], bytes[-2], bytes[-3]);
 				bytes[0] = (gpr[rt] >> 8) & 0xff;
 				bytes[-1] = (gpr[rt]) & 0xff;
 			}
 			else
 			{
-				//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
-				//																	bytes[0], bytes[1], bytes[2], bytes[3]);
 				bytes[0] = (gpr[rt] >> 8) & 0xff;
 				bytes[1] = (gpr[rt]) & 0xff;
 			}
@@ -2902,7 +2835,7 @@ class EmulatedCPU
 		{
 			printf("Syscall preformed. Unimplemented, generally!\n");
 			printf("$v0 is 0x%lx.\n", gpr[2]);
-			//generallyPause();
+			
 			
 		}
 		// MIPS 2
@@ -3205,7 +3138,7 @@ class EmulatedCPU
 		//|zero:				|
 		//|at:					|
 		//|v0:					| Meta informations
-		//|v1:					|
+		//|v1:				     	|
 		//|						|
 		//|						|
 		//|						|
@@ -3533,93 +3466,14 @@ int main(int argn, char ** args)
 	bv->UpdateAnalysisAndWait();
 	printf("[INFO] Finished Analysis.\n");
 
-	// Name: main Last Address: 56527bb27790
-	
-
-
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
-	// This should get us the value of something interesting.
-	// Should give us 3c1c0025 in unsigned decimal (using the a.out test file)
-	//printf("Entry point:0x%lx\t%x\n", bv->GetEntryPoint(), electricrock->debugGetValue(0x400480, 0));
-	//fflush(stdout);
-
-	// Test for isAddrExtern
-	//printf("External?: %d\n", electricrock->memUnit->isAddrExtern(0x410810));
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain
 	electricrock->runEmulation(electricrock->startOfMain);
 
 	// Proper shutdown of core
 	BNShutdown();
-
-	// Method for testing getInstruction();
-	//uint32_t address = 0;
-	//unsigned char* opcode = electricrock->getInstruction(address);
-	//printf("opcode:%x %x %x %x",*(opcode+0),*(opcode+1),*(opcode+2),*(opcode+3));
-
-	//MMU* mmu = new MMU(false, bv);
-
-	/* 
-	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
-	printf("%d %s\n", 31, electricrock->getName(31).c_str());
-
-	int32_t immediate = -4;
-	uint64_t test = 10;
-	//immediate  >>= 1;
-	//test = 6
-	printf("%lld", immediate);
-
-	*/
-
-	/*
-	So generally, here's how this should work.
-	We load in a program (probably the one fed in via arguments)
-	We then map all of the things into memory using BN.
-	Every iteration, we exec the opcode and incremenet the PC.
-	*/
-
-	/*
-
-	// This is a valid opcode extracted from a program
-	// memonic: and $v0, $v1, $v0
-	//electricrock->runInstruction(0x00621024);
-	
-	electricrock->gpr[2] = 0xffffffffffffffff;
-	electricrock->gpr[21] = 0x8000000000000000;
-	electricrock->is64bit = true;
-
-	//instruction test = assemble("add $v0 $s5 $v0");
-	//printf("%.8x\n", test.asem);
-	// memonic: addu $v0, $s5, $v0
-	//electricrock->runInstruction(0x02a21021);
-
-	//MMU memunit = MMU(PageTable(), (allocation *)NULL);
-	//memunit.segment(0, 3);
-
-	// memonic: addi r1, r1, -1
-	electricrock->runInstruction(0x1041ffff);
-	// addi r1, r1, -32,768
-	electricrock->runInstruction(0x20217000);
-	
-	//electricrock->signExtend(&electricrock->signedImmediate, 32);
-
-
-
-	electricrock->registerDump();
-
-	// memonic: addiu $a1,$zero, 1
-	electricrock->runInstruction(0x24050001);
-
-	// memonic: add $v0, $s5, $v0
-	electricrock->runInstruction(0x00551020);
-	
-	*/
-	// Just a lazy way to stop things from progressing
-	//char* str_space = (char*) malloc(sizeof(char) * 1024);
-	//scanf("%s", str_space);
-	
-	
-	
+		
 }

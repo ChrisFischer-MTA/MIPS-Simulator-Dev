@@ -71,7 +71,7 @@ const short int ITYPE = 2;
 const short int JTYPE = 3;
 
 // Debug oprtions
-const short int SHUT_UP = 0;
+const short int SHUT_UP = 1;
 
 
 // Exception Types

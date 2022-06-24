@@ -8,6 +8,7 @@
 #include <string>
 #include <inttypes.h>
 #include <iomanip>
+#include <signal.h>
 
 
 #include "mmu.cpp"
@@ -89,7 +90,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 2;
+const short int NUM_FUNCTIONS_HOOKED = 3;
 
 class EmulatedCPU
 {
@@ -455,7 +456,8 @@ class EmulatedCPU
 		// emulate.
 		const EmulatedCPU::funct static_function_hooks[NUM_FUNCTIONS_HOOKED] = {
 			&EmulatedCPU::hooked_libc_write,
-			&EmulatedCPU::hooked_libc_malloc,		
+			&EmulatedCPU::hooked_libc_malloc,	
+			&EmulatedCPU::hooked_libc_free	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -463,6 +465,7 @@ class EmulatedCPU
 			//"__WRITE",
 			"__stdio_WRITE",
 			"__libc_malloc",
+			"free"
 		};
 
 		//registers and instruction fields
@@ -508,7 +511,7 @@ class EmulatedCPU
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28 - 396;
 
-			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(10) + 5;
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12) + 6;
 			hwr[29] = UserLocalPtr;
 			
 			
@@ -775,6 +778,10 @@ class EmulatedCPU
 				registerDump();
 				return 0;
 			}
+			if(strncmp(input, "exit", 4) == 0)
+			{
+				raise(SIGKILL);
+			}
 			
 			if(strncmp(input, "mem", 1) == 0)
 			{
@@ -785,6 +792,12 @@ class EmulatedCPU
 					{
 						printf("%x", memUnit->stack[i]);
 					}
+				}
+				if(memUnit->MMUHeap.isInHeap(address))
+				{
+					uint8_t *backingMem = memUnit->MMUHeap.readHeapMemory(address, n, true);
+					memUnit->MMUHeap.printHeap("Debug Print", address, pc);
+					return 0;
 				}
 				if(memUnit->isInBinary(address))
 				{
@@ -871,6 +884,13 @@ class EmulatedCPU
 		void hooked_libc_malloc(uint32_t opcode)
 		{
 			gpr[2] = (uint32_t)this->memUnit->MMUHeap.allocMem(gpr[4]);
+			this->pc = gpr[31];
+		}
+
+		void hooked_libc_free(uint32_t opcode)
+		{
+			memUnit->MMUHeap.freeHeapMemory(gpr[4]);
+			// jump to ra
 			this->pc = gpr[31];
 		}
 
@@ -1972,7 +1992,7 @@ class EmulatedCPU
 			{
 				printf("Exiting gracefully\n");
 				BNShutdown();
-				exit(0);
+				raise(SIGKILL);
 			}
 
 			runInstruction(getNextInstruction());
@@ -3230,7 +3250,7 @@ class EmulatedCPU
 				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
 				if(isValidMemoryPtr)
 				{
-					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0);
+					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0, true);
 					validRegIndices.push_back(i);
 					validPointers.push_back(memTest);
 				}
@@ -3248,6 +3268,7 @@ class EmulatedCPU
 				printf("%4s -> 0x%08lx\t", getName(i).c_str(), gpr[i]);
 				if(isValidMemoryPtr)
 					printf("\x1b[0m");
+
 				//For single cases in meta
 				switch(i)
 				{
@@ -3298,6 +3319,7 @@ class EmulatedCPU
 						char *bytes = validPointers[i-22];
 						if(memUnit->isInStack(vAddr))
 						{
+							printf("Thisisinstack");
 							loadedWord = 0;
 							loadedWord |= (uint64_t)(bytes[-3] & 0xff);
 							loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;

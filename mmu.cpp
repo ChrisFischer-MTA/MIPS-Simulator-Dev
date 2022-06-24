@@ -468,6 +468,9 @@ class MMU
 	bool is64Bit;
 	BinaryView* bv = NULL;
 
+	vector<uint64_t> stackPointerSections;
+	vector<uint64_t> framePointerSections;
+
 	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0)
 	{	
 		
@@ -533,7 +536,7 @@ class MMU
 		this->stack = vector<char>(5);
 		gap bigGap = getLargestGap();
 		this->stackBase = bigGap.r - 0xf;
-		this->stackMaxLength = bigGap.r - 0xf - bigGap.l;
+		this->stackMaxLength = bigGap.r - 0xfff - bigGap.l;
 		//Fill with fuzzing data
 		
 		//printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
@@ -745,8 +748,13 @@ class MMU
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		
 		//printf("numBytes: [%x]\n", numBytes);
-		
-		if(isInStack(address))
+		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
+		{
+			printf("Stack Overflow Exception");
+			return NULL;
+		}
+			
+		if(isInStack(address) && isInStack(address + numBytes))
 		{
 			//printf("Searching the stack! %lld\n", stackBase - address);
 			/*if(contents < stackBase - stack.size())
@@ -757,8 +765,10 @@ class MMU
 			{
 				stack.resize(stackBase - address + 1);
 			}*/
+			printf("\t\t\tstackBase: %x, %d, %x\n", stackBase, stack.size(), address);
 			if(address < stackBase - stack.size())
 			{
+				
 				stack.resize(stackBase - address + 8);
 			}
 
@@ -855,19 +865,32 @@ class MMU
 	{
 		//printf("address: %lx, gpr: %d\n", address, gpr);
 		//fflush(stdout);
+
+		//Stack overflow detection
+		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
+		{
+			printf("Stack Overflow Exception\n");
+			return NULL;
+		}
+
 		//For Stack pointer access
-		if(address < stackBase && address > stackBase - stackMaxLength)
+		if(address <= stackBase && address > stackBase - stackMaxLength)
 		{
 			//printf("Searching the stack!\n");
 			//printf("%lx\n", address);
 			fflush(stdout);
-			if(contents < stackBase - stack.size())
+			/*if(contents < stackBase - stack.size())
 			{
 				stack.resize(stackBase - contents + 1);
 			}
 			if(address < contents)
 			{
 				stack.resize(stackBase - address + 1);
+			}*/
+			if(address < stackBase - stack.size())
+			{
+				printf("\t\t\tstackBase: %x, %d, %x", stackBase, stack.size(), address);
+				stack.resize(stackBase - address + 8);
 			}
 
 			uint64_t stackOffset = stackBase - address;
@@ -1038,6 +1061,43 @@ class MMU
 		*/
 		
 		return bv->IsOffsetExternSemantics(address);
+	}
+
+	//Registers a  new stack pointer in the variable.
+	//if there is a lower stack section in the vector, it is removed.
+	void newStackSection(uint64_t newStackPointer)
+	{
+		int nelems = stackPointerSections.size();
+		if(nelems == 0)
+		{
+			stackPointerSections.push_back(newStackPointer);
+			return;
+		}
+
+		while(stackPointerSections.back() < newStackPointer)
+		{
+			stackPointerSections.pop_back();
+		}
+		stackPointerSections.push_back(newStackPointer);
+		return;
+		
+	}
+
+	void newFrameSection(uint64_t newFramePointer)
+	{
+		int nelems = framePointerSections.size();
+		if(nelems == 0)
+		{
+			framePointerSections.push_back(newFramePointer);
+			return;
+		}
+
+		while(framePointerSections.back() < newFramePointer)
+		{
+			framePointerSections.pop_back();
+		}
+		framePointerSections.push_back(newFramePointer);
+		return;
 	}
 
 	void generallyPause()

@@ -37,7 +37,7 @@ const short int ITYPE = 2;
 const short int JTYPE = 3;
 
 // Debug oprtions
-const short int SHUT_UP = 1;
+const short int SHUT_UP = 0;
 
 
 // Exception Types
@@ -645,7 +645,7 @@ class EmulatedCPU
 				}
 				
 				
-				//
+				
 				
 				
 				//If the instruction is not nullified, fetch and run it.
@@ -679,7 +679,26 @@ class EmulatedCPU
 				else
 					pc += 4;
 				
-				//registerDump();
+				
+				//Track the changes to the stack and frame pointer
+				//these are set at the end of the last instruction (In this block) and referenced at this block
+				uint64_t oldFramePointer, oldStackPointer;
+				if(gpr[29] != oldStackPointer)
+				{
+					memUnit->newStackSection(gpr[29]);
+
+					oldStackPointer = gpr[29];
+				}
+				if(gpr[30] != oldFramePointer)
+				{
+					memUnit->newFrameSection(gpr[30]);
+
+
+					oldFramePointer = gpr[30];
+				}
+
+
+				//Handle the input to the emulation
 				int flags = 0;
 				next = 0;
 				
@@ -2761,7 +2780,7 @@ class EmulatedCPU
 				int32_t offset = immediate;
 				if(immediate & 3 > 0)
 				{
-					printf("what?\n");
+					printf("Unaligned offset exception in SW\n");
 					signalException(MemoryFault);
 				}
 					
@@ -2817,13 +2836,94 @@ class EmulatedCPU
 		{
 			unimplemented(instruction);
 		}
+
+		//MIPS 1
 		void swl(uint32_t instruction)
 		{
-			unimplemented(instruction);
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SWL\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("SWL %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+
+			bool BigEndian = true;
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+
+			int i = vAddr & 3, j = 24, k = 0;
+			char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, 0);
+			
+			if(BigEndian)
+			{
+				if(memUnit->isInStack(vAddr))
+				{
+					while(i <= 3)
+					{
+						bytes[k] = (gpr[rt] >> j) & 0xff;
+						i++;
+						j -= 8;
+						k--;
+					}
+				}
+				else
+				{
+					while(i <= 3)
+					{
+						bytes[k] = (gpr[rt] >> j) & 0xff;
+						i++;
+						j -= 8;
+						k++;
+					}
+				}
+			}
+
+			
+
 		}
 		void swr(uint32_t instruction)
 		{
-			unimplemented(instruction);
+			if (mipsTarget < 1)
+			{
+				printf("Invalid mips target for SWR\n");
+			}
+
+			if (debugPrint)
+			{
+				printf("SWR %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+
+			bool BigEndian = true;
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+
+			int i = vAddr & 3, j = 0, k = 0;
+			char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, 0);
+			
+			if(BigEndian)
+			{
+				if(memUnit->isInStack(vAddr))
+				{
+					while(i >= 0)
+					{
+						bytes[k] = (gpr[rt] >> j) & 0xff;
+						i--;
+						j += 8;
+						k--;
+					}
+				}
+				else
+				{
+					while(i >= 0)
+					{
+						bytes[k] = (gpr[rt] >> j) & 0xff;
+						i--;
+						j += 8;
+						k++;
+					}
+				}
+			}
 		}
 		// MIPS 2
 		void SYNC(uint32_t instruction)
@@ -3183,6 +3283,7 @@ class EmulatedCPU
 				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
 				if(isValidMemoryPtr)
 				{
+					printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
 					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0, true);
 					validRegIndices.push_back(i);
 					validPointers.push_back(memTest);

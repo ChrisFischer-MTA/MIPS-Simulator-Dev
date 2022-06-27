@@ -7,6 +7,7 @@ int main(int argn, char** args)
 	int names;
 	int i = 0;
 	printf("Hello, how many names should I ask for?\n");
+	printf("Pointer [0x%x]\n", names);
 	scanf("%d", &names);
 	for(i = 0; i < names; i++)
 	{

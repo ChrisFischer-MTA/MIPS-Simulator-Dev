@@ -55,7 +55,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 3;
+const short int NUM_FUNCTIONS_HOOKED = 4;
 
 class EmulatedCPU
 {
@@ -422,14 +422,16 @@ class EmulatedCPU
 		const EmulatedCPU::funct static_function_hooks[NUM_FUNCTIONS_HOOKED] = {
 			&EmulatedCPU::hooked_libc_write,
 			&EmulatedCPU::hooked_libc_malloc,	
-			&EmulatedCPU::hooked_libc_free	
+			&EmulatedCPU::hooked_libc_free,	
+			&EmulatedCPU::hooked_libc_scanf,	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
 		{
 			"__stdio_WRITE",
 			"__libc_malloc",
-			"free"
+			"free",
+			"scanf",
 		};
 
 		// Registers and Instruction Fields
@@ -844,6 +846,42 @@ class EmulatedCPU
 			this->pc = gpr[31];
 		}
 
+		// NOTE: This is still not done. This is a complex function that I am still hooking.
+		// it's currently on the backburner as we fix an emulation bug.
+		void hooked_libc_scanf(uint32_t opcode)
+		{
+			// a0 is the pointer to the buffer.
+			// a1 is the first pointer access.
+			// a2 is the second pointer access.
+			// a3 is the third pointer access.
+			// stack+0x10 is the forth pointer access
+			// stack+0x14 is the fifth pointer access/
+			int i = 0;
+			int formatStrLen = 0;
+			int numSpecifiers = 0;
+			char *targetFormatStr = memUnit->getEffectiveAddress(gpr[4], gpr[6], 1, gpr[4]);
+			
+			// Get the string length of the pointer in a0
+			// We have to do it this way that way we monitor for a potential overflow if we
+			// get passed a corrupted string. This is a computationally expense operation.
+			for(i = 0; *memUnit->getEffectiveAddress(gpr[4]+i, gpr[6], 1, gpr[4]+i) != 0;)
+				i++;
+			
+			formatStrLen = i;
+			
+			// This is a rough way of doing this but this should be correct.
+			for(i = 0; i < formatStrLen; i++)
+				if(targetFormatStr[i] == '%')
+					numSpecifiers++;
+			
+			// Now, let's detect how many format specifiers we have in this string.
+			
+			printf("Detected scanf of [%d] with [%d] specifiers.\n", i, numSpecifiers);
+			//memUnit->MMUHeap.getEffectiveAddress(gpr[4], gpr[4], 1, gpr[4]);
+			
+			this->pc = gpr[31];
+			while(true);
+		}
 
 		// 
 		// Emulationed Operation codes for the JIT. 

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string>
 #include <inttypes.h>
 #include <iomanip>
@@ -477,9 +478,10 @@ class EmulatedCPU
 			//Instantiates the stack pointer;
 			gpr[29] = memUnit->stackBase - 28 - 396;
 
-			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12) + 6;
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12, true) + 6;
 			hwr[29] = UserLocalPtr;
 			
+			memUnit->printSections();
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{
@@ -525,7 +527,40 @@ class EmulatedCPU
 		void generallyPause()
 		{
 			// TODO: Import please no steppy.
-			while(true);
+			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
+			int next, skip = 0;
+			while(true)
+			{
+				//Handle the input to the emulation
+				int flags = 0;
+				next = 0;
+				
+				while(next == 0 && skip <= 0 && (SHUT_UP < 1))
+				{
+					printf("\n>> ");
+					scanf("%s", pweasenosteppy);
+					if(strncmp(pweasenosteppy, "mem", 3) == 0)
+					{
+						int address, n;
+						scanf("%x", &address);
+						scanf("%x", &n);
+						flags = scanCode(pweasenosteppy, address, n);
+						
+					}
+					else
+					{
+						flags = scanCode(pweasenosteppy);
+					}
+					if(flags == 1)
+						next = 1;
+					if(flags > 1)
+					{
+						skip = flags;
+					}
+					
+				}
+				skip--;
+			}
 		}
 
 		uint32_t debugGetValue(int address, int retVal)
@@ -537,10 +572,10 @@ class EmulatedCPU
 			retVal += ((bytes[2] & 0xff) << 8);
 			retVal += ((bytes[3] & 0xff));
 
-			printf("%x ", (bytes[0] & 0xff));
-			printf("%x ", (bytes[1] & 0xff));
-			printf("%x ", (bytes[2] & 0xff));
-			printf("%x\n", (bytes[3] & 0xff));
+			printNotifs(7,"%x ", (bytes[0] & 0xff));
+			printNotifs(7,"%x ", (bytes[1] & 0xff));
+			printNotifs(7,"%x ", (bytes[2] & 0xff));
+			printNotifs(7,"%x\n", (bytes[3] & 0xff));
 
 			
 			return retVal;
@@ -548,7 +583,7 @@ class EmulatedCPU
 
 		void signalException(int excpt)
 		{
-			printf("Exception occured! [%d]\n", excpt);
+		printNotifs(1,"Exception occured! [%d]\n", excpt);
 			while(true) generallyPause();
 		}
 
@@ -592,14 +627,14 @@ class EmulatedCPU
 		// Call to bridge unimplemented instruction handlers with helpful debug information.
 		void unimplemented(uint32_t opcode)
 		{
-			printf("Unimplemented emulation instruction was called.\n");
-			printf("Operation Code [0x%x], detected index:\n", opcode);
+			printNotifs(4,"Unimplemented emulation instruction was called.\n");
+			printNotifs(6,"Operation Code [0x%x], detected index:\n", opcode);
 			if ((opcode & 0xfc000000) == 0)
-				printf("Rtype [%d]\n", (opcode & 0b111111));
+				printNotifs(6,"Rtype [%d]\n", (opcode & 0b111111));
 			else if ((opcode & 0xfc000000) >> 26 == 1)
-				printf("Regimm [%d]\n", ((opcode & 0x1f0000) >> 16));
+				printNotifs(6,"Regimm [%d]\n", ((opcode & 0x1f0000) >> 16));
 			else
-				printf("Otype [%d]\n", ((opcode & 0xfc000000) >> 26));
+				printNotifs(6,"Otype [%d]\n", ((opcode & 0xfc000000) >> 26));
 			while(true) generallyPause();
 			return;
 		}
@@ -625,20 +660,20 @@ class EmulatedCPU
 				{
 					// Get the index
 					index = findIterator-basicBlocks.begin();
-					printf("Current PC:  0x%lx - Start of a Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
+					printNotifs(6,"Current PC:  0x%lx - Start of a Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 				}
 				else
 				{
-					printf("Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
+					printNotifs(6,"Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 				}
 				
 				// Code to search iteratively through our hooked functions and find if PC is a hooked address.
 				findIterator = std::find(functionVirtualAddress.begin(), functionVirtualAddress.end(), pc);
 				if(findIterator != functionVirtualAddress.end())
 				{
-					printf("Found a hooked function, calling appropriate hooked implementation!\n");
+					printNotifs(5,"Found a hooked function, calling appropriate hooked implementation!\n");
 					index = findIterator-functionVirtualAddress.begin();
-					printf("Index: [%d] name of [%s] \n", index, static_function_hook_matching[functionVirtualFunction[index]].c_str());
+					printNotifs(5,"Index: [%d] name of [%s] \n", index, static_function_hook_matching[functionVirtualFunction[index]].c_str());
 					(this->*static_function_hooks[functionVirtualFunction[index]])(0x0);
 					//registerDump();
 					
@@ -656,7 +691,7 @@ class EmulatedCPU
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
 					instructionsRun++;
-					printf("Instructions run: %x\n\n", instructionsRun);
+					printNotifs(6,"Instructions run: %x\n\n", instructionsRun);
 				}
 				//If the instruction is nullified, cancel the nullification
 				else
@@ -698,6 +733,11 @@ class EmulatedCPU
 
 					oldFramePointer = gpr[30];
 				}
+				/*
+				if(instructionsRun == 6)
+				{
+					gpr[28] = memUnit->GOTpointer;
+				}*/
 
 
 				//Handle the input to the emulation
@@ -781,13 +821,12 @@ class EmulatedCPU
 				}
 				if(memUnit->MMUHeap.isInHeap(address))
 				{
-					uint8_t *backingMem = memUnit->MMUHeap.readHeapMemory(address, n, true);
-					memUnit->MMUHeap.printHeap("Debug Print", address, pc);
+					memUnit->MMUHeap.printHeap("Debug Print", address, pc, true, address - n, address + n);
 					return 0;
 				}
 				if(memUnit->isInBinary(address))
 				{
-					printf("bytes:");
+					printNotifs(7,"bytes:");
 					char* hold = (char*)(calloc(n, sizeof(char)));
 					if (bv->Read(hold, address, n) != n)
 					{
@@ -826,7 +865,7 @@ class EmulatedCPU
 		
 		void hooked_libc_write(uint32_t opcode)
 		{
-			printf("Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
+			printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
 			printf("%s\n", address);
 			this->pc = gpr[31];
@@ -876,7 +915,7 @@ class EmulatedCPU
 			
 			// Now, let's detect how many format specifiers we have in this string.
 			
-			printf("Detected scanf of [%d] with [%d] specifiers.\n", i, numSpecifiers);
+			printNotifs(7,"Detected scanf of [%d] with [%d] specifiers.\n", i, numSpecifiers);
 			//memUnit->MMUHeap.getEffectiveAddress(gpr[4], gpr[4], 1, gpr[4]);
 			
 			this->pc = gpr[31];
@@ -2106,7 +2145,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("LUI %s, %x", getName(rt).c_str(), immediate);
+				printNotifs(7,"LUI %s, %x\n", getName(rt).c_str(), immediate);
 			}
 			int32_t hold = (int32_t) immediate;
 			gpr[rt] = hold << 16;
@@ -2124,10 +2163,10 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("LW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printf("LW %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
 			}
 
-
+			
 		
 			if (is64bit)
 			{
@@ -2414,7 +2453,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("NOR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("NOR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = ~(gpr[rs] | gpr[rt]);
@@ -2431,7 +2470,7 @@ class EmulatedCPU
 			if (debugPrint)
 			{
 
-				printf("OR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printf("OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = gpr[rs] | gpr[rt];
@@ -2476,7 +2515,7 @@ class EmulatedCPU
 				signalException(ReservedInstructionException);
 			if(rd >29)
 				signalException(ReservedInstructionException);
-			printf("hwr[rd] is [%ld]\n", hwr[rd]);
+			printf("hwr[%s] is [%ld]\n", getName(rd).c_str(), hwr[rd]);
 			gpr[rt] = hwr[rd];
 		}
 		// MIPS 1
@@ -2491,8 +2530,14 @@ class EmulatedCPU
 			{
 				printf("SB %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
-			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			uint64_t vAddr = signedImmediate + gpr[rs];
+			printf("%lx\n", vAddr);
 			char *bytes = memUnit->getWriteAddresss(vAddr, 1, rs, gpr[rs]);
+			if(bytes == NULL)
+			{
+				printf("%lx, %x, %lld\n", vAddr, signedImmediate, gpr[rs]);
+				generallyPause();
+			}
 			bytes[0] = gpr[rt] & 0xff;
 			
 		}
@@ -2892,8 +2937,13 @@ class EmulatedCPU
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 
 			int i = vAddr & 3, j = 24, k = 0;
-			char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, 0);
-			
+			char *bytes = memUnit->getWriteAddresss(vAddr, 4-i, rs, 0);
+			if(bytes == NULL)
+				generallyPause();
+				
+
+
+
 			if(BigEndian)
 			{
 				if(memUnit->isInStack(vAddr))
@@ -2937,7 +2987,13 @@ class EmulatedCPU
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 
 			int i = vAddr & 3, j = 0, k = 0;
-			char *bytes = memUnit->getWriteAddresss(vAddr, 4, rs, 0);
+			char *bytes = memUnit->getWriteAddresss(vAddr - i, i, rs, 0);
+			if(bytes == NULL)
+				generallyPause();
+			if(memUnit->isInStack(vAddr))
+				bytes -= i;
+			else
+				bytes += i;
 			
 			if(BigEndian)
 			{
@@ -2948,17 +3004,18 @@ class EmulatedCPU
 						bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;
 						j += 8;
-						k--;
+						k++;
 					}
 				}
 				else
 				{
 					while(i >= 0)
 					{
+						printf("writing to %x", bytes+k);
 						bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;
 						j += 8;
-						k++;
+						k--;
 					}
 				}
 			}
@@ -3309,7 +3366,6 @@ class EmulatedCPU
 
 		void stateDump()
 		{
-			vector<char *> validPointers = vector<char *>();
 			vector<int> validRegIndices = vector<int>();
 			uint32_t *hold = (uint32_t *)calloc(sizeof(uint32_t), 2);
 			printf("+-----------------------+---\n");
@@ -3321,10 +3377,8 @@ class EmulatedCPU
 				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
 				if(isValidMemoryPtr)
 				{
-					printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
-					memTest = memUnit->getEffectiveAddress(gpr[i], 4, 0, 0, true);
+					//printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
 					validRegIndices.push_back(i);
-					validPointers.push_back(memTest);
 				}
 			}
 
@@ -3384,11 +3438,11 @@ class EmulatedCPU
 				{
 					printf("| ");
 					//printf("%d, %d", validRegIndices.size(), validPointers.size());
-					if(i-22 < validRegIndices.size() && i-22 < validPointers.size())
+					if(i-22 < validRegIndices.size())
 					{
 						uint32_t loadedWord;
 						uint64_t vAddr = gpr[validRegIndices[i-22]];
-						char *bytes = validPointers[i-22];
+						char *bytes = memUnit->getEffectiveAddress(vAddr, 4, 0, 0, true);
 						if(memUnit->isInStack(vAddr))
 						{
 							printf("Thisisinstack");
@@ -3407,7 +3461,7 @@ class EmulatedCPU
 							loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
 						}
 						
-						if(i-22 >= 0 && i-22 < validPointers.size())
+						if(i-22 >= 0 && i-22 < validRegIndices.size())
 						{
 							printf("%s: 0x%08x", getName(validRegIndices[i-22]).c_str(), loadedWord);
 						}
@@ -3503,6 +3557,44 @@ class EmulatedCPU
 				<< std::hex << in;
 			return out.str();
 		}
+
+		printNotifs(int logLevel = 7, const char* notif = "", ...)
+		{
+			// Print the logLevel before the notification
+			switch (logLevel)
+			{
+				case 0:
+					printf("[Emergency] ");
+					break;
+				case 1:
+					printf("[Alert] ");
+					break;
+				case 2:
+					printf("[Critical] ");
+					break;
+				case 3:
+					printf("[Error] ");
+					break;
+				case 4:
+					printf("[Warning] ");
+					break;
+				case 5:
+					printf("[Notice] ");
+					break;
+				case 6:
+					printf("[Informational] ");
+					break;
+				case 7:
+					printf("[Debug] ");
+					break;
+			}
+
+			// Format passed notif and subsequent arguments as printf would be formated
+			va_list args;
+			va_start (args, notif);
+			vprintf (notif, args);
+			va_end (args);
+		}
 		
 		// pg. 40
 		void runInstruction(uint32_t instruction)
@@ -3575,6 +3667,20 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	// Check if file is accessable/exists
+	FILE *fp;
+	fp = fopen(args[1], "r");
+	if (fp) 
+	{
+		fclose(fp);
+	}
+	else
+	{ 
+		fprintf(stderr, "File does not exist"); 
+		BNShutdown();
+		return 0;
+	}
+
 	// In order to initiate the bundled plugins properly, the location
 	// of where bundled plugins directory is must be set. Since
 	// libbinaryninjacore is in the path get the path to it and use it to
@@ -3582,10 +3688,10 @@ int main(int argn, char ** args)
 	
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
-	printf("[INFO] Plugins initialized!\n");
+	printf("[Informational] Plugins initialized!\n");
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv = NULL;
-	printf("[INFO] BV Instantiated!\n");
+	printf("[Informational] BV Instantiated!\n");
 	fflush(stdout);
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
@@ -3595,18 +3701,21 @@ int main(int argn, char ** args)
 			break;
 		}
 	}
-	printf("[INFO] BVs initialized!\n");
+	printf("[Informational] BVs initialized!\n");
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
 		fprintf(stderr, "Input file does not appear to be an exectuable\n");
 		return -1;
 	}
-	printf("[INFO] Starting Analysis.\n");
+	printf("[Informational] Starting Analysis.\n");
 	bv->UpdateAnalysisAndWait();
-	printf("[INFO] Finished Analysis.\n");
+	printf("[Informational] Finished Analysis.\n");
 
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
+
+	// Testing the printNotifs() function
+	//electricrock->printNotifs(0,"Test variable length arguments: #%d: %s\n", 2, "testing");
 	
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain
@@ -3614,5 +3723,6 @@ int main(int argn, char ** args)
 
 	// Proper shutdown of core
 	BNShutdown();
-		
+
+	return 0;	
 }

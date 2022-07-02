@@ -2497,6 +2497,7 @@ class EmulatedCPU
 
 				printNotifs(7,"OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
+			printf("OR = %x | %x = %x\n", gpr[rs], gpr[rt], gpr[rs] | gpr[rt]);
 
 			gpr[rd] = gpr[rs] | gpr[rt];
 		}

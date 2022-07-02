@@ -50,6 +50,7 @@ const short int ReservedInstructionException = 4;
 // Coverage Information
 std::vector<uint32_t> basicBlocks;
 std::vector<std::string> basicBlockNames;
+FILE* PCPathFile = NULL;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -458,7 +459,7 @@ class EmulatedCPU
 		uint32_t endOfMain, startOfMain;
 
 		int32_t mipsTarget = 32;
-		bool debugPrint = false;
+		bool debugPrint = true;
 		
 
 
@@ -655,7 +656,8 @@ class EmulatedCPU
 				
 				// Code to determine if we are able to find the current PC in a basic block.
 				auto findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), pc);
-				
+				fprintf(PCPathFile, "0x%x\n", pc);
+				fflush(PCPathFile);
 				if(findIterator != basicBlocks.end())
 				{
 					// Get the index
@@ -691,7 +693,7 @@ class EmulatedCPU
 				{
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
-					filePCDump();
+					
 					instructionsRun++;
 					printNotifs(6,"Instructions run: %x\n\n", instructionsRun);
 				}
@@ -809,6 +811,8 @@ class EmulatedCPU
 			}
 			if(strncmp(input, "exit", 4) == 0)
 			{
+				if(PCPathFile)
+					fflush(PCPathFile);
 				raise(SIGKILL);
 			}
 			if(strncmp(input, "help", 4) == 0)
@@ -910,12 +914,13 @@ class EmulatedCPU
 			int i = 0;
 			int formatStrLen = 0;
 			int numSpecifiers = 0;
-			char *targetFormatStr = memUnit->getEffectiveAddress(gpr[4], gpr[6], 1, gpr[4]);
+			char *targetFormatStr = memUnit->getEffectiveAddress(gpr[4], 4, 4);
+			
 			
 			// Get the string length of the pointer in a0
 			// We have to do it this way that way we monitor for a potential overflow if we
 			// get passed a corrupted string. This is a computationally expense operation.
-			for(i = 0; *memUnit->getEffectiveAddress(gpr[4]+i, gpr[6], 1, gpr[4]+i) != 0;)
+			for(i = 0; *memUnit->getEffectiveAddress(gpr[4]+i, 4, 4) != 0;)
 				i++;
 			
 			formatStrLen = i;
@@ -3621,6 +3626,7 @@ class EmulatedCPU
 
 		void printNotifs(int logLevel = 7, const char* notif = "", ...)
 		{
+			// if (logLevel > 3) return;
 			// Print the logLevel before the notification
 			switch (logLevel)
 			{
@@ -3657,24 +3663,7 @@ class EmulatedCPU
 			va_end (args);
 		}
 		
-		void filePCDump(void)
-		{	
-			fp = fopen("pathing", "w");
-
-			if (pcs == NULL)
-			{	
-				fprintf(stderr, "File failed to open\n");
-				return;
-			}
-
-			// Formatted printfs with flag pcout
-			fprintf(pcs, "pc = 0x%x\n", pc);
-
-			fclose(pcs);
-
-			return;
-		}
-
+		
 
 		// pg. 40
 		void runInstruction(uint32_t instruction)
@@ -3762,6 +3751,16 @@ int main(int argn, char ** args)
 		return 0;
 	}
 
+	// TODO: put in an if
+	PCPathFile = fopen("pcpathing.txt", "w+");
+
+	if (PCPathFile == NULL)
+	{	
+		fprintf(stderr, "File failed to open\n");
+		return;
+	}
+
+			
 	// In order to initiate the bundled plugins properly, the location
 	// of where bundled plugins directory is must be set. Since
 	// libbinaryninjacore is in the path get the path to it and use it to

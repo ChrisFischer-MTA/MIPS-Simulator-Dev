@@ -224,19 +224,19 @@ class Heap
 				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x] w/ val [0x%x].\n", i, (vaddr-this->heapBase), (i), this->backingMemory[i]);
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST && !suppress)
 				{
-					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, true, start, end);
+					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, false, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST && !suppress)
 				{
-					printHeap("[ERROR] Reading from uninitialized memory!\n", i, 0,true, start, end);
+					printHeap("[ERROR] Reading from uninitialized memory!\n", i, 0,false, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS && !suppress)
 				{
-					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", i, 0,true, start, end);
+					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", i, 0,false, start, end);
 					return NULL;	
 				}
 				
@@ -302,13 +302,13 @@ class Heap
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
 					
-					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", i, 0, true, start, end);
+					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", i, 0, false, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", i, 0, true, start, end);
+					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", i, 0, false, start, end);
 					return NULL;	
 				}
 				
@@ -362,19 +362,19 @@ class Heap
 			end = min((uint64_t) 32 + vaddr, heapSize);
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printHeap("[ERROR] We have found a dobule free!\n", index, 0, true, start, end);
+				printHeap("[ERROR] We have found a dobule free!\n", index, 0, false, start, end);
 				return 0;
 			}
 			
 			if(this->initializedMemory[index] & GUARDPAGE_MEMORY_CONST)
 			{
-				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", index, 0,true, start, end);
+				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", index, 0,false, start, end);
 				return 0;
 			}
 			
 			if(!(this->initializedMemory[index-1] & GUARDPAGE_MEMORY_CONST))
 			{
-				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0, true, start, end);
+				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0, false, start, end);
 				return 0;
 			}
 			
@@ -1139,6 +1139,29 @@ class MMU
 		framePointerSections.push_back(newFramePointer);
 		return;
 	}
+	rightFrameSection(uint64_t framePointer)
+	{
+		for(int i=framePointerSections.size()-1;i>=0;i--)
+		{
+			if(framePointer < framePointerSections[i])
+			{
+				return i;
+			}
+		}
+		return framePointerSections.size();
+	}
+	rightStackSection(uint64_t stackPointer)
+	{
+		for(int i=stackPointerSections.size()-1;i>=0;i--)
+		{
+			if(stackPointer < stackPointerSections[i])
+			{
+				return i;
+			}
+		}
+		return stackPointerSections.size();
+	}
+
 
 	void generallyPause()
 	{

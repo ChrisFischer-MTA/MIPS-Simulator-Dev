@@ -681,15 +681,17 @@ class EmulatedCPU
 					// TODO: Manually set up the stack after intercepting a function call.
 				}
 				
-				
-				
-				
+				// Ensure file exists and overwrite if necessary
+				FILE *fp;
+				fp = fopen("pathing", "w+");
+				fclose(fp);
 				
 				//If the instruction is not nullified, fetch and run it.
 				if (!instructionNullify)
 				{
 					uint32_t instruction = getInstruction(pc);
 					runInstruction(instruction);
+					filePCDump();
 					instructionsRun++;
 					printNotifs(6,"Instructions run: %x\n\n", instructionsRun);
 				}
@@ -780,7 +782,8 @@ class EmulatedCPU
 		//s for step
 		//play n to cancel step for n steps.
 		//reg for registers
-		//mem address n to print n bytes from address address
+		//mem address n to print n bytes (decimal) from address address
+		//example of mem accessing close to the beginninng of the heap: mem 10040 32
 		int scanCode(char *input, int address = 0, int n = 0)
 		{
 			int LineWidth = 16;
@@ -807,6 +810,15 @@ class EmulatedCPU
 			if(strncmp(input, "exit", 4) == 0)
 			{
 				raise(SIGKILL);
+			}
+			if(strncmp(input, "help", 4) == 0)
+			{
+				printf("\nplay [#]:\n\t- Plays the next [#] of instructions forward in execution.\n");
+				printf("step:\n\t- Steps forward in execution,\n");
+				printf("reg:\n\t- Provides a register dump to the screen.\n");
+				printf("state:\n\t- Provides a diagram of the state of the program, including registers, pc, and pointers.\n");
+				printf("mem [hexVal] [numBytes]:\n\t- Provides contents of memory at hexVal\n");
+				printf("exit:\n\t- Kills program, and exits cleanly.\n");
 			}
 			
 			if(strncmp(input, "mem", 1) == 0)
@@ -3607,7 +3619,7 @@ class EmulatedCPU
 			return out.str();
 		}
 
-		printNotifs(int logLevel = 7, const char* notif = "", ...)
+		void printNotifs(int logLevel = 7, const char* notif = "", ...)
 		{
 			// Print the logLevel before the notification
 			switch (logLevel)
@@ -3645,6 +3657,25 @@ class EmulatedCPU
 			va_end (args);
 		}
 		
+		void filePCDump(void)
+		{	
+			fp = fopen("pathing", "w");
+
+			if (pcs == NULL)
+			{	
+				fprintf(stderr, "File failed to open\n");
+				return;
+			}
+
+			// Formatted printfs with flag pcout
+			fprintf(pcs, "pc = 0x%x\n", pc);
+
+			fclose(pcs);
+
+			return;
+		}
+
+
 		// pg. 40
 		void runInstruction(uint32_t instruction)
 		{
@@ -3692,6 +3723,7 @@ class EmulatedCPU
 			}			
 		}
 };
+
 
 
 #ifndef _WIN32

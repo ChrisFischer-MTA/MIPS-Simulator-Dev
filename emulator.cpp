@@ -458,7 +458,7 @@ class EmulatedCPU
 		uint32_t endOfMain, startOfMain;
 
 		int32_t mipsTarget = 32;
-		bool debugPrint = true;
+		bool debugPrint = false;
 		
 
 
@@ -916,10 +916,59 @@ class EmulatedCPU
 			// Now, let's detect how many format specifiers we have in this string.
 			
 			printNotifs(7,"Detected scanf of [%d] with [%d] specifiers.\n", i, numSpecifiers);
-			//memUnit->MMUHeap.getEffectiveAddress(gpr[4], gpr[4], 1, gpr[4]);
+			
+			if(numSpecifiers == 0)
+			{
+				this->pc = gpr[31];
+				return;
+			}
+			
+			// Allocate some space to store the pointers for a bit.
+			void* pntrStorage = malloc(sizeof(void*) * numSpecifiers);
+			
+			switch(numSpecifiers)
+			{
+				case 1:
+					// get the memory address that a1 points too
+					printNotifs(7,"processing scanf with 1 and a str of [%s]. \n", targetFormatStr );
+					if(strstr("%s",targetFormatStr) != NULL)
+					{
+						printNotifs(3, "Found an unbounded %s in scanf. This can always result in a buffer overflow.\n");
+						signalException(MemoryFault);
+					}
+					scanf(targetFormatStr, memUnit->getEffectiveAddress(gpr[5], 4, 5));
+					break;
+				case 2:
+					printNotifs(7,"processing scanf with 2 and a str of [%s]. \n", targetFormatStr);
+					scanf(targetFormatStr, memUnit->getEffectiveAddress(gpr[5], 4, 5), memUnit->getEffectiveAddress(gpr[6], 4, 6));
+					break;
+				case 3:
+					printNotifs(7,"processing scanf with 3 and a str of [%s]. \n", targetFormatStr);
+					scanf(targetFormatStr, memUnit->getEffectiveAddress(gpr[5], 4, 5), memUnit->getEffectiveAddress(gpr[6], 4, 6), memUnit->getEffectiveAddress(gpr[7], 4, 7));
+					break;
+			
+				default:
+					/*for(i = 4; i < numSpecifiers; i++)
+					{
+						// Get magic number by getting the stack offset
+						// in our case, we subtract 4 from i, add 10, then
+						// multiply i by 4 
+						int magicNum = ( (i-4) * 4 ) + 0x10;
+						//uint64_t address, int numBytes, int gpr, uint64_t contents = 0, 
+						//	   bool suppressHeap = 0)
+						pntrStorage[i] = memUnit->getEffectiveAddress(gpr[29] + magicNumber, 
+								4, 29, NULL);
+					}*/
+					printNotifs(1, "unimplemented scanf\n");
+					while(true);
+					break;
+				
+				
+			}
+			
+			
 			
 			this->pc = gpr[31];
-			while(true);
 		}
 
 		// 
@@ -3599,7 +3648,7 @@ class EmulatedCPU
 		// pg. 40
 		void runInstruction(uint32_t instruction)
 		{
-			printf("PC: [0x%lx], Instruction: [0x%08x]\n", pc, instruction);
+			printNotifs(6, "PC: [0x%lx], Instruction: [0x%08x]\n", pc, instruction);
 			// First, let's determine the instruction type.
 			rs = (instruction & 0x3E00000) >> 21;
 			rt = (instruction & 0x1F0000) >> 16;

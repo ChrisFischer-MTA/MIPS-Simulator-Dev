@@ -684,9 +684,9 @@ class EmulatedCPU
 				}
 				
 				// Ensure file exists and overwrite if necessary
-				FILE *fp;
-				fp = fopen("pathing", "w+");
-				fclose(fp);
+				//FILE *fp;
+				//fp = fopen("pathing", "w+");
+				//fclose(fp);
 				
 				//If the instruction is not nullified, fetch and run it.
 				if (!instructionNullify)
@@ -2538,7 +2538,7 @@ class EmulatedCPU
 
 				printf("OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-
+			printf("OR = %x\n", gpr[rs] | gpr[rt]);
 			gpr[rd] = gpr[rs] | gpr[rt];
 		}
 

@@ -2538,7 +2538,7 @@ class EmulatedCPU
 
 				printNotifs(7, "OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			printNotifs(7, "OR = %x\n", gpr[rs] | gpr[rt]);
+			printNotifs(7, "OR = %x | %x = %x\n", gpr[rs], gpr[rt], gpr[rs] | gpr[rt]);
 			gpr[rd] = gpr[rs] | gpr[rt];
 		}
 
@@ -2732,7 +2732,7 @@ class EmulatedCPU
 			}
 
 			int64_t extended = (int64_t) immediate;
-			gpr[rd] = gpr[rs] < extended;
+			gpr[rt] = gpr[rs] < extended;
 		}
 
 		//MIPS I

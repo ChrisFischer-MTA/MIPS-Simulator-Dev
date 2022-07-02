@@ -496,7 +496,7 @@ class EmulatedCPU
 						auto addRanges = func->GetAddressRanges();
 						endOfMain = addRanges[0].end;
 						startOfMain = addRanges[0].start;
-						//printf("%x, %x", startOfMain, endOfMain);
+						//printNotifs(7, "%x, %x", startOfMain, endOfMain);
 					}
 				}
 			}
@@ -846,7 +846,7 @@ class EmulatedCPU
 					char* hold = (char*)(calloc(n, sizeof(char)));
 					if (bv->Read(hold, address, n) != n)
 					{
-						printf("bv read generally pause\n");
+						printNotifs(7, "bv read generally pause\n");
 						while(true) generallyPause(); // Why was this put here?
 					}
 					else
@@ -1000,12 +1000,12 @@ class EmulatedCPU
 
 			if(mipsTarget < 1)
 			{
-				printf("Invalid mips target for ADD\n");
+				printNotifs(4,"Invalid mips target for ADD\n");
 			}
 
 			if(debugPrint)
 			{
-				printf("ADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7,"ADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] + gpr[rt];
 			uint64_t flag = BIT32;
@@ -1023,11 +1023,11 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ADDI\n");
+				printNotifs(4,"Invalid mips target for ADDI\n");
 			}
 			if (debugPrint)
 			{
-				printf("ADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printNotifs(7,"ADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 			
 			//this->signExtend(&immediate, 16, 32);
@@ -1049,12 +1049,12 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ADDIU\n");
+				printNotifs(4, "Invalid mips target for ADDIU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("ADDIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
+				printNotifs(7,"ADDIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 
 			//this->signExtend(&immediate, 16, 32);
@@ -1068,12 +1068,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ADDU\n");
+				printNotifs(4, "Invalid mips target for ADDU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("ADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7,"ADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] + gpr[rt];
 			if (!is64bit)
@@ -1084,12 +1084,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for AND\n");
+				printNotifs(4, "Invalid mips target for AND\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("AND %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "AND %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			gpr[rd] = gpr[rs] & gpr[rt];
 		}
@@ -1097,12 +1097,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ANDI\n");
+				printNotifs(4, "Invalid mips target for ANDI\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("ANDI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "ANDI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), signedImmediate);
 			}
 			gpr[rt] = gpr[rs] & immediate;
 		}
@@ -1111,12 +1111,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BEQ\n");
+				printNotifs(4, "Invalid mips target for BEQ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BEQ %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printNotifs(7, "BEQ %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			// Control branches are going to take a model of instruction memory first.
 			// Rose, I removed your "kekwuw". That is not appropriate. I'll be docking your pay!
@@ -1143,12 +1143,12 @@ class EmulatedCPU
 			// todo get instruction wrapper.
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for BEQL\n");
+				printNotifs(4, "Invalid mips target for BEQL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BEQL %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printNotifs(7, "BEQL %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1173,12 +1173,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BEQ\n");
+				printNotifs(4, "Invalid mips target for BEQ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BGEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BGEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 			
 			int32_t extendedImmediate = signedImmediate;
@@ -1197,12 +1197,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BGEZAL\n");
+				printNotifs(4, "Invalid mips target for BGEZAL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BGEZAL %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BGEZAL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1223,12 +1223,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BGEZALL\n");
+				printNotifs(4, "Invalid mips target for BGEZALL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BGEZALL %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BGEZALL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1254,12 +1254,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for bgezl\n");
+				printNotifs(4, "Invalid mips target for bgezl\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bgezl %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "bgezl %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1281,12 +1281,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BGTZ\n");
+				printNotifs(4, "Invalid mips target for BGTZ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BGTZ %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BGTZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1304,12 +1304,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for BGTZL\n");
+				printNotifs(4, "Invalid mips target for BGTZL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BGTZL %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BGTZL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1330,12 +1330,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for BLEZ\n");
+				printNotifs(4, "Invalid mips target for BLEZ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BLEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLEZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1353,12 +1353,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for BLEZL\n");
+				printNotifs(4, "Invalid mips target for BLEZL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("BLEZL %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLEZL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1380,12 +1380,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for bltz\n");
+				printNotifs(4, "Invalid mips target for bltz\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bltz %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "bltz %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1403,12 +1403,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for bltzal\n");
+				printNotifs(4, "Invalid mips target for bltzal\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1427,12 +1427,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for bltzal\n");
+				printNotifs(4, "Invalid mips target for bltzal\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1454,12 +1454,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for bltzl\n");
+				printNotifs(4, "Invalid mips target for bltzl\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bltzl %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "bltzl %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1480,12 +1480,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for bne\n");
+				printNotifs(4, "Invalid mips target for bne\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printNotifs(7, "bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -1503,12 +1503,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for bne\n");
+				printNotifs(4, "Invalid mips target for bne\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printNotifs(7, "bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 			
 			int32_t extendedImmediate = signedImmediate;
@@ -1543,12 +1543,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DADD\n");
+				printNotifs(4, "Invalid mips target for DADD\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("DADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DADD %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] + gpr[rt];
 			uint64_t flag = BIT64;
@@ -1567,11 +1567,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DADDI\n");
+				printNotifs(4, "Invalid mips target for DADDI\n");
 			}
 			if (debugPrint)
 			{
-				printf("DADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
+				printNotifs(7, "DADDI %s, %s, %d\n", getName(rs).c_str(), getName(rt).c_str(), signedImmediate);
 			}
 
 			//this->signExtend(&immediate, 16, 32);
@@ -1594,12 +1594,12 @@ class EmulatedCPU
 
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DADDIU\n");
+				printNotifs(4, "Invalid mips target for DADDIU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("DADDIU %s, %s, %dx\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
+				printNotifs(7, "DADDIU %s, %s, %dx\n", getName(rs).c_str(), getName(rt).c_str(), immediate);
 			}
 
 			//this->signExtend(&immediate, 16, 32);
@@ -1613,12 +1613,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DADDU\n");
+				printNotifs(4, "Invalid mips target for DADDU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("DADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DADDU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] + gpr[rt];
 
@@ -1631,11 +1631,11 @@ class EmulatedCPU
 			
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DDIV\n");
+				printNotifs(4, "Invalid mips target for DDIV\n");
 			}
 			if (debugPrint)
 			{
-				printf("DDIV %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DDIV %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (rt == 0)
@@ -1653,11 +1653,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DDIVU\n");
+				printNotifs(4, "Invalid mips target for DDIVU\n");
 			}
 			if (debugPrint)
 			{
-				printf("DDIVU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DDIVU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (rt == 0)
@@ -1676,11 +1676,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for DIV\n");
+				printNotifs(4, "Invalid mips target for DIV\n");
 			}
 			if (debugPrint)
 			{
-				printf("DIV %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DIV %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (rt == 0)
@@ -1706,11 +1706,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for DIVU\n");
+				printNotifs(4, "Invalid mips target for DIVU\n");
 			}
 			if (debugPrint)
 			{
-				printf("DIVU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DIVU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (rt == 0)
@@ -1736,11 +1736,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DMULT\n");
+				printNotifs(4, "Invalid mips target for DMULT\n");
 			}
 			if (debugPrint)
 			{
-				printf("DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 			int64_t M = gpr[rs];
 			uint64_t Q = gpr[rt];
@@ -1779,11 +1779,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DMULT\n");
+				printNotifs(4, "Invalid mips target for DMULT\n");
 			}
 			if (debugPrint)
 			{
-				printf("DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DMULT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 			int64_t M = gpr[rs];
 			uint64_t Q = gpr[rt];
@@ -1812,11 +1812,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSLL\n");
+				printNotifs(4, "Invalid mips target for DSLL\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 			
 			gpr[rd] = gpr[rt] << sa;
@@ -1827,11 +1827,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSLL32\n");
+				printNotifs(4, "Invalid mips target for DSLL32\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSLL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSLL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			gpr[rd] = gpr[rt] << (sa + 32);
@@ -1842,11 +1842,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSLLV\n");
+				printNotifs(4, "Invalid mips target for DSLLV\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "DSLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] << (gpr[rs] & 0x3f);
@@ -1857,11 +1857,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRA\n");
+				printNotifs(4, "Invalid mips target for DSRA\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRA %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSRA %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			int64_t hold = gpr[rt];
@@ -1873,11 +1873,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRA32\n");
+				printNotifs(4, "Invalid mips target for DSRA32\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRA32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSRA32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			int64_t hold = gpr[rt];
@@ -1889,11 +1889,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRAV\n");
+				printNotifs(4, "Invalid mips target for DSRAV\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRA %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "DSRA %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			int64_t hold = gpr[rt];
@@ -1905,11 +1905,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRL\n");
+				printNotifs(4, "Invalid mips target for DSRL\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			gpr[rd] = gpr[rt] >> sa;
@@ -1920,11 +1920,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRL32\n");
+				printNotifs(4, "Invalid mips target for DSRL32\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "DSRL32 %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			gpr[rd] = gpr[rt] >> (sa+32);
@@ -1935,11 +1935,11 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSRLV\n");
+				printNotifs(4, "Invalid mips target for DSRLV\n");
 			}
 			if (debugPrint)
 			{
-				printf("DSRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "DSRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] >> (gpr[rs] & 0x3f);
@@ -1950,12 +1950,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSUB\n");
+				printNotifs(4, "Invalid mips target for DSUB\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("DSUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DSUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] - gpr[rt];
 			uint64_t flag = BIT64;
@@ -1974,12 +1974,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 3)
 			{
-				printf("Invalid mips target for DSUBU\n");
+				printNotifs(4, "Invalid mips target for DSUBU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("DSUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "DSUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = gpr[rs] - gpr[rt];
@@ -1992,7 +1992,7 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for J\n");
+				printNotifs(4, "Invalid mips target for J\n");
 			}
 
 			if (debugPrint)
@@ -2015,12 +2015,12 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for JAL\n");
+				printNotifs(4, "Invalid mips target for JAL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("JAL %lx\n", instr_index);
+				printNotifs(7, "JAL %lx\n", instr_index);
 			}
 
 			runInstruction(getNextInstruction());
@@ -2038,13 +2038,13 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for JALR\n");
+				printNotifs(4, "Invalid mips target for JALR\n");
 			}
 
 			if (debugPrint)
 			{
 				
-				printf("JALR %s", getName(rd).c_str());
+				printNotifs(7, "JALR %s", getName(rd).c_str());
 				if (rd != 31)
 					printf(", %s", getName(rs).c_str());
 				printf("\n");
@@ -2064,7 +2064,7 @@ class EmulatedCPU
 			
 			if(memUnit->isAddrExtern(temp))
 			{
-				printf("Found a call to an external function, this functionality isn't implemented!\n");
+				printNotifs(1, "Found a call to an external function, this functionality isn't implemented!\n");
 				generallyPause();
 			}
 			pc = temp;
@@ -2076,20 +2076,20 @@ class EmulatedCPU
 
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for JR\n");
+				printNotifs(4, "Invalid mips target for JR\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("JR %s\n", getName(rs).c_str());
+				printNotifs(7, "JR %s\n", getName(rs).c_str());
 			}
 			
 			uint64_t temp = gpr[rs];
 
 			if(pc >= startOfMain && pc < endOfMain && rs == 31)
 			{
-				printf("Exiting gracefully\n");
+				printNotifs(6, "Exiting gracefully\n");
 				BNShutdown();
 				raise(SIGKILL);
 			}
@@ -2104,12 +2104,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for LB\n");
+				printNotifs(4, "Invalid mips target for LB\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("LB %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "LB %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 			char *byte = memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
@@ -2119,12 +2119,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for LBU\n");
+				printNotifs(4, "Invalid mips target for LBU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("LBU %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+				printNotifs(7, "LBU %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
 			}
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 			char *byte = memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs]);
@@ -2159,18 +2159,18 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for LHU\n");
+				printNotifs(4, "Invalid mips target for LHU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("LHU %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printNotifs(7, "LHU %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 			char *bytes = memUnit->getEffectiveAddress(vAddr, 2, rs, gpr[rs]);
 			if(bytes == NULL)
 			{
-				printf("bytes==NULL\n");
+				printNotifs(7, "bytes==NULL\n");
 				signalException(MemoryFault);
 			}
 			if(memUnit->isInStack(vAddr))
@@ -2205,7 +2205,7 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for LUI\n");
+				printNotifs(4, "Invalid mips target for LUI\n");
 			}
 
 			if (debugPrint)
@@ -2224,12 +2224,12 @@ class EmulatedCPU
 			is64bit = false;
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for LW\n");
+				printNotifs(4, "Invalid mips target for LW\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("LW %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+				printNotifs(7, "LW %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
 			}
 
 			
@@ -2243,7 +2243,7 @@ class EmulatedCPU
 				int32_t offset = immediate;
 				if(immediate & 3 > 0)
 				{
-					printf("what?\n");
+					printNotifs(7, "what?\n");
 					signalException(MemoryFault);
 				}
 					
@@ -2255,7 +2255,7 @@ class EmulatedCPU
 				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
 				if(bytes == NULL)
 				{
-					printf("bytes==NULL\n");
+					printNotifs(7, "bytes==NULL\n");
 					signalException(MemoryFault);
 				}
 				
@@ -2326,13 +2326,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MFHI\n");
+				printNotifs(4, "Invalid mips target for MFHI\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MFHI %s", getName(rd).c_str());
+				printNotifs(7, "MFHI %s", getName(rd).c_str());
 			}
 
 			gpr[rd] = HI;
@@ -2341,13 +2341,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MFLO\n");
+				printNotifs(4, "Invalid mips target for MFLO\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MFLO %s", getName(rd).c_str());
+				printNotifs(7, "MFLO %s", getName(rd).c_str());
 			}
 
 			gpr[rd] = LO;
@@ -2358,13 +2358,13 @@ class EmulatedCPU
 
 			if (mipsTarget < 4)
 			{
-				printf("Invalid mips target for MOVN\n");
+				printNotifs(4, "Invalid mips target for MOVN\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MOVN %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "MOVN %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (gpr[rt] != 0)
@@ -2378,13 +2378,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 4)
 			{
-				printf("Invalid mips target for MOVZ\n");
+				printNotifs(4, "Invalid mips target for MOVZ\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MOVZ %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "MOVZ %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if (gpr[rt] == 0)
@@ -2397,13 +2397,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MTHI\n");
+				printNotifs(4, "Invalid mips target for MTHI\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MTHI %s", getName(rs).c_str());
+				printNotifs(7, "MTHI %s", getName(rs).c_str());
 			}
 
 			HI = gpr[rs];
@@ -2414,13 +2414,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MTLO\n");
+				printNotifs(4, "Invalid mips target for MTLO\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MTLO %s", getName(rs).c_str());
+				printNotifs(7, "MTLO %s", getName(rs).c_str());
 			}
 
 			LO = gpr[rs];
@@ -2433,13 +2433,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MULT\n");
+				printNotifs(4, "Invalid mips target for MULT\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MULT %s, %s", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "MULT %s, %s", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			int64_t a, b, result;
@@ -2466,13 +2466,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for MULTU\n");
+				printNotifs(4, "Invalid mips target for MULTU\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("MULTU %s, %s", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "MULTU %s, %s", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			uint64_t a, b, result;
@@ -2495,12 +2495,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 32)
 			{
-				printf("Invalid mips target for MUL\n");
+				printNotifs(4, "Invalid mips target for MUL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("MUL %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "MUL %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			mult(instruction);
@@ -2513,13 +2513,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for NOR\n");
+				printNotifs(4, "Invalid mips target for NOR\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("NOR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "NOR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = ~(gpr[rs] | gpr[rt]);
@@ -2530,15 +2530,15 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for OR\n");
+				printNotifs(4, "Invalid mips target for OR\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "OR %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
-			printf("OR = %x\n", gpr[rs] | gpr[rt]);
+			printNotifs(7, "OR = %x\n", gpr[rs] | gpr[rt]);
 			gpr[rd] = gpr[rs] | gpr[rt];
 		}
 
@@ -2547,13 +2547,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for ORI\n");
+				printNotifs(4, "Invalid mips target for ORI\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("ORI %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "ORI %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			uint64_t extended = (uint64_t)immediate;
@@ -2562,7 +2562,7 @@ class EmulatedCPU
 		// MIPS 4
 		void PREF(uint32_t instruction)
 		{
-			printf("Passing a PREF...\n");
+			printNotifs(7, "Passing a PREF...\n");
 		}
 
 		// MIPS 32-2
@@ -2570,18 +2570,18 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for RDHWR\n");
+				printNotifs(4, "Invalid mips target for RDHWR\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("RDHWR %s, %s", getName(rt).c_str(), getName(rd).c_str());
+				printNotifs(7, "RDHWR %s, %s", getName(rt).c_str(), getName(rd).c_str());
 			}
 			if(rd > 3 && rd < 29)
 				signalException(ReservedInstructionException);
 			if(rd >29)
 				signalException(ReservedInstructionException);
-			printf("hwr[%s] is [%ld]\n", getName(rd).c_str(), hwr[rd]);
+			printNotifs(7, "hwr[%s] is [%ld]\n", getName(rd).c_str(), hwr[rd]);
 			gpr[rt] = hwr[rd];
 		}
 		// MIPS 1
@@ -2589,19 +2589,19 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SB\n");
+				printNotifs(4, "Invalid mips target for SB\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SB %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printNotifs(7, "SB %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 			uint64_t vAddr = signedImmediate + gpr[rs];
-			printf("%lx\n", vAddr);
+			printNotifs(7, "%lx\n", vAddr);
 			char *bytes = memUnit->getWriteAddresss(vAddr, 1, rs, gpr[rs]);
 			if(bytes == NULL)
 			{
-				printf("%lx, %x, %lld\n", vAddr, signedImmediate, gpr[rs]);
+				printNotifs(7, "%lx, %x, %lld\n", vAddr, signedImmediate, gpr[rs]);
 				generallyPause();
 			}
 			bytes[0] = gpr[rt] & 0xff;
@@ -2640,18 +2640,18 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SH\n");
+				printNotifs(4, "Invalid mips target for SH\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SH %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printNotifs(7, "SH %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 			char *bytes = memUnit->getWriteAddresss(vAddr, 2, rs, gpr[rs]);
 			if(bytes == NULL)
 			{
-				printf("bytes==NULL\n");
+				printNotifs(7, "bytes==NULL\n");
 				signalException(MemoryFault);
 			}
 			if(memUnit->isInStack(vAddr))
@@ -2671,13 +2671,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLL\n");
+				printNotifs(4, "Invalid mips target for SLL\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "SLL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			gpr[rd] = gpr[rt] << sa;
@@ -2688,13 +2688,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLLV\n");
+				printNotifs(4, "Invalid mips target for SLLV\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "SLLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			gpr[rd] = gpr[rt] << (gpr[rs] & 0x1f);
@@ -2705,13 +2705,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLT\n");
+				printNotifs(4, "Invalid mips target for SLT\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLT %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "SLT %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = (gpr[rs] < gpr[rt]);
@@ -2722,13 +2722,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLTI\n");
+				printNotifs(4, "Invalid mips target for SLTI\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLTI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
+				printNotifs(7, "SLTI %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 
 			int64_t extended = (int64_t) immediate;
@@ -2741,13 +2741,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLTIU\n");
+				printNotifs(4, "Invalid mips target for SLTIU\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLTIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
+				printNotifs(7, "SLTIU %s, %s, %x\n", getName(rt).c_str(), getName(rs).c_str(), immediate);
 			}
 			if (is64bit)
 			{
@@ -2771,13 +2771,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SLTU\n");
+				printNotifs(4, "Invalid mips target for SLTU\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SLTU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "SLTU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			uint64_t a = gpr[rs], b = gpr[rt];
@@ -2787,13 +2787,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SRA\n");
+				printNotifs(4, "Invalid mips target for SRA\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SRA %s, %s, %x\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "SRA %s, %s, %x\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			int32_t hold = gpr[rt] & 0xffffffff;
@@ -2812,13 +2812,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SRAV\n");
+				printNotifs(4, "Invalid mips target for SRAV\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SRAV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "SRAV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			int32_t hold = gpr[rt] & 0xffffffff;
@@ -2835,13 +2835,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SRL\n");
+				printNotifs(4, "Invalid mips target for SRL\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
+				printNotifs(7, "SRL %s, %s, %d\n", getName(rd).c_str(), getName(rt).c_str(), sa);
 			}
 
 			uint32_t hold = gpr[rt];
@@ -2852,13 +2852,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SRLV\n");
+				printNotifs(4, "Invalid mips target for SRLV\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("SRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
+				printNotifs(7, "SRLV %s, %s, %s\n", getName(rd).c_str(), getName(rt).c_str(), getName(rs).c_str());
 			}
 
 			uint32_t hold = gpr[rt];
@@ -2871,12 +2871,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SUB\n");
+				printNotifs(4, "Invalid mips target for SUB\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "SUB %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] - gpr[rt];
 			uint64_t flag = BIT32;
@@ -2892,12 +2892,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SUBU\n");
+				printNotifs(4, "Invalid mips target for SUBU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "SUBU %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 			uint64_t temp = gpr[rs] - gpr[rt];
 			if (!is64bit)
@@ -2910,12 +2910,12 @@ class EmulatedCPU
 			is64bit = false;
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SW\n");
+				printNotifs(4, "Invalid mips target for SW\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
+				printNotifs(7, "SW %s, %d(%s)\n", getName(rt).c_str(), immediate, getName(rs).c_str());
 			}
 
 
@@ -2929,7 +2929,7 @@ class EmulatedCPU
 				int32_t offset = immediate;
 				if(immediate & 3 > 0)
 				{
-					printf("Unaligned offset exception in SW\n");
+					printNotifs(2, "Unaligned offset exception in SW\n");
 					signalException(MemoryFault);
 				}
 					
@@ -2943,7 +2943,7 @@ class EmulatedCPU
 				fflush(stdout);
 				if(bytes == NULL)
 				{
-					printf("bytes==NULL\n");
+					printNotifs(7, "bytes==NULL\n");
 					signalException(MemoryFault);
 				}
 				//change their order depending on endianness??
@@ -2991,12 +2991,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SWL\n");
+				printNotifs(4, "Invalid mips target for SWL\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SWL %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+				printNotifs(7, "SWL %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
 			}
 
 			bool BigEndian = true;
@@ -3041,12 +3041,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for SWR\n");
+				printNotifs(4, "Invalid mips target for SWR\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("SWR %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+				printNotifs(7, "SWR %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
 			}
 
 			bool BigEndian = true;
@@ -3077,7 +3077,7 @@ class EmulatedCPU
 				{
 					while(i >= 0)
 					{
-						printf("writing to %x", bytes+k);
+						printNotifs(7, "writing to %x", bytes+k);
 						bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;
 						j += 8;
@@ -3094,8 +3094,8 @@ class EmulatedCPU
 		// MIPS 1
 		void syscall(uint32_t instruction)
 		{
-			printf("Syscall preformed. Unimplemented, generally!\n");
-			printf("$v0 is 0x%lx.\n", gpr[2]);
+			printNotifs(2, "Syscall performed. Unimplemented, generally!\n");
+			printNotifs(7, "$v0 is 0x%lx.\n", gpr[2]);
 			
 			
 		}
@@ -3104,12 +3104,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TEQ\n");
+				printNotifs(4, "Invalid mips target for TEQ\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TEQ %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TEQ %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if(gpr[rs] == gpr[rt])
@@ -3123,12 +3123,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TEQI\n");
+				printNotifs(4, "Invalid mips target for TEQI\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TEQI %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TEQI %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			if(gpr[rs] == signedImmediate)
@@ -3142,12 +3142,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TGE\n");
+				printNotifs(4, "Invalid mips target for TGE\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TGE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TGE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 			int64_t comp1 = (int64_t) gpr[rs];
 			int64_t comp2 = (int64_t) gpr[rt];
@@ -3163,12 +3163,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TGEI\n");
+				printNotifs(4, "Invalid mips target for TGEI\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TGEI %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TGEI %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			if(gpr[rs] >= signedImmediate)
@@ -3182,12 +3182,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TGEIU\n");
+				printNotifs(4, "Invalid mips target for TGEIU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TGEIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TGEIU %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			uint64_t comparison = (int64_t) signedImmediate;
 			if(gpr[rs] >= comparison)
@@ -3199,12 +3199,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TGEU\n");
+				printNotifs(4, "Invalid mips target for TGEU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TGEU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TGEU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			if(gpr[rs] >= gpr[rt])
@@ -3218,12 +3218,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TLT\n");
+				printNotifs(4, "Invalid mips target for TLT\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TLT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TLT %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			int64_t comp1 = (int64_t) gpr[rs];
@@ -3239,12 +3239,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TLTI\n");
+				printNotifs(4, "Invalid mips target for TLTI\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TLTI %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TLTI %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			int64_t comparison = (int64_t) signedImmediate;
 			if(gpr[rs] < comparison)
@@ -3258,12 +3258,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TLTIU\n");
+				printNotifs(4, "Invalid mips target for TLTIU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TLTIU %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TLTIU %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			uint64_t comparison = (int64_t) signedImmediate;
 			if(gpr[rs] < comparison)
@@ -3277,12 +3277,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TLTU\n");
+				printNotifs(4, "Invalid mips target for TLTU\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TLTU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TLTU %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 			
 			if(gpr[rs] < gpr[rt])
@@ -3296,12 +3296,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TNE\n");
+				printNotifs(4, "Invalid mips target for TNE\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TNE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "TNE %s, %s\n", getName(rs).c_str(), getName(rt).c_str());
 			}
 			
 			if(gpr[rs] != gpr[rt])
@@ -3313,12 +3313,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printf("Invalid mips target for TNEI\n");
+				printNotifs(4, "Invalid mips target for TNEI\n");
 			}
 
 			if (debugPrint)
 			{
-				printf("TNEI %s, %d\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "TNEI %s, %d\n", getName(rs).c_str(), signedImmediate);
 			}
 			
 			if(gpr[rs] != signedImmediate)
@@ -3332,13 +3332,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for XOR\n");
+				printNotifs(4, "Invalid mips target for XOR\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("XOR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
+				printNotifs(7, "XOR %s, %s, %s", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
 
 			gpr[rd] = gpr[rs] ^ gpr[rt];
@@ -3349,13 +3349,13 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printf("Invalid mips target for XORI\n");
+				printNotifs(4, "Invalid mips target for XORI\n");
 			}
 
 			if (debugPrint)
 			{
 
-				printf("XORI %s, %s, %x", getName(rd).c_str(), getName(rs).c_str(), immediate);
+				printNotifs(7, "XORI %s, %s, %x", getName(rd).c_str(), getName(rs).c_str(), immediate);
 			}
 
 			gpr[rt] = gpr[rs] ^ immediate;
@@ -3367,7 +3367,7 @@ class EmulatedCPU
 
 			uint64_t bitn = (uint64_t)1 << (length-1);
 			uint64_t mask = ~(bitn - 1);
-			printf("%lx\n", mask);
+			printNotifs(7, "%lx\n", mask);
 			if (extension != -1)
 			{
 				if (extension == 32)

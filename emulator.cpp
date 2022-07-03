@@ -914,14 +914,31 @@ class EmulatedCPU
 			int i = 0;
 			int formatStrLen = 0;
 			int numSpecifiers = 0;
-			char *targetFormatStr = memUnit->getEffectiveAddress(gpr[4], 4, 4);
+			char *memPtr = memUnit->getEffectiveAddress(gpr[4], 4, 4);
+			
+			if(memUnit->isInStack(gpr[4]))
+			{
+				for(i = 0; *memUnit->getEffectiveAddress(gpr[4]-i, 4, 4) != 0;)
+				i++;
+			}
+			else
+			{
+				for(i = 0; *memUnit->getEffectiveAddress(gpr[4]+i, 4, 4) != 0;)
+				i++;
+			}
+			char *targetFormatStr =(char *)calloc(i+1, sizeof(char));
+			
+			memUnit->readFromMMU(memPtr, gpr[4], targetFormatStr, i);
+			targetFormatStr[i] = 0;
+
+			//Need to convert mem pointer's order in case argument is in stack
+
 			
 			
 			// Get the string length of the pointer in a0
 			// We have to do it this way that way we monitor for a potential overflow if we
 			// get passed a corrupted string. This is a computationally expense operation.
-			for(i = 0; *memUnit->getEffectiveAddress(gpr[4]+i, 4, 4) != 0;)
-				i++;
+			
 			
 			formatStrLen = i;
 			
@@ -942,7 +959,8 @@ class EmulatedCPU
 			
 			// Allocate some space to store the pointers for a bit.
 			void* pntrStorage = malloc(sizeof(void*) * numSpecifiers);
-			
+			char *scanToken;
+			int numBytes;
 			switch(numSpecifiers)
 			{
 				case 1:
@@ -953,7 +971,26 @@ class EmulatedCPU
 						printNotifs(3, "Found an unbounded %s in scanf. This can always result in a buffer overflow.\n");
 						signalException(MemoryFault);
 					}
-					scanf(targetFormatStr, memUnit->getEffectiveAddress(gpr[5], 4, 5));
+					//Just for example: This establishes that the width of the scan is 4 bytes (and matches the scanf in switch)
+					//The idea here is to buffer the result of scanf so it can be hand-fed into the mmu
+					//But in order to seperate it like that, we need to know the length in bytes of the scan
+					//That's the idea, but the for some reason that is beyond my ken the bytes of scanToken aren't getting 0'd out
+					//
+					if(targetFormatStr[1] == 'd')
+					{
+						printf("detected d\n");
+						numBytes = 4;
+						scanToken = (char *)calloc(4, sizeof(char));
+						for(int i = 0;i< 4;i++)
+						{
+							scanToken[i] = 0;	
+						}
+							
+						printf("value from scanf: [%d]\n", scanToken);
+						//I think scanf casts the pointer in the second argument anyway but. it's a peace of mind thing
+						scanf(targetFormatStr, (int *)scanToken);
+						printf("value from scanf: [%d]\n", scanToken);
+					}
 					break;
 				case 2:
 					printNotifs(7,"processing scanf with 2 and a str of [%s]. \n", targetFormatStr);
@@ -982,6 +1019,11 @@ class EmulatedCPU
 				
 				
 			}
+			char *writePtr = memUnit->getEffectiveAddress(gpr[5], 4, 5);
+			char *test = (char *)calloc(4, sizeof(char));
+			memUnit->writeToMMU(writePtr, gpr[5], scanToken, numBytes);
+			memUnit->readFromMMU(writePtr, gpr[5], test, 4);
+			printf("value from scanf: [%d]\n", (uint32_t *)scanToken);
 			
 			
 			
@@ -3468,7 +3510,7 @@ class EmulatedCPU
 					break;
 					case 1: printf("| pc: 0x%lx", pc);
 					break;
-					case 2: printf("|");
+					case 2: printf("| Stack Size: 0x%x", memUnit->stack.size());
 					break;
 					case 3: printf("|");
 					break;
@@ -3737,6 +3779,7 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	//
 	// Check if file is accessable/exists
 	FILE *fp;
 	fp = fopen(args[1], "r");

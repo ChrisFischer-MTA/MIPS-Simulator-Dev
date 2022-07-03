@@ -1042,7 +1042,50 @@ class MMU
 		}
 	}*/
 
-
+	int writeToMMU(char *memPtr, uint64_t vAddr, char *inputStream, int numBytes)
+	{
+		if(memPtr == NULL)
+			return -1;
+		if(isInStack(vAddr))
+		{
+			numBytes *= -1;
+			int k=0;
+			for(int i=0;i > numBytes; i--)
+			{
+				memPtr[i] = inputStream[k];
+				k++;
+			}
+			return 1;
+		}
+		else
+		{
+			for(int i=0;i<numBytes;i++)
+				memPtr[i] = inputStream[i];
+			return 1;
+		}
+	}
+	int readFromMMU(char *memPtr, uint64_t vAddr, char *outputStream, int numBytes)
+	{
+		if(memPtr == NULL || outputStream == NULL)
+			return -1;
+		if(isInStack(vAddr))
+		{
+			numBytes *= -1;
+			int k=0;
+			for(int i=0;i > numBytes; i--)
+			{
+				outputStream[k] = memPtr[i];
+				k++;
+			}
+			return 1;
+		}
+		else
+		{
+			for(int i=0;i<numBytes;i++)
+				outputStream[i] = memPtr[i];
+			return 1;
+		}
+	}
 
 	unsigned char* getBytes(int addr)
 	{	

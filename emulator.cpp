@@ -13,6 +13,7 @@
 
 
 #include "mmu.cpp"
+#include"argparse/argparse.hpp"
 
 
 
@@ -51,6 +52,8 @@ const short int ReservedInstructionException = 4;
 std::vector<uint32_t> basicBlocks;
 std::vector<std::string> basicBlockNames;
 FILE* PCPathFile = NULL;
+bool pcoutFlag = false;
+bool regDumpFlag = false;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -3779,19 +3782,71 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	// Argparse testing
+	argparse::ArgumentParser program("Electric Rock");
+
+	program.add_argument("path")
+		.help("path to the code to be tested by the emulator")
+		.nargs(1);
+
+	program.add_argument("--pcout")
+		.help("dumps pcs to file pcpathing.txt")
+		.default_value(false)
+		.implicit_value(true);
+
+	program.add_argument("--reg")
+		.help("dumps registers at every pc")
+		.default_value(false)
+		.implicit_value(true);
+
+	try 
+	{
+		program.parse_args(argn, args);
+	}
+	catch (const std::runtime_error& err)
+	{
+		std::cerr << err.what() << std::endl;
+		std::cerr << program;
+		std::exit(1);
+	}
+
+	auto code_path = program.get<string>("path");
+
+	for (auto& single_char: code_path)
+	{
+		printf("%c", single_char);
+	}
+	printf("\n");
+
+	// Usage of optional args --pcout and --reg
+	if (program["--pcout"] == true)
+	{
+		printf("Setting flag for pcout to true!\n");
+		pcoutFlag = true;
+		printf("pcout = %d\n", pcoutFlag);
+	}
+
+	if (program["--reg"] == true)
+	{
+		printf("Setting flag for regDump to true!\n");
+		regDumpFlag = true;
+		printf("regdumpflag = %d\n", regDumpFlag);
+	}
+
+
 	//
 	// Check if file is accessable/exists
 	FILE *fp;
 	fp = fopen(args[1], "r");
-	if (fp) 
-	{
-		fclose(fp);
-	}
-	else
+	if (fp == NULL)
 	{ 
 		fprintf(stderr, "File does not exist"); 
 		BNShutdown();
 		return 0;
+	}
+	else
+	{
+		fclose(fp);
 	}
 
 	// TODO: put in an if
@@ -3800,7 +3855,7 @@ int main(int argn, char ** args)
 	if (PCPathFile == NULL)
 	{	
 		fprintf(stderr, "File failed to open\n");
-		return;
+		return 0;
 	}
 
 			

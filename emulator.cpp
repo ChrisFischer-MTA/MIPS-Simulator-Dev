@@ -659,8 +659,13 @@ class EmulatedCPU
 				
 				// Code to determine if we are able to find the current PC in a basic block.
 				auto findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), pc);
-				fprintf(PCPathFile, "0x%x\n", pc);
-				fflush(PCPathFile);
+
+				if (pcoutFlag)
+				{
+					fprintf(PCPathFile, "0x%x\n", pc);
+					fflush(PCPathFile);
+				}
+
 				if(findIterator != basicBlocks.end())
 				{
 					// Get the index
@@ -815,7 +820,10 @@ class EmulatedCPU
 			if(strncmp(input, "exit", 4) == 0)
 			{
 				if(PCPathFile)
+				{
 					fflush(PCPathFile);
+					fclose(PCPathFile);
+				}
 				raise(SIGKILL);
 			}
 			if(strncmp(input, "help", 4) == 0)
@@ -3812,11 +3820,13 @@ int main(int argn, char ** args)
 
 	auto code_path = program.get<string>("path");
 
+	/*// This is to confirm we have the right path saved
 	for (auto& single_char: code_path)
 	{
 		printf("%c", single_char);
 	}
 	printf("\n");
+	*/
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)
@@ -3849,15 +3859,13 @@ int main(int argn, char ** args)
 		fclose(fp);
 	}
 
-	// TODO: put in an if
-	PCPathFile = fopen("pcpathing.txt", "w+");
-
+	// Overwriting current file and checking opened correctly, before closing again
+	PCPathFile = fopen("pcpathing.txt", "w+");		
 	if (PCPathFile == NULL)
 	{	
 		fprintf(stderr, "File failed to open\n");
 		return 0;
 	}
-
 			
 	// In order to initiate the bundled plugins properly, the location
 	// of where bundled plugins directory is must be set. Since

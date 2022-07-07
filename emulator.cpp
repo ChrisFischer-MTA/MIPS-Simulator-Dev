@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <iomanip>
 #include <signal.h>
+#include <time.h>
 
 
 #include "mmu.cpp"
@@ -39,7 +40,7 @@ const short int ITYPE = 2;
 const short int JTYPE = 3;
 
 // Debug oprtions
-const short int SHUT_UP = 0;
+short int SHUT_UP = 0;
 
 
 // Exception Types
@@ -51,10 +52,15 @@ const short int ReservedInstructionException = 4;
 // Coverage Information
 std::vector<uint32_t> basicBlocks;
 std::vector<std::string> basicBlockNames;
+std::vector<double> instructionTimes;
+std::vector<uint32_t> instructionOPs;
 FILE* PCPathFile = NULL;
 bool pcoutFlag = false;
 bool regDumpFlag = false;
 bool beQuietFlag = false;
+bool timer = false;
+clock_t startOfEmulation, endOfEmulation;
+double cpu_time_used;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -459,7 +465,7 @@ class EmulatedCPU
 		bool delaySlot = false;
 		char* instructions;
 		int32_t tgt_offset = 0;
-		int instructionsRun = 0;
+		uint64_t instructionsRun = 0;
 		uint32_t endOfMain, startOfMain;
 
 		int32_t mipsTarget = 32;
@@ -531,9 +537,25 @@ class EmulatedCPU
 		// by a system call in the future.
 		void generallyPause()
 		{
+			// --timer stuff
+			endOfEmulation = clock();
+			if (timer == true)
+			{
+				cpu_time_used = ((float)(endOfEmulation - startOfEmulation)/ CLOCKS_PER_SEC); 
+				printf("\nTotal time for emulation: %f seconds\n", cpu_time_used);
+				printf("Instruction count: %x\n", instructionsRun);
+				printf("Instructions per second: %f inst/s\n", instructionsRun/cpu_time_used);
+			}
+
 			// TODO: Import please no steppy.
 			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
 			int next, skip = 0;
+			if(SHUT_UP)
+			{
+				printf("Gracefully exiting.\n");
+				BNShutdown();
+				raise(SIGKILL);
+			}
 			while(true)
 			{
 				//Handle the input to the emulation
@@ -648,6 +670,7 @@ class EmulatedCPU
 		// Unused.
 		void runEmulation(int entryPoint)
 		{
+			startOfEmulation = clock();
 			pc = entryPoint;
 			int index = 0;
 			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
@@ -2148,6 +2171,12 @@ class EmulatedCPU
 
 			if(pc >= startOfMain && pc < endOfMain && rs == 31)
 			{
+				endOfEmulation = clock();
+				if (timer == true)
+				{
+					cpu_time_used = (double)((endOfEmulation - startOfEmulation)/ CLOCKS_PER_SEC); 
+					printf("Total time for emulation: %f", cpu_time_used);
+				}
 				printNotifs(6, "Exiting gracefully\n");
 				BNShutdown();
 				raise(SIGKILL);
@@ -3820,6 +3849,11 @@ int main(int argn, char ** args)
 		.help("be quiet and avoid printing debug information")
 		.default_value(false)
 		.implicit_value(true);
+	
+	program.add_argument("--timer")
+		.help("print execution time of instruction")
+		.default_value(false)
+		.implicit_value(true);
 		
 	
 
@@ -3863,6 +3897,14 @@ int main(int argn, char ** args)
 	{
 		printf("Setting flag for beQuiet to true!\n");
 		beQuietFlag = true;
+	}
+
+	if (program["--timer"] == true)
+	{
+		printf("Setting flag for timer and beQuiet to true!\n");
+		timer = true;
+		beQuietFlag = true;
+		SHUT_UP = 1;
 	}
 
 	//

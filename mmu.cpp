@@ -928,7 +928,7 @@ class MMU
 			}*/
 			if(address < stackBase - stack.size())
 			{
-				printf("\t\t\tstackBase: %x, %d, %x", stackBase, stack.size(), address);
+				//printf("\t\t\tstackBase: %x, %d, %x", stackBase, stack.size(), address);
 				stack.resize(stackBase - address + 8);
 			}
 
@@ -995,9 +995,9 @@ class MMU
 							char * testing = token.array[depth];
 							for(int i=0;i<16;i++)
 							{
-								printf("%x", testing[i]);
+								//printf("%x", testing[i]);
 							}
-							printf("\n");
+							//printf("\n");
 
 							return token.array[depth] + blockOffset;
 						}

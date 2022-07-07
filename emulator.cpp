@@ -54,6 +54,7 @@ std::vector<std::string> basicBlockNames;
 FILE* PCPathFile = NULL;
 bool pcoutFlag = false;
 bool regDumpFlag = false;
+bool beQuietFlag = false;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -802,22 +803,22 @@ class EmulatedCPU
 				stateDump();
 				return 0;
 			}
-			if(strncmp(input, "s", 1) == 0)
+			else if(strncmp(input, "s", 1) == 0)
 			{
 				return 1;
 			}
-			if(strncmp(input, "play", 4) == 0)
+			else if(strncmp(input, "play", 4) == 0)
 			{
 				int n;
 				scanf("%d", &n);
 				return n;
 			}
-			if(strncmp(input, "reg", 3) == 0)
+			else if(strncmp(input, "reg", 3) == 0)
 			{
 				registerDump();
 				return 0;
 			}
-			if(strncmp(input, "exit", 4) == 0)
+			else if(strncmp(input, "exit", 4) == 0)
 			{
 				if(PCPathFile)
 				{
@@ -826,7 +827,7 @@ class EmulatedCPU
 				}
 				raise(SIGKILL);
 			}
-			if(strncmp(input, "help", 4) == 0)
+			else if(strncmp(input, "help", 4) == 0)
 			{
 				printf("\nplay [#]:\n\t- Plays the next [#] of instructions forward in execution.\n");
 				printf("step:\n\t- Steps forward in execution,\n");
@@ -836,7 +837,7 @@ class EmulatedCPU
 				printf("exit:\n\t- Kills program, and exits cleanly.\n");
 			}
 			
-			if(strncmp(input, "mem", 1) == 0)
+			else if(strncmp(input, "mem", 1) == 0)
 			{
 				if(memUnit->isInStack(address))
 				{
@@ -882,6 +883,11 @@ class EmulatedCPU
 						}
 					}
 				}
+			}
+			
+			else 
+			{
+				printNotifs(7,"Invalid command! Please enter help for some help.");
 			}
 			return 0;
 		}
@@ -3680,6 +3686,9 @@ class EmulatedCPU
 		void printNotifs(int logLevel = 7, const char* notif = "", ...)
 		{
 			// if (logLevel > 3) return;
+			if(beQuietFlag)
+				return;
+				
 			// Print the logLevel before the notification
 			switch (logLevel)
 			{
@@ -3806,6 +3815,13 @@ int main(int argn, char ** args)
 		.help("dumps registers at every pc")
 		.default_value(false)
 		.implicit_value(true);
+		
+	program.add_argument("--quiet")
+		.help("be quiet and avoid printing debug information")
+		.default_value(false)
+		.implicit_value(true);
+		
+	
 
 	try 
 	{
@@ -3843,6 +3859,11 @@ int main(int argn, char ** args)
 		printf("regdumpflag = %d\n", regDumpFlag);
 	}
 
+	if (program["--quiet"] == true)
+	{
+		printf("Setting flag for beQuiet to true!\n");
+		beQuietFlag = true;
+	}
 
 	//
 	// Check if file is accessable/exists

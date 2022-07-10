@@ -6,20 +6,21 @@
 int main(int argn, char** args)
 {
 	int names;
-	int i = 0;
-	while(true)
+	int i = 0, j = 0;
+	while(i < 32)
 	{
-		scanf("%d", &names);
-		switch(names)
+		switch(i)
 		{
 			case 1:
-                i + 4;
+                printf("This is 1");
                 break;
             case 2:
-                i + 3;
+                printf("This is 2");
             case 3:
-                i * 2;
+                printf("This is 3");
         }
-        printf("Number: %d", i);
+        i++;
+        
     }
+    
 }

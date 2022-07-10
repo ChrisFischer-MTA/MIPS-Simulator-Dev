@@ -67,7 +67,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 4;
+const short int NUM_FUNCTIONS_HOOKED = 5;
 
 class EmulatedCPU
 {
@@ -436,7 +436,7 @@ class EmulatedCPU
 			&EmulatedCPU::hooked_libc_malloc,	
 			&EmulatedCPU::hooked_libc_free,	
 			&EmulatedCPU::hooked_libc_scanf,
-			//&EmulatedCPU::hooked_libc_fwrite	
+			&EmulatedCPU::hooked_libc_fwrite	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -445,7 +445,7 @@ class EmulatedCPU
 			"__libc_malloc",
 			"free",
 			"scanf",
-			//"__stdio_fwrite"
+			"__stdio_fwrite"
 		};
 
 		// Registers and Instruction Fields

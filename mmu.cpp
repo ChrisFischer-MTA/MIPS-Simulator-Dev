@@ -571,7 +571,7 @@ class MMU
 		gap bigGap = getLargestGap();
 		this->stackBase = bigGap.r - 0xf;
 		this->stackMaxLength = bigGap.r - 0xfff - bigGap.l;
-		//Fill with fuzzing data
+		//Fill with fuzzing dataf
 		
 		//printf("0x%llx, 0x%llx\n", stackBase-20, this->stackBase);
 		char *filename = (char *)calloc(20, sizeof(char));
@@ -691,7 +691,7 @@ class MMU
 			
 		}
 		fflush(stdout);
-		r = 0x0fffffff;
+		r = 0x7fffffff;
 		if(r - l > maxWidth && !excluded[allSections.size()])
 		{
 			maxWidth = r - l;
@@ -727,10 +727,14 @@ class MMU
 		return;
 	}
 	
-	bool isInStack(uint64_t address)
+	bool isInStack(uint64_t address, bool expandStack = true)
 	{
 		//printf("stack check address: %x, stackBase %x, stackmaxlength %x", address, stackBase, stackMaxLength);
-		if(address <= stackBase && address > stackBase - stackMaxLength)
+		if(expandStack == true && address <= stackBase && address > stackBase - stackMaxLength)
+		{
+			return true;
+		}
+		if(expandStack == false && address <= stackBase && address > stackBase - stack.size())
 		{
 			return true;
 		}
@@ -760,9 +764,9 @@ class MMU
 
 	
 	
-	bool isInMemory(uint64_t address)
+	bool isInMemory(uint64_t address, bool expandStack = true)
 	{
-		if(isInStack(address))
+		if(isInStack(address, expandStack))
 			return true;
 		if(isInBinary(address))
 			return true;
@@ -780,7 +784,7 @@ class MMU
 	//gpr: which register is used to access memory
 	//contents: contents of gpr
 	char * getEffectiveAddress(uint64_t address, int numBytes, int gpr, uint64_t contents = 0, 
-							   bool suppressHeap = 0)
+							   bool suppressHeap = 0, bool expandStack = true)
 	{
 		//For Stack pointer access
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
@@ -793,7 +797,7 @@ class MMU
 			return NULL;
 		}
 			
-		if(isInStack(address) && isInStack(address + numBytes))
+		if(isInStack(address, expandStack) && isInStack(address + numBytes, expandStack))
 		{
 			//printf("Searching the stack! %lld\n", stackBase - address);
 			/*if(contents < stackBase - stack.size())
@@ -805,9 +809,8 @@ class MMU
 				stack.resize(stackBase - address + 1);
 			}*/
 			//printf("\t\t\tstackBase: %x, %d, %x\n", stackBase, stack.size(), address);
-			if(address < stackBase - stack.size())
+			if(expandStack && address < stackBase - stack.size())
 			{
-				
 				stack.resize(stackBase - address + 8);
 			}
 
@@ -1048,12 +1051,12 @@ class MMU
 			return -1;
 		if(isInStack(vAddr))
 		{
+			int k=numBytes-1;
 			numBytes *= -1;
-			int k=0;
 			for(int i=0;i > numBytes; i--)
 			{
 				memPtr[i] = inputStream[k];
-				k++;
+				k--;
 			}
 			return 1;
 		}

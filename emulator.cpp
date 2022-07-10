@@ -487,7 +487,8 @@ class EmulatedCPU
 				gpr[i] = 0;	
 			}
 			//Instantiates the stack pointer;
-			gpr[29] = memUnit->stackBase - 28 - 396;
+			//gpr[29] = memUnit->stackBase - 28 - 396;
+			gpr[29] = memUnit->stackBase - 0xf20;
 
 			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12, true) + 6;
 			hwr[29] = UserLocalPtr;
@@ -727,7 +728,7 @@ class EmulatedCPU
 					runInstruction(instruction);
 					
 					instructionsRun++;
-					printNotifs(6,"Instructions run: %x\n\n", instructionsRun);
+					printNotifs(6,"Instructions run: %lld\n\n", instructionsRun);
 				}
 				//If the instruction is nullified, cancel the nullification
 				else
@@ -981,13 +982,13 @@ class EmulatedCPU
 			
 			
 			formatStrLen = i;
-			
+			// Now, let's detect how many format specifiers we have in this string.
 			// This is a rough way of doing this but this should be correct.
 			for(i = 0; i < formatStrLen; i++)
 				if(targetFormatStr[i] == '%')
 					numSpecifiers++;
 			
-			// Now, let's detect how many format specifiers we have in this string.
+			
 			
 			printNotifs(7,"Detected scanf of [%d] with [%d] specifiers.\n", i, numSpecifiers);
 			
@@ -1025,11 +1026,12 @@ class EmulatedCPU
 						{
 							scanToken[i] = 0;	
 						}
+
 							
-						printf("value from scanf: [%d]\n", scanToken);
+						printf("value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
 						//I think scanf casts the pointer in the second argument anyway but. it's a peace of mind thing
 						scanf(targetFormatStr, (int *)scanToken);
-						printf("value from scanf: [%d]\n", scanToken);
+						printf("value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
 					}
 					break;
 				case 2:
@@ -1063,7 +1065,7 @@ class EmulatedCPU
 			char *test = (char *)calloc(4, sizeof(char));
 			memUnit->writeToMMU(writePtr, gpr[5], scanToken, numBytes);
 			memUnit->readFromMMU(writePtr, gpr[5], test, 4);
-			printf("value from scanf: [%d]\n", (uint32_t *)scanToken);
+			printf("value from scanf: [%d]\n", *((uint32_t *)scanToken));
 			
 			
 			
@@ -1424,8 +1426,10 @@ class EmulatedCPU
 			extendedImmediate <<= 2;
 
 			delaySlot = true;
+			int lhs = gpr[rs] & 0xffffffff;
+			int rhs = gpr[rt] & 0xffffffff;
 
-			if (gpr[rs] <= gpr[rt])
+			if (lhs <= rhs)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1562,12 +1566,12 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printNotifs(4, "Invalid mips target for bne\n");
+				printNotifs(4, "Invalid mips target for BNE\n");
 			}
 
 			if (debugPrint)
 			{
-				printNotifs(7, "bne %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
+				printNotifs(7, "BNE %s, %s, %x\n", getName(rs).c_str(), getName(rt).c_str(), (instruction & 0xFFFF));
 			}
 
 			int32_t extendedImmediate = signedImmediate;
@@ -2395,13 +2399,130 @@ class EmulatedCPU
 		{
 			unimplemented(instruction);
 		}
+		
+		//load word left
 		void lwl(uint32_t instruction)
 		{
-			unimplemented(instruction);
+			if (mipsTarget < 1)
+			{
+				printNotifs(4, "Invalid mips target for LWL\n");
+			}
+
+			if (debugPrint)
+			{
+				printNotifs(7, "LWL %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+
+			bool BigEndian = true;
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			uint32_t lowMask = 0x00ffffff;
+			int32_t highMask = 0;
+			int i = vAddr & 3, j = 24, k = 0;
+			char *bytes = memUnit->getEffectiveAddress(vAddr, 4-i, rs, 0);
+			if(bytes == NULL)
+				generallyPause();
+				
+			printf("%d, %d, %d\n", i, vAddr);
+
+			if(BigEndian)
+			{
+				
+				if(memUnit->isInStack(vAddr))
+				{
+					while(i <= 3)
+					{
+						//mask only zeros out the byte being written to, preserving the bytes that dont get written to
+						highMask = (~lowMask) << 8;
+						gpr[rt] &= lowMask | highMask;
+						gpr[rt] |= (uint64_t)bytes[k] << j;
+						//bytes[k] = (gpr[rt] >> j) & 0xff;
+						i++;
+						j -= 8;
+						k--;
+						lowMask >>= 8;
+						highMask >>= 8;
+
+					}
+				}
+				else
+				{
+					while(i <= 3)
+					{
+						highMask = (~lowMask) << 8;
+						//printf("i: %d\n", i);
+						//mask only zeros out the byte being written to, preserving the bytes that dont get written to
+						gpr[rt] &= lowMask | highMask;
+						gpr[rt] |= (uint64_t)bytes[k] << j;
+						//bytes[k] = (gpr[rt] >> j) & 0xff;
+						i++;
+						j -= 8;
+						k++;
+						lowMask >>= 8;
+						highMask >>= 8;
+					}
+				}
+				if(gpr[rt] >> 31 && is64bit)
+					gpr[rt] |= (uint64_t)0xffffffff << 32;
+				
+			}
 		}
 		void lwr(uint32_t instruction)
 		{
-			unimplemented(instruction);
+			if (mipsTarget < 1)
+			{
+				printNotifs(4, "Invalid mips target for LWR\n");
+			}
+
+			if (debugPrint)
+			{
+				printNotifs(7, "LWR %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+
+			bool BigEndian = true;
+			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+			uint32_t lowMask = 0;
+			int32_t highMask = 0xffffff00;
+
+
+			int i = vAddr & 3, j = 0, k = 0;
+			char *bytes = memUnit->getEffectiveAddress(vAddr - i, i, rs, 0);
+			if(bytes == NULL)
+				generallyPause();
+			/*if(memUnit->isInStack(vAddr))
+				bytes -= i;
+			else
+				bytes += i;*/
+
+			if(bytes == NULL)
+			{
+				printNotifs(2, "Bytes == null in LWR");
+				generallyPause();
+			}
+			
+			if(BigEndian)
+			{
+					while(i >= 0)
+					{
+						//printf("Heap/binary lwring\n");
+						//printf("kK: %d, i: %d\n", k, i);
+						lowMask = ~highMask >> 8;
+						bytes = memUnit->getEffectiveAddress(vAddr + k, 1, rs, 0);
+						gpr[rt] &= lowMask | highMask;
+						gpr[rt] |= (uint32_t)(bytes[0]) << j;
+						//printNotifs(7, "writing to %x", bytes+k);
+						//bytes[k] = (gpr[rt] >> j) & 0xff;
+						i--;
+						j += 8;
+						highMask << 8;
+						k--;
+					}
+				
+				if(vAddr & 3 == 3 && gpr[rt] >> 31 == 1)
+				{
+					gpr[rt] |= (uint64_t)0xffffffff << 32;
+				}
+			}
+		
 		}
 		// MIPS 3
 		void LWU(uint32_t instruction)
@@ -3528,7 +3649,7 @@ class EmulatedCPU
 			//Check registers for pointers
 			for(int i=0;i<32;i++)
 			{
-				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
+				isValidMemoryPtr = memUnit->isInMemory(gpr[i], false);
 				if(isValidMemoryPtr)
 				{
 					//printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
@@ -3539,7 +3660,7 @@ class EmulatedCPU
 			for(int i=0;i<32;i++)
 			{
 				//Print the registers
-				isValidMemoryPtr = memUnit->isInMemory(gpr[i]);
+				isValidMemoryPtr = memUnit->isInMemory(gpr[i], false);
 				printf("|");
 				if(isValidMemoryPtr)
 				{
@@ -3828,6 +3949,7 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+
 	// Argparse testing
 	argparse::ArgumentParser program("Electric Rock");
 

@@ -2480,7 +2480,7 @@ class EmulatedCPU
 
 			bool BigEndian = true;
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
-			uint32_t lowMask = 0;
+			uint32_t lowMask = 0xff;
 			int32_t highMask = 0xffffff00;
 
 
@@ -2504,16 +2504,19 @@ class EmulatedCPU
 					while(i >= 0)
 					{
 						//printf("Heap/binary lwring\n");
-						//printf("kK: %d, i: %d\n", k, i);
-						lowMask = ~highMask >> 8;
+						
+						lowMask = (uint64_t)(~highMask);
+						lowMask >>= 8;
 						bytes = memUnit->getEffectiveAddress(vAddr + k, 1, rs, 0);
+						//printf("mask: %x, %x, %x\n", lowMask, highMask, lowMask | highMask);
 						gpr[rt] &= lowMask | highMask;
 						gpr[rt] |= (uint32_t)(bytes[0]) << j;
+						printf("%x\n", gpr[rt]);
 						//printNotifs(7, "writing to %x", bytes+k);
 						//bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;
 						j += 8;
-						highMask << 8;
+						highMask <<= 8;
 						k--;
 					}
 				

@@ -67,7 +67,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 4;
+const short int NUM_FUNCTIONS_HOOKED = 5;
 
 class EmulatedCPU
 {
@@ -435,7 +435,8 @@ class EmulatedCPU
 			&EmulatedCPU::hooked_libc_write,
 			&EmulatedCPU::hooked_libc_malloc,	
 			&EmulatedCPU::hooked_libc_free,	
-			&EmulatedCPU::hooked_libc_scanf,	
+			&EmulatedCPU::hooked_libc_scanf,
+			&EmulatedCPU::hooked_libc_fwrite	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -444,6 +445,7 @@ class EmulatedCPU
 			"__libc_malloc",
 			"free",
 			"scanf",
+			"__stdio_fwrite"
 		};
 
 		// Registers and Instruction Fields
@@ -924,6 +926,8 @@ class EmulatedCPU
 		{
 			printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
+			if(address == NULL)
+				signalException(MemoryFault);
 			printf("%s\n", address);
 			this->pc = gpr[31];
 			return;
@@ -1070,6 +1074,35 @@ class EmulatedCPU
 			
 			
 			this->pc = gpr[31];
+		}
+
+		void hooked_libc_fwrite(uint32_t opcode)
+		{//4,5
+			//Only set for stream of stdout. Avoids formatted print for consistency.
+			int length = gpr[5];
+			char *buffer = memUnit->getEffectiveAddress(gpr[4], length, 0);
+			if(buffer == NULL | !memUnit->isInMemory(gpr[4] + length))
+			{
+				printNotifs(2, "Bad length or pointer in fwrite\n");
+				signalException(MemoryFault);
+			}
+			
+			
+			int i=0;
+			while(i<length)
+			{
+				putc(buffer[i], stdout);
+				if(memUnit->isInStack(gpr[4]))
+					i--;
+				else
+					i++;
+			}
+				
+
+
+			//printf("The answer is %s")
+			//puts("The answer is %s")
+			
 		}
 
 		// 
@@ -2245,7 +2278,66 @@ class EmulatedCPU
 		// MIPS 1
 		void lh(uint32_t instruction)
 		{
-			unimplemented(instruction);
+			bool BigEndian = true;
+			is64bit = false;
+			if (mipsTarget < 1)
+			{
+				printNotifs(4, "Invalid mips target for LW\n");
+			}
+
+			if (debugPrint)
+			{
+				printNotifs(7, "LW %s, %d(%s)\n", getName(rt).c_str(), signedImmediate, getName(rs).c_str());
+			}
+
+			
+		
+			if (is64bit)
+			{
+
+			}
+			else
+			{
+				int32_t offset = immediate;
+				if(immediate & 1 > 0)
+				{
+					printNotifs(7, "what?\n");
+					signalException(MemoryFault);
+				}
+					
+				
+				//Destination address
+				uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
+				//Get bytes in-order from mmu
+				//memUnit->printSections();
+				char *bytes = memUnit->getEffectiveAddress(vAddr, 4, rs, gpr[rs]);
+				if(bytes == NULL)
+				{
+					printNotifs(7, "bytes==NULL\n");
+					signalException(MemoryFault);
+				}
+				
+				fflush(stdout);
+				//change their order depending on endianness??
+
+				//Emulated stack pointer is backwards. have to reverse it for writes
+				if(memUnit->isInStack(vAddr))
+				{
+					//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[-1], bytes[-2], bytes[-3], 
+					//																	bytes[0], bytes[-1], bytes[-2], bytes[-3]);
+					gpr[rt] = 0;
+					gpr[rt] |= ((uint64_t)(bytes[-1] & 0xff)) << 0;
+					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
+				}
+				else
+				{
+					//printf("victory? %s, %c%c%c%c, %hhx%hhx%hhx%hhx\n", getName(rt).c_str(), bytes[0], bytes[1], bytes[2], bytes[3], 
+					//																	bytes[0], bytes[1], bytes[2], bytes[3]);
+					gpr[rt] = 0;
+					gpr[rt] |= ((uint64_t)(bytes[1] & 0xff)) ;
+					gpr[rt] |= ((uint64_t)(bytes[0] & 0xff)) << 8;
+				}
+			}
 		}
 		void lhu(uint32_t instruction)
 		{
@@ -2422,7 +2514,7 @@ class EmulatedCPU
 			if(bytes == NULL)
 				generallyPause();
 				
-			printf("%d, %d, %d\n", i, vAddr);
+			//printf("%d, %d, %d\n", i, vAddr);
 
 			if(BigEndian)
 			{
@@ -2511,7 +2603,7 @@ class EmulatedCPU
 						//printf("mask: %x, %x, %x\n", lowMask, highMask, lowMask | highMask);
 						gpr[rt] &= lowMask | highMask;
 						gpr[rt] |= (uint32_t)(bytes[0]) << j;
-						printf("%x\n", gpr[rt]);
+						//printf("%x\n", gpr[rt]);
 						//printNotifs(7, "writing to %x", bytes+k);
 						//bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;

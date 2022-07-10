@@ -67,7 +67,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 5;
+const short int NUM_FUNCTIONS_HOOKED = 4;
 
 class EmulatedCPU
 {
@@ -436,7 +436,7 @@ class EmulatedCPU
 			&EmulatedCPU::hooked_libc_malloc,	
 			&EmulatedCPU::hooked_libc_free,	
 			&EmulatedCPU::hooked_libc_scanf,
-			&EmulatedCPU::hooked_libc_fwrite	
+			//&EmulatedCPU::hooked_libc_fwrite	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -445,7 +445,7 @@ class EmulatedCPU
 			"__libc_malloc",
 			"free",
 			"scanf",
-			"__stdio_fwrite"
+			//"__stdio_fwrite"
 		};
 
 		// Registers and Instruction Fields
@@ -528,6 +528,7 @@ class EmulatedCPU
 						{
 							functionVirtualAddress.push_back(func->GetStart());
 							functionVirtualFunction.push_back(i);
+							// printf("hooking: %s @ 0x%x \n", currentFunctionName.c_str(), func->GetStart());
 						}
 					}
 				}
@@ -704,7 +705,11 @@ class EmulatedCPU
 					printNotifs(6,"Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 				}
 				
+				// Check to see if we've entered a hooked function
+				
+				
 				// Code to search iteratively through our hooked functions and find if PC is a hooked address.
+				
 				findIterator = std::find(functionVirtualAddress.begin(), functionVirtualAddress.end(), pc);
 				if(findIterator != functionVirtualAddress.end())
 				{
@@ -922,10 +927,16 @@ class EmulatedCPU
 		// Hooked Functions
 		// 
 		
+		
 		void hooked_libc_write(uint32_t opcode)
 		{
-			printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[17], gpr[6]);
-			char *address = memUnit->getEffectiveAddress(gpr[17], gpr[6], 17, gpr[17]);
+			// s1 - previous string offset
+			// a1 - best friend
+			// a2 
+			
+			//registerDump();
+			printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[5], gpr[6]);
+			char *address = memUnit->getEffectiveAddress(gpr[5], gpr[6], 17, gpr[5]);
 			if(address == NULL)
 				signalException(MemoryFault);
 			printf("%s\n", address);

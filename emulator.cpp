@@ -29,21 +29,6 @@
 // print cloud lines
 // then print bolt emerging from the damn cloud
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -53,6 +38,7 @@
 #include <iomanip>
 #include <signal.h>
 #include <time.h>
+#include <dirent.h>
 
 
 #include "mmu.cpp"
@@ -4124,6 +4110,11 @@ int main(int argn, char ** args)
 		.help("print execution time of instruction")
 		.default_value(false)
 		.implicit_value(true);
+	
+	program.add_argument("--batch")
+		.help("run a directory of test cases")
+		.default_value(false)
+		.implicit_value(true);
 		
 	
 
@@ -4140,13 +4131,13 @@ int main(int argn, char ** args)
 
 	auto code_path = program.get<string>("path");
 
-	/*// This is to confirm we have the right path saved
+	// This is to confirm we have the right path saved
 	for (auto& single_char: code_path)
 	{
 		printf("%c", single_char);
 	}
 	printf("\n");
-	*/
+	
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)
@@ -4175,6 +4166,25 @@ int main(int argn, char ** args)
 		timer = true;
 		beQuietFlag = true;
 		SHUT_UP = 1;
+	}
+
+	if (program["--batch"] == true)
+	{
+		printf("Entering batch test mode.\n");
+		printf("Running batch on directory [%s]\n", code_path);
+
+
+		struct dirent *entry = nullptr;
+    	DIR *dp = nullptr;
+
+    	dp = opendir(argn > 1 ? args[1] : "/");
+    	if (dp != nullptr) {
+        	while ((entry = readdir(dp)))
+            	printf ("%s\n", entry->d_name);
+    	}
+
+    	closedir(dp);
+		return 0;
 	}
 
 	//
@@ -4232,9 +4242,6 @@ int main(int argn, char ** args)
 
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
-
-	// Testing the printNotifs() function
-	//electricrock->printNotifs(0,"Test variable length arguments: #%d: %s\n", 2, "testing");
 	
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain

@@ -2,6 +2,48 @@
 // 03FEB2022
 // Emulator Specific Information
 
+//    .deez...      .....       .eeec.   ..eee..
+//   .d*"  """"*e..d*"""""**e..e*""  "*c.d""  ""*e.
+//  z"           "$          $""       *F         **e.
+// z"             "c        d"          *.           "$.
+//.F                        "            "            'F
+//d                                                   J%
+//3            E L E C T R I C   R O C K              e"
+//4r                                                d"
+// $     .d"     .        .F             z ..zeeeeed"
+// "*beeeP"      P        d      e.      $**""    "
+//     "*b.     Jbc.     z*%e.. .$**eeeeP"
+//        "*beee* "$$eeed"$$$^$$$""    "
+//                      d$$$$$$"
+//                    .d$$$$$$"
+//                   .$$$$$$$"
+//                  z$$$$$$$beeeeee
+//                 d$$$$$$$$$$$$$*
+//                ^""""""""$$$$$"
+//                        d$$$*
+//                       d$$$"
+//                      d$$*
+//                     d$P"
+//                   .$$"
+//                  .$P"
+// print cloud lines
+// then print bolt emerging from the damn cloud
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

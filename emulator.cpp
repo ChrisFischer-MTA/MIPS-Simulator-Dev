@@ -38,7 +38,7 @@
 #include <iomanip>
 #include <signal.h>
 #include <time.h>
-#include <dirent.h>
+#include <filesystem>
 
 
 #include "mmu.cpp"
@@ -82,11 +82,13 @@ std::vector<uint32_t> basicBlocks;
 std::vector<std::string> basicBlockNames;
 std::vector<double> instructionTimes;
 std::vector<uint32_t> instructionOPs;
+std::vector<std::string> batchNames;
 FILE* PCPathFile = NULL;
 bool pcoutFlag = false;
 bool regDumpFlag = false;
 bool beQuietFlag = false;
 bool timer = false;
+bool batchMode = false;
 clock_t startOfEmulation, endOfEmulation;
 double cpu_time_used;
 
@@ -4008,8 +4010,6 @@ class EmulatedCPU
 			vprintf (notif, args);
 			va_end (args);
 		}
-		
-		
 
 		// pg. 40
 		void runInstruction(uint32_t instruction)
@@ -4129,15 +4129,7 @@ int main(int argn, char ** args)
 		std::exit(1);
 	}
 
-	auto code_path = program.get<string>("path");
-
-	// This is to confirm we have the right path saved
-	for (auto& single_char: code_path)
-	{
-		printf("%c", single_char);
-	}
-	printf("\n");
-	
+	auto code_path = program.get<std::string>("path");
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)
@@ -4170,22 +4162,65 @@ int main(int argn, char ** args)
 
 	if (program["--batch"] == true)
 	{
-		printf("Entering batch test mode.\n");
-		printf("Running batch on directory [%s]\n", code_path);
+		std::cout << "Batch Directory: " << code_path << endl;
+		batchMode = true;
+	}
+
+	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+	if(batchMode)
+	{
+		// Create list of paths to test cases from batch directory
+		for (auto& dirEntry : recursive_directory_iterator(code_path))
+		{
+     		std::cout << dirEntry << std::endl;
+			std::string dirString = dirEntry.path().string();
+			batchNames.push_back(dirString);
+		}
+
+		// Iterate over all dir entries
+		for (auto& test_case: batchNames)
+		{	
+			// Check if exe
+			// Setup BinaryView
+			SetBundledPluginDirectory(GetPluginsDirectory());
+			InitPlugins();
+			printf("[Informational] Plugins initialized!\n");
+			Ref<BinaryData> bd = new BinaryData(new FileMetadata(), test_case);
+			Ref<BinaryView> bv = NULL;
+			printf("[Informational] BV Instantiated!\n");
+			fflush(stdout);
+			for (auto type : BinaryViewType::GetViewTypes())
+			{
+				if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
+				{
+					bv = type->Create(bd);
+					break;
+				}
+			}
+			printf("[Informational] BVs initialized!\n");
+			if (!bv || bv->GetTypeName() == "Raw")
+			{
+				fprintf(stderr, "Input file does not appear to be an exectuable\n");
+				return -1;
+			}
+			printf("[Informational] Starting Analysis.\n");
+			bv->UpdateAnalysisAndWait();
+			printf("[Informational] Finished Analysis.\n");
+
+			// Begin Emulation
+			EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 
 
-		struct dirent *entry = nullptr;
-    	DIR *dp = nullptr;
-
-    	dp = opendir(argn > 1 ? args[1] : "/");
-    	if (dp != nullptr) {
-        	while ((entry = readdir(dp)))
-            	printf ("%s\n", entry->d_name);
-    	}
-
-    	closedir(dp);
+			// Run emulation
+			electricrock->runEmulation(electricrock->startOfMain);
+		}
+		BNShutdown();
 		return 0;
 	}
+
+
+
 
 	//
 	// Check if file is accessable/exists

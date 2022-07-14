@@ -1,4 +1,4 @@
-// Christopher Fischer and Rose Newcomer
+// Christopher Fischer and Rose Newcomer and Sean Kemp
 // 03FEB2022
 // Emulator Specific Information
 
@@ -97,7 +97,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 5;
+const short int NUM_FUNCTIONS_HOOKED = 4;
 
 class EmulatedCPU
 {
@@ -465,8 +465,8 @@ class EmulatedCPU
 			&EmulatedCPU::hooked_libc_write,
 			&EmulatedCPU::hooked_libc_malloc,	
 			&EmulatedCPU::hooked_libc_free,	
-			&EmulatedCPU::hooked_libc_scanf,
-			&EmulatedCPU::hooked_libc_fwrite	
+			&EmulatedCPU::hooked_libc_scanf
+			//&EmulatedCPU::hooked_libc_fwrite	
 		};
 		
 		const std::string static_function_hook_matching[NUM_FUNCTIONS_HOOKED] = 
@@ -474,8 +474,8 @@ class EmulatedCPU
 			"__stdio_WRITE",
 			"__libc_malloc",
 			"free",
-			"scanf",
-			"__stdio_fwrite"
+			"scanf"
+			//"__stdio_fwrite"
 		};
 
 		// Registers and Instruction Fields
@@ -1395,12 +1395,12 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			
+			int64_t lhs = gpr[rs];
 
 			// Set return address equal to the value.
 			gpr[31] = pc + 8;
 
-			if (gpr[rs] >= 0)
+			if (lhs >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				delaySlot = true;
@@ -1425,8 +1425,10 @@ class EmulatedCPU
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
+
+			int64_t lhs = gpr[rs];
 			
-			if (gpr[rs] >= 0)
+			if (lhs >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				delaySlot = true;
@@ -1455,7 +1457,9 @@ class EmulatedCPU
 
 			delaySlot = true;
 
-			if (gpr[rs] >= gpr[rt])
+			int64_t lhs = gpr[rs];
+
+			if (gpr[rs] >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1475,8 +1479,10 @@ class EmulatedCPU
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
+
+			int64_t lhs = gpr[rs];
 			
-			if (gpr[rs] >= gpr[rt])
+			if (lhs >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				delaySlot = true;
@@ -1503,10 +1509,9 @@ class EmulatedCPU
 			extendedImmediate <<= 2;
 
 			delaySlot = true;
-			int lhs = gpr[rs] & 0xffffffff;
-			int rhs = gpr[rt] & 0xffffffff;
+			int lhs = gpr[rs];
 
-			if (lhs <= rhs)
+			if (lhs <= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1527,7 +1532,9 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
-			if (gpr[rs] <= gpr[rt])
+			int64_t lhs = gpr[rs];
+
+			if (lhs <= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				runInstruction(getNextInstruction());
@@ -1543,20 +1550,21 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printNotifs(4, "Invalid mips target for bltz\n");
+				printNotifs(4, "Invalid mips target for BLTZ\n");
 			}
 
 			if (debugPrint)
 			{
-				printNotifs(7, "bltz %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLTZ %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
 			delaySlot = true;
+			int64_t lhs = gpr[rs];
 
-			if (gpr[rs] < gpr[rt])
+			if (lhs < 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1566,21 +1574,22 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 1)
 			{
-				printNotifs(4, "Invalid mips target for bltzal\n");
+				printNotifs(4, "Invalid mips target for BLTZAL\n");
 			}
 
 			if (debugPrint)
 			{
-				printNotifs(7, "bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLTZAL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
 			delaySlot = true;
+			int64_t lhs = gpr[rs];
 
 			gpr[31] = pc + 8;
-			if (gpr[rs] < gpr[rt])
+			if (lhs < 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1590,19 +1599,20 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printNotifs(4, "Invalid mips target for bltzal\n");
+				printNotifs(4, "Invalid mips target for BLTZALL\n");
 			}
 
 			if (debugPrint)
 			{
-				printNotifs(7, "bltzal %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLTZALL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
 			gpr[31] = pc + 8;
-			if (gpr[rs] < gpr[rt])
+			int64_t lhs = gpr[rs];
+			if (lhs < 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				delaySlot = true;
@@ -1617,18 +1627,19 @@ class EmulatedCPU
 		{
 			if (mipsTarget < 2)
 			{
-				printNotifs(4, "Invalid mips target for bltzl\n");
+				printNotifs(4, "Invalid mips target for BLTZL\n");
 			}
 
 			if (debugPrint)
 			{
-				printNotifs(7, "bltzl %s, %x\n", getName(rs).c_str(), signedImmediate);
+				printNotifs(7, "BLTZL %s, %x\n", getName(rs).c_str(), signedImmediate);
 			}
 
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
+			int64_t lhs = gpr[rs];
 
-			if (gpr[rs] < gpr[rt])
+			if (lhs < 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				delaySlot = true;
@@ -3061,8 +3072,11 @@ class EmulatedCPU
 
 				printNotifs(7, "SLT %s, %s, %s\n", getName(rd).c_str(), getName(rs).c_str(), getName(rt).c_str());
 			}
+			int64_t lhs = gpr[rs];
+			int64_t rhs = gpr[rt];
 
-			gpr[rd] = (gpr[rs] < gpr[rt]);
+
+			gpr[rd] = (lhs < rhs);
 		}
 
 		//MIPS I
@@ -3080,7 +3094,8 @@ class EmulatedCPU
 			}
 
 			int64_t extended = (int64_t) immediate;
-			gpr[rt] = gpr[rs] < extended;
+			int64_t lhs = gpr[rs];
+			gpr[rt] = lhs < extended;
 		}
 
 		//MIPS I
@@ -3099,17 +3114,17 @@ class EmulatedCPU
 			}
 			if (is64bit)
 			{
-				int64_t extended = (int64_t)signedImmediate;
-				uint64_t a = extended, 
-						 b = gpr[rs];
-				gpr[rt] = a < b;
+				uint64_t extended = (uint64_t)immediate;
+				uint64_t rhs = extended, 
+						 lhs = gpr[rs];
+				gpr[rt] = lhs < rhs;
 			}
 			else
 			{
-				int32_t extended = (int32_t)signedImmediate;
-				uint64_t a = extended & 0xffffffff,
-						 b = gpr[rs];
-				gpr[rt] = a < b;
+				uint32_t extended = (uint32_t)signedImmediate;
+				uint64_t rhs = extended & 0xffffffff,
+						 lhs = gpr[rs] & 0xffffffff;
+				gpr[rt] = lhs < rhs;
 			}
 			
 		}

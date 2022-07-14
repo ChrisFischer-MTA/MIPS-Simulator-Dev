@@ -22,5 +22,6 @@ int main(int argn, char** args)
         i++;
         
     }
+    fflush(stdout);
     
 }

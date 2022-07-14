@@ -1341,11 +1341,12 @@ class EmulatedCPU
 			
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
+			int64_t lhs = gpr[rs];
 
 			delaySlot = true;
 
 			runInstruction(getNextInstruction());
-			if (gpr[rs] >= 0)
+			if (lhs >= 0)
 			{
 				// If the two registers equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;
@@ -1366,12 +1367,14 @@ class EmulatedCPU
 			int32_t extendedImmediate = signedImmediate;
 			extendedImmediate <<= 2;
 
+			int64_t lhs = gpr[rs];
+
 			delaySlot = true;
 
 			// Set return address equal to the value.
 			gpr[31] = pc + 8;
 
-			if (gpr[rs] >= 0)
+			if (lhs >= 0)
 			{
 				// If the two registers greater than or equal, we increment PC by the offset.
 				tgt_offset = extendedImmediate;

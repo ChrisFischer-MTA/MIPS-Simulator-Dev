@@ -361,7 +361,7 @@ class Heap
 			end = min((uint64_t) 32 + vaddr, heapSize);
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printHeap("[ERROR] We have found a dobule free!\n", index, 0, true, start, end);
+				printHeap("[ERROR] We have found a double free!\n", index, 0, true, start, end);
 				return 0;
 			}
 			
@@ -610,7 +610,7 @@ class MMU
 		//GOTpointer = GOTbase + 32768;
 
 
-		printSections();
+		//printSections();
 	}
 
 	

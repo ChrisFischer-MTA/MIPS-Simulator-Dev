@@ -26,6 +26,7 @@
 //                     d$P"
 //                   .$$"
 //                  .$P"
+//
 // print cloud lines
 // then print bolt emerging from the damn cloud
 
@@ -39,6 +40,8 @@
 #include <signal.h>
 #include <time.h>
 #include <filesystem>
+#include <limits>
+#include <algorithm>
 
 
 #include "mmu.cpp"
@@ -54,6 +57,8 @@
 #define BIT64 0x8000000000000000
 #define BIT(n) (uint64_t) 1 << (n-1)
 #define LOWERMASK(n) ((uint64_t) 1 << (n)) - 1
+
+#define INT_MAX 2147483647
 
 
 const short int MIP_ISA_32 = 1;
@@ -91,6 +96,8 @@ bool timer = false;
 bool batchMode = false;
 clock_t startOfEmulation, endOfEmulation;
 double cpu_time_used;
+int globalLogLevel = 0;
+int stepsize = 1;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -499,6 +506,8 @@ class EmulatedCPU
 		int32_t tgt_offset = 0;
 		uint64_t instructionsRun = 0;
 		uint32_t endOfMain, startOfMain;
+		vector<uint32_t> instructionPointerBreakpoints;
+		vector<char *> symbolBreakpoints;
 
 		int32_t mipsTarget = 32;
 		bool debugPrint = true;
@@ -525,7 +534,8 @@ class EmulatedCPU
 			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12, true) + 6;
 			hwr[29] = UserLocalPtr;
 			
-			memUnit->printSections();
+			if(globalLogLevel >= 7)
+				memUnit->printSections();
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())
 			{
@@ -830,6 +840,19 @@ class EmulatedCPU
 						flags = scanCode(pweasenosteppy, address, n);
 						
 					}
+					else if(strncmp(pweasenosteppy, "stepsize", 8) == 0)
+					{
+						int stepsize;
+						scanf("%d", &stepsize);
+						flags = scanCode(pweasenosteppy, stepsize);
+					}
+					else if(strncmp(pweasenosteppy, "break", 5) == 0)
+					{
+						char *breaktag = (char *)calloc(128, sizeof(char));
+						scanf("%s", breaktag);
+						flags = scanCode(pweasenosteppy, 0, 0, breaktag);
+					}
+
 					else
 					{
 						flags = scanCode(pweasenosteppy);
@@ -856,17 +879,56 @@ class EmulatedCPU
 		//reg for registers
 		//mem address n to print n bytes (decimal) from address address
 		//example of mem accessing close to the beginninng of the heap: mem 10040 32
-		int scanCode(char *input, int address = 0, int n = 0)
+		int scanCode(char *input, int address = 0, int n = 0, char *breaktag = NULL)
 		{
 			int LineWidth = 16;
-			if(strncmp(input, "state", 5) == 0)
+			if(strncmp(input, "stepsize", 8) == 0)
+			{
+				stepsize = address;
+				return 0;
+			}
+			else if(strncmp(input, "state", 5) == 0)
 			{
 				stateDump();
 				return 0;
 			}
+			else if(strncmp(input, "stepi", 5) == 0)
+				return 1;
+			else if(strncmp(input, "step", 4) == 0)
+			{
+				return stepsize;
+			}
 			else if(strncmp(input, "s", 1) == 0)
 			{
 				return 1;
+			}
+			else if(strncmp(input, "break", 5) == 0)
+			{
+				if(breaktag == NULL)
+					return 0;
+				//if the first char is *, then the breaktag is a pointer to an instruction
+				if(breaktag[0] == '*')
+				{
+					//if first char is *, then the string must be *0x(*)
+					//breaktag + 3;
+					uint32_t breakpoint = std::stoul(breaktag+1, NULL, 16);
+					printf("0x%x\n", breakpoint);
+					instructionPointerBreakpoints.push_back(breakpoint);
+					return 0;
+				}
+				//else, the breaktag is the name of a symbol
+				std::vector<string>::iterator it;
+				it = find(basicBlockNames.begin(), basicBlockNames.end(), breaktag);
+				if(it != basicBlockNames.end())
+				{
+					printf("%s\n", breaktag);
+					symbolBreakpoints.push_back(breaktag);
+				}
+				else
+				{
+					printNotifs(7, "Symbol not found\n");
+				}
+				return 0;
 			}
 			else if(strncmp(input, "play", 4) == 0)
 			{
@@ -874,12 +936,16 @@ class EmulatedCPU
 				scanf("%d", &n);
 				return n;
 			}
+			else if(strncmp(input, "continue", 8) == 0)
+			{
+				return INT_MAX;
+			}
 			else if(strncmp(input, "reg", 3) == 0)
 			{
 				registerDump();
 				return 0;
 			}
-			else if(strncmp(input, "exit", 4) == 0)
+			else if(strncmp(input, "exit", 4) == 0 || strncmp(input, "kill", 4) == 0 || strncmp(input, "quit", 4) == 0)
 			{
 				if(PCPathFile)
 				{
@@ -969,7 +1035,7 @@ class EmulatedCPU
 			char *address = memUnit->getEffectiveAddress(gpr[5], gpr[6], 17, gpr[5]);
 			if(address == NULL)
 				signalException(MemoryFault);
-			printf("%s\n", address);
+			printf("%s", address);
 			this->pc = gpr[31];
 			return;
 		}
@@ -982,7 +1048,10 @@ class EmulatedCPU
 
 		void hooked_libc_free(uint32_t opcode)
 		{
-			memUnit->MMUHeap.freeHeapMemory(gpr[4]);
+			if(memUnit->MMUHeap.freeHeapMemory(gpr[4]) == 0)
+			{
+				generallyPause();
+			}
 			// jump to ra
 			this->pc = gpr[31];
 		}
@@ -3992,6 +4061,9 @@ class EmulatedCPU
 			// if (logLevel > 3) return;
 			if(beQuietFlag)
 				return;
+
+			if(globalLogLevel > logLevel)
+				return;
 				
 			// Print the logLevel before the notification
 			switch (logLevel)
@@ -4101,7 +4173,6 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
-
 	// Argparse testing
 	argparse::ArgumentParser program("Electric Rock");
 
@@ -4133,6 +4204,11 @@ int main(int argn, char ** args)
 		.help("run a directory of test cases")
 		.default_value(false)
 		.implicit_value(true);
+
+	program.add_argument("--loglevel")
+		.scan<'i', int>()
+		.default_value(7)
+		.help("Set the log level globally.");
 		
 	
 
@@ -4148,6 +4224,7 @@ int main(int argn, char ** args)
 	}
 
 	auto code_path = program.get<std::string>("path");
+	globalLogLevel = program.get<int>("loglevel");
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)

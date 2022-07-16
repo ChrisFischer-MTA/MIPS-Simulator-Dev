@@ -977,22 +977,40 @@ class EmulatedCPU
 			}
 			else if(strncmp(input, "help", 4) == 0)
 			{
-				printf("\nplay [#]:\n\t- Plays the next [#] of instructions forward in execution.\n");
-				printf("step:\n\t- Steps forward in execution,\n");
+				printf("\n");
+				printf("play [#]:\n\t- Plays the next [#] of instructions forward in execution.\n");
+				printf("step:\n\t- Steps an amount of size stepsize forward in execution.\n");
+				printf("s/stepi:\n\t- Steps 1 instruction forward\n");
+				printf("stepsize [#]:\n\t- Sets stepsize to [#].\n");
 				printf("reg:\n\t- Provides a register dump to the screen.\n");
 				printf("state:\n\t- Provides a diagram of the state of the program, including registers, pc, and pointers.\n");
 				printf("mem [hexVal] [numBytes]:\n\t- Provides contents of memory at hexVal\n");
-				printf("exit:\n\t- Kills program, and exits cleanly.\n");
+				printf("break [string]:\n\t- Adds breakpoint at instruction pointed to by [string] if first char is *, otherwise adds breakpoint at symbol [string]\n");
+				printf("continue:\n\t- Continues emulation until breakpoint has been hit, otherwise continues until program ends.\n");
+				printf("exit/kill/quit:\n\t- Kills program, and exits cleanly.\n");
 			}
 			
 			else if(strncmp(input, "mem", 1) == 0)
 			{
 				if(memUnit->isInStack(address))
 				{
+					int linePos=0, word=0;
 					int startingIndex = memUnit->stackBase-address;
 					for(int i = startingIndex;i > startingIndex - n; i--)
 					{
-						printf("%x", memUnit->stack[i]);
+						printf("%02hhx", memUnit->stack[i]);
+						word++;
+						linePos++;
+						if(word > 3)
+						{
+							printf(" ");
+							word = 0;
+						}
+						if(linePos >= LineWidth)
+						{
+							printf("\n");
+							linePos = 0;
+						}
 					}
 				}
 				if(memUnit->MMUHeap.isInHeap(address))
@@ -3966,7 +3984,7 @@ class EmulatedCPU
 						char *bytes = memUnit->getEffectiveAddress(vAddr, 4, 0, 0, true);
 						if(memUnit->isInStack(vAddr))
 						{
-							printf("Thisisinstack");
+							printf("[Stack]  ");
 							loadedWord = 0;
 							loadedWord |= (uint64_t)(bytes[-3] & 0xff);
 							loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
@@ -3975,6 +3993,10 @@ class EmulatedCPU
 						}
 						else
 						{
+							if (memUnit->MMUHeap.isInHeap(vAddr))
+								printf("[Heap]   ");
+							if (memUnit->isInBinary(vAddr))
+								printf("[Binary] ");
 							loadedWord = 0;
 							loadedWord |= (uint64_t)(bytes[3] & 0xff);
 							loadedWord |= ((uint64_t)(bytes[2] & 0xff)) << 8;
@@ -4370,10 +4392,10 @@ int main(int argn, char ** args)
 	
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
-	printf("[Informational] Plugins initialized!\n");
+	printf("[Loading] Plugins initialized!\n");
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv = NULL;
-	printf("[Informational] BV Instantiated!\n");
+	printf("[Loading] BV Instantiated!\n");
 	fflush(stdout);
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
@@ -4383,15 +4405,15 @@ int main(int argn, char ** args)
 			break;
 		}
 	}
-	printf("[Informational] BVs initialized!\n");
+	printf("[Loading] BVs initialized!\n");
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
 		fprintf(stderr, "Input file does not appear to be an exectuable\n");
 		return -1;
 	}
-	printf("[Informational] Starting Analysis.\n");
+	printf("[Loading] Starting Analysis.\n");
 	bv->UpdateAnalysisAndWait();
-	printf("[Informational] Finished Analysis.\n");
+	printf("[Loading] Finished Analysis.\n");
 
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);

@@ -506,6 +506,7 @@ class EmulatedCPU
 		int32_t tgt_offset = 0;
 		uint64_t instructionsRun = 0;
 		uint32_t endOfMain, startOfMain;
+		bool checkBreakPoints = false;
 		vector<uint32_t> instructionPointerBreakpoints;
 		vector<char *> symbolBreakpoints;
 
@@ -744,10 +745,27 @@ class EmulatedCPU
 				{
 					printNotifs(6,"Current PC:  0x%lx - Last Found Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 				}
+
+				if(checkBreakPoints)
+				{
+					//uint32_t targetPC = tgt_offset == 0? pc + 4: pc + tgt_offset;
+					for(uint32_t i : instructionPointerBreakpoints)
+					{
+						if(pc == i)
+							skip = 0;
+					}
+					for(char *s : symbolBreakpoints)
+					{
+						//findIterator = std::find(basicBlocks.begin(), basicBlocks.end(), targetPC);
+						//int testindex = findIterator-basicBlocks.begin();
+						if(strcmp(s, basicBlockNames[index].c_str()) == 0)
+						{
+							skip = 0;
+						}
+					}
+				}
 				
 				// Check to see if we've entered a hooked function
-				
-				
 				// Code to search iteratively through our hooked functions and find if PC is a hooked address.
 				
 				findIterator = std::find(functionVirtualAddress.begin(), functionVirtualAddress.end(), pc);
@@ -776,6 +794,8 @@ class EmulatedCPU
 					
 					instructionsRun++;
 					printNotifs(6,"Instructions run: %lld\n\n", instructionsRun);
+
+					
 				}
 				//If the instruction is nullified, cancel the nullification
 				else
@@ -914,6 +934,7 @@ class EmulatedCPU
 					uint32_t breakpoint = std::stoul(breaktag+1, NULL, 16);
 					printf("0x%x\n", breakpoint);
 					instructionPointerBreakpoints.push_back(breakpoint);
+					checkBreakPoints = true;
 					return 0;
 				}
 				//else, the breaktag is the name of a symbol
@@ -921,7 +942,7 @@ class EmulatedCPU
 				it = find(basicBlockNames.begin(), basicBlockNames.end(), breaktag);
 				if(it != basicBlockNames.end())
 				{
-					printf("%s\n", breaktag);
+					checkBreakPoints = true;
 					symbolBreakpoints.push_back(breaktag);
 				}
 				else
@@ -982,19 +1003,18 @@ class EmulatedCPU
 				if(memUnit->isInBinary(address))
 				{
 					printNotifs(7,"bytes:");
-					char* hold = (char*)(calloc(n, sizeof(char)));
-					if (bv->Read(hold, address, n) != n)
+					char* hold = memUnit->getEffectiveAddress(address, n, 0);
+					/*if (bv->Read(hold, address, n) != n)
 					{
 						printNotifs(7, "bv read generally pause\n");
 						while(true) generallyPause(); // Why was this put here?
-					}
-					else
-					{
+					}*/
 						int linePos=0, word=0;
+						printf("\n");
 						for(int i=0;i<n;i++)
 						{
 							
-							printf("%x", hold[i]);
+							printf("%02hhx", hold[i]);
 							word++;
 							linePos++;
 							if(word > 3)
@@ -1002,13 +1022,13 @@ class EmulatedCPU
 								printf(" ");
 								word = 0;
 							}
-							if(linePos > LineWidth)
+							if(linePos >= LineWidth)
 							{
 								printf("\n");
 								linePos = 0;
 							}
 						}
-					}
+					
 				}
 			}
 			
@@ -1019,7 +1039,7 @@ class EmulatedCPU
 			return 0;
 		}
 		
-		//
+		// 
 		// Hooked Functions
 		// 
 		
@@ -1033,9 +1053,12 @@ class EmulatedCPU
 			//registerDump();
 			printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[5], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[5], gpr[6], 17, gpr[5]);
+			char *strptr = (char *)calloc(gpr[6]+1, sizeof(char));
+			strncpy(strptr, address, gpr[6]);
+			strptr[gpr[6]] = 0;
 			if(address == NULL)
 				signalException(MemoryFault);
-			printf("%s", address);
+			printf("%s", strptr);
 			this->pc = gpr[31];
 			return;
 		}

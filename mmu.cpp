@@ -184,7 +184,7 @@ class Heap
 			{
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
-				printHeap("Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr, 0, false, start, end);
+				printHeap("Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr, 0, true, start, end);
 				return NULL;
 			}
 			
@@ -223,19 +223,19 @@ class Heap
 				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x] w/ val [0x%x].\n", i, (vaddr-this->heapBase), (i), this->backingMemory[i]);
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST && !suppress)
 				{
-					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", i, 0, true, start, end);
+					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", this->heapBase + i, 0, true, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST && !suppress)
 				{
-					printHeap("[ERROR] Reading from uninitialized memory!\n", i, 0,true, start, end);
+					printHeap("[ERROR] Reading from uninitialized memory!\n", this->heapBase + i, 0,true, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS && !suppress)
 				{
-					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", i, 0,true, start, end);
+					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", this->heapBase + i, 0,true, start, end);
 					return NULL;	
 				}
 				
@@ -258,13 +258,13 @@ class Heap
 			{
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
-				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
 			if(size == 0)
 			{
-				printHeap("[ERROR] Write Heap Memory on a size of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, false, 1, 1);
+				printHeap("[ERROR] Write Heap Memory on a size of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, 1, 1);
 				return 0;
 			}
 			
@@ -274,7 +274,7 @@ class Heap
 			{
 				start = this->heapBase;
 				end = this->heapBase + min((uint64_t) 128, this->heapSize);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -285,7 +285,7 @@ class Heap
 			{
 				end = this->heapBase + this->heapSize;
 				start = max((uint64_t) end - 128, this->heapBase);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -301,13 +301,13 @@ class Heap
 				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
 					
-					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", i, 0, true, start, end);
+					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", this->heapBase + i, 0, true, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", i, 0, true, start, end);
+					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", this->heapBase + i, 0, true, start, end);
 					return NULL;	
 				}
 				
@@ -331,7 +331,7 @@ class Heap
 			{
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
-				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -341,7 +341,7 @@ class Heap
 			{
 				start = this->heapBase;
 				end = this->heapBase + min((uint64_t) 128, this->heapSize);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -350,7 +350,7 @@ class Heap
 			{
 				end = this->heapBase + this->heapSize;
 				start = max((uint64_t) end - 128, this->heapBase);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr, 0, false, start, end);
+				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -361,19 +361,19 @@ class Heap
 			end = min((uint64_t) 32 + vaddr, heapSize);
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
-				printHeap("[ERROR] We have found a double free!\n", index, 0, true, start, end);
+				printHeap("[ERROR] We have found a double free!\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
 			if(this->initializedMemory[index] & GUARDPAGE_MEMORY_CONST)
 			{
-				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", index, 0,true, start, end);
+				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", vaddr, 0,true, start, end);
 				return 0;
 			}
 			
 			if(!(this->initializedMemory[index-1] & GUARDPAGE_MEMORY_CONST))
 			{
-				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", index-1, 0, true, start, end);
+				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", vaddr-1, 0, true, start, end);
 				return 0;
 			}
 			
@@ -415,15 +415,15 @@ class Heap
 				end = this->initializedMemory.size();
 			else
 				end -= heapBase;
-			if(!convert)
-				triggeringVirtualAddress = this->heapBase+triggeringVirtualAddress;
+			//if(!convert)
+				//triggeringVirtualAddress = this->heapBase+triggeringVirtualAddress;
 			if(start != 0)
 				start -= heapBase;
 			if(start < 0)
 				start = 0;
 			if(end > heapSize)
 				end = heapSize;
-			
+			int heapOffset = triggeringVirtualAddress - this->heapBase;
 		
 			// ----------------------------
 			// | 0x00 0x00 0x00 0x00 0x00 | 0-7
@@ -438,7 +438,7 @@ class Heap
 			
 			printf("\nPossible anomolous behavior in the heap has been detected.\n");
 			printf("Warning: %s\n", warning);
-			printf("This warning was generated by PC 0x%x accessing 0x%08x in memory.\n", triggeringPC, triggeringVirtualAddress);
+			printf("This warning was generated by PC 0x%x accessing 0x%08llx in memory.\n", triggeringPC, triggeringVirtualAddress);
 			
 			printf("LEGEND (in order of priority):\n");
 			printf("\x1b[31m\x1b[44m- GUARD PAGE\x1b[0m\n");

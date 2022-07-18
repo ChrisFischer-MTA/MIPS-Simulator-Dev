@@ -8,7 +8,7 @@
 // z"             "c        d"          *.           "$.
 //.F                        "            "            'F
 //d                                                   J%
-//3            E L E C T R I C   R O C K              e"
+//3                                                  e"
 //4r                                                d"
 // $     .d"     .        .F             z ..zeeeeed"
 // "*beeeP"      P        d      e.      $**""    "
@@ -599,6 +599,7 @@ class EmulatedCPU
 			{
 				printf("Gracefully exiting.\n");
 				BNShutdown();
+				system("clear");
 				raise(SIGKILL);
 			}
 			while(true)
@@ -973,6 +974,7 @@ class EmulatedCPU
 					fflush(PCPathFile);
 					fclose(PCPathFile);
 				}
+				system("clear");
 				raise(SIGKILL);
 			}
 			else if(strncmp(input, "help", 4) == 0)
@@ -2381,6 +2383,7 @@ class EmulatedCPU
 				}
 				printNotifs(6, "Exiting gracefully\n");
 				BNShutdown();
+				system("clear");
 				raise(SIGKILL);
 			}
 
@@ -3550,7 +3553,7 @@ class EmulatedCPU
 				{
 					while(i >= 0)
 					{
-						printNotifs(7, "writing to %x", bytes+k);
+						printNotifs(7, "writing to %x\n", bytes+k);
 						bytes[k] = (gpr[rt] >> j) & 0xff;
 						i--;
 						j += 8;
@@ -4194,6 +4197,36 @@ class EmulatedCPU
 		}
 };
 
+void electricRockLogo(void)
+{
+	puts("    .deez...      .....       .eeec.   ..eee..");						//    .deez...      .....       .eeec.   ..eee..
+	puts("   .d*\"  \"\"\"\"*e..d*\"\"\"\"\"**e..e*\"\"  \"*c.d\"\"  \"\"*e.");	//   .d*"  """"*e..d*"""""**e..e*""  "*c.d""  ""*e.
+	puts("  z\"           \"$          $\"\"       *F         **e.");			//  z"           "$          $""       *F         **e.
+	puts(" z\"             \"c        d\"          *.           \"$.");			// z"             "c        d"          *.           "$.
+	puts(".F                        \"            \"            'F");			//.F                        "            "            'F
+	puts("d                                                   J%");				//d                                                   J%
+	puts("3                                                  e\"");				//3                                                  e"
+	puts("4r                                                d\"");				//4r                                                d"
+	puts(" $     .d\"     .        .F             z ..zeeeeed\"");				// $     .d"     .        .F             z ..zeeeeed"
+	puts(" \"*beeeP\"      P        d      e.      $**\"\"    \"");				// "*beeeP"      P        d      e.      $**""    "
+	puts("     \"*b.     Jbc.     z*%e.. .$**eeeeP\"");							//     "*b.     Jbc.     z*%e.. .$**eeeeP"
+	puts("        \"*beee* \"$$eeed\"$$$^$$$\"\"    \"");						//        "*beee* "$$eeed"$$$^$$$""    "
+	puts("                      d$$$$$$\"");									//                      d$$$$$$"
+	puts("                    .d$$$$$$\"");										//                    .d$$$$$$"
+	puts("                   .$$$$$$$\"");										//                   .$$$$$$$"
+	puts("                  z$$$$$$$beeeeee");									//                  z$$$$$$$beeeeee
+	puts("                 d$$$$$$$$$$$$$*");									//                 d$$$$$$$$$$$$$*
+	puts("                ^\"\"\"\"\"\"\"\"$$$$$\"");							//                ^""""""""$$$$$"
+	puts("                        d$$$*");										//                        d$$$*
+	puts("                       d$$$\"");										//                       d$$$"
+	puts("                      d$$*");											//                      d$$*
+	puts("                     d$P\"");											//                     d$P"
+	puts("                   .$$\"");											//                   .$$"
+	puts("                  .$P\"");											//                  .$P"
+
+	return;
+}
+
 
 
 #ifndef _WIN32
@@ -4218,6 +4251,8 @@ static string GetPluginsDirectory()
 
 int main(int argn, char ** args)
 {	
+	electricRockLogo();
+
 	// Argparse testing
 	argparse::ArgumentParser program("Electric Rock");
 
@@ -4392,10 +4427,11 @@ int main(int argn, char ** args)
 	
 	SetBundledPluginDirectory(GetPluginsDirectory());
 	InitPlugins();
-	printf("[Loading] Plugins initialized!\n");
+	
+	//printf("[Loading] Plugins initialized!\n");
 	Ref<BinaryData> bd = new BinaryData(new FileMetadata(), args[1]);
 	Ref<BinaryView> bv = NULL;
-	printf("[Loading] BV Instantiated!\n");
+	//printf("[Loading] BV Instantiated!\n");
 	fflush(stdout);
 	for (auto type : BinaryViewType::GetViewTypes())
 	{
@@ -4405,21 +4441,22 @@ int main(int argn, char ** args)
 			break;
 		}
 	}
-	printf("[Loading] BVs initialized!\n");
+	//printf("[Loading] BVs initialized!\n");
 	if (!bv || bv->GetTypeName() == "Raw")
 	{
 		fprintf(stderr, "Input file does not appear to be an exectuable\n");
 		return -1;
 	}
-	printf("[Loading] Starting Analysis.\n");
+	//printf("[Loading] Starting Analysis.\n");
 	bv->UpdateAnalysisAndWait();
-	printf("[Loading] Finished Analysis.\n");
+	//printf("[Loading] Finished Analysis.\n");
 
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
 	
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain
+	system("clear");
 	electricrock->runEmulation(electricrock->startOfMain);
 
 	// Proper shutdown of core

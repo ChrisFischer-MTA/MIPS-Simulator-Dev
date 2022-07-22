@@ -502,7 +502,7 @@ class EmulatedCPU
 		bool instructionNullify = false;
 		bool validState = true;
 		bool delaySlot = false;
-		char* instructions;
+		char* instructions; //unused
 		int32_t tgt_offset = 0;
 		uint64_t instructionsRun = 0;
 		uint32_t endOfMain, startOfMain;
@@ -578,6 +578,80 @@ class EmulatedCPU
 			
 		}
 
+		 void replaceEmulatedCPU(bool is64bit, BinaryView* bc)
+		 {
+			rs = 0; rt = 0; rd = 0; sa = 0;
+			immediate = 0; signedImmediate = 0;
+			LO = 0; HI = 0;
+			instructionNullify = false;
+			validState = true;
+			delaySlot = false;
+			tgt_offset = 0;
+			instructionsRun = 0;
+			checkBreakPoints = false;
+			instructionPointerBreakpoints.clear();
+			symbolBreakpoints.clear();
+			mipsTarget = 32;
+			debugPrint = true;
+
+
+			bv = bc;
+			memUnit->MMUFree();
+			memUnit = new MMU(is64bit, bc);
+			int i;
+			pc = 0;
+			for (i = 0; i < 32; i++)
+			{
+				gpr[i] = 0;	
+			}
+			//Instantiates the stack pointer;
+			//gpr[29] = memUnit->stackBase - 28 - 396;
+			gpr[29] = memUnit->stackBase - 0xf20;
+
+			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12, true) + 6;
+			hwr[29] = UserLocalPtr;
+			if(globalLogLevel >= 7)
+				memUnit->printSections();
+			
+			for(auto& func : bv ->GetAnalysisFunctionList())
+			{
+				for(auto& block : func->GetBasicBlocks())
+				{
+					// add to a vector
+					basicBlocks.push_back(block->GetStart());
+					basicBlockNames.push_back(func->GetSymbol()->GetFullName().c_str());
+					if(strncmp(func->GetSymbol()->GetFullName().c_str(), "main", 4) == 0)
+					{
+						auto addRanges = func->GetAddressRanges();
+						endOfMain = addRanges[0].end;
+						startOfMain = addRanges[0].start;
+						//printNotifs(7, "%x, %x", startOfMain, endOfMain);
+					}
+				}
+			}
+			
+			// First, get a list of functions. 
+			// Get the name, loop through our hooked functions linked
+			for(auto& func : bv ->GetAnalysisFunctionList())
+			{
+				Ref<Symbol> sym = func->GetSymbol();
+				if (sym)
+				{
+					std::string currentFunctionName = sym->GetFullName();
+					for(i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
+					{
+						if(currentFunctionName == static_function_hook_matching[i])
+						{
+							functionVirtualAddress.push_back(func->GetStart());
+							functionVirtualFunction.push_back(i);
+							// printf("hooking: %s @ 0x%x \n", currentFunctionName.c_str(), func->GetStart());
+						}
+					}
+				}
+			}
+
+		 }
+
 		// This function is a hacky way for us to freeze in the debug console which will be replaced
 		// by a system call in the future.
 		void generallyPause()
@@ -599,7 +673,7 @@ class EmulatedCPU
 			{
 				printf("Gracefully exiting.\n");
 				BNShutdown();
-				system("clear");
+				//system("clear");
 				raise(SIGKILL);
 			}
 			while(true)
@@ -873,6 +947,12 @@ class EmulatedCPU
 						scanf("%s", breaktag);
 						flags = scanCode(pweasenosteppy, 0, 0, breaktag);
 					}
+					else if(strncmp(pweasenosteppy, "file", 4) == 0)
+					{
+						char *breaktag = (char *)calloc(256, sizeof(char));
+						scanf("%s", breaktag);
+						flags = scanCode(pweasenosteppy, 0, 0, breaktag);
+					}
 
 					else
 					{
@@ -958,6 +1038,16 @@ class EmulatedCPU
 				scanf("%d", &n);
 				return n;
 			}
+			else if(strncmp(input, "file", 4) == 0)
+			{
+				//filepath is in breaktag
+				Ref<BinaryView> bv = createBinjaAnalysis(breaktag);
+				replaceEmulatedCPU(false, bv);
+				this->runEmulation(this->startOfMain);
+				//overwrite emulatedcpu
+				//return 0;
+				
+			}
 			else if(strncmp(input, "continue", 8) == 0)
 			{
 				return INT_MAX;
@@ -967,7 +1057,7 @@ class EmulatedCPU
 				registerDump();
 				return 0;
 			}
-			else if(strncmp(input, "exit", 4) == 0 || strncmp(input, "kill", 4) == 0 || strncmp(input, "quit", 4) == 0)
+			else if(strncmp(input, "exit", 4) == 0 || strncmp(input, "quit", 4) == 0)
 			{
 				if(PCPathFile)
 				{
@@ -975,6 +1065,11 @@ class EmulatedCPU
 					fclose(PCPathFile);
 				}
 				system("clear");
+				raise(SIGKILL);
+			}
+			else if(strncmp(input, "kill", 4) == 0)
+			{
+				BNShutdown();
 				raise(SIGKILL);
 			}
 			else if(strncmp(input, "help", 4) == 0)
@@ -2382,9 +2477,10 @@ class EmulatedCPU
 					printf("Total time for emulation: %f", cpu_time_used);
 				}
 				printNotifs(6, "Exiting gracefully\n");
-				BNShutdown();
-				system("clear");
-				raise(SIGKILL);
+				generallyPause();
+				//BNShutdown();
+				//system("clear");
+				//raise(SIGKILL);
 			}
 
 			runInstruction(getNextInstruction());
@@ -4195,6 +4291,60 @@ class EmulatedCPU
 				(this->*inst_handlers_otypes[(instruction & 0xfc000000) >> 26])(instruction);
 			}			
 		}
+		Ref<BinaryView> createBinjaAnalysis(char *filePath)
+		{
+			FILE *fp;
+			fp = fopen(filePath, "r");
+			if (fp == NULL)
+			{ 
+				fprintf(stderr, "File does not exist"); 
+				BNShutdown();
+				return 0;
+			}
+			else
+			{
+				fclose(fp);
+			}
+
+			// Overwriting current file and checking opened correctly, before closing again
+			PCPathFile = fopen("pcpathing.txt", "w+");		
+			if (PCPathFile == NULL)
+			{	
+				fprintf(stderr, "File failed to open\n");
+				return 0;
+			}
+					
+			// In order to initiate the bundled plugins properly, the location
+			// of where bundled plugins directory is must be set. Since
+			// libbinaryninjacore is in the path get the path to it and use it to
+			// determine the plugins directory
+			
+			SetBundledPluginDirectory(GetPluginsDirectory());
+			InitPlugins();
+			
+			//printf("[Loading] Plugins initialized!\n");
+			Ref<BinaryData> bd = new BinaryData(new FileMetadata(), filePath);
+			Ref<BinaryView> bv = NULL;
+			//printf("[Loading] BV Instantiated!\n");
+			//fflush(stdout);
+			for (auto type : BinaryViewType::GetViewTypes())
+			{
+				if (type->IsTypeValidForData(bd) && type->GetName() != "Raw")
+				{
+					bv = type->Create(bd);
+					break;
+				}
+			}
+			//printf("[Loading] BVs initialized!\n");
+			if (!bv || bv->GetTypeName() == "Raw")
+			{
+				fprintf(stderr, "Input file does not appear to be an exectuable\n");
+				return -1;
+			}
+			//printf("[Loading] Starting Analysis.\n");
+			bv->UpdateAnalysisAndWait();
+			return bv;
+		}
 };
 
 void electricRockLogo(void)
@@ -4227,8 +4377,6 @@ void electricRockLogo(void)
 	return;
 }
 
-
-
 #ifndef _WIN32
 #include <libgen.h>
 #include <dlfcn.h>
@@ -4248,6 +4396,8 @@ static string GetPluginsDirectory()
 	return "C:\\Program Files\\Vector35\\BinaryNinja\\plugins\\";
 }
 #endif
+
+
 
 int main(int argn, char ** args)
 {	
@@ -4343,6 +4493,7 @@ int main(int argn, char ** args)
 
 	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
+	/*
 	if(batchMode)
 	{
 		// Create list of paths to test cases from batch directory
@@ -4393,11 +4544,8 @@ int main(int argn, char ** args)
 		BNShutdown();
 		return 0;
 	}
+	*/
 
-
-
-
-	//
 	// Check if file is accessable/exists
 	FILE *fp;
 	fp = fopen(args[1], "r");
@@ -4453,6 +4601,7 @@ int main(int argn, char ** args)
 
 	// Begin Emulation
 	EmulatedCPU* electricrock = new EmulatedCPU(false, bv);
+	
 	
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain

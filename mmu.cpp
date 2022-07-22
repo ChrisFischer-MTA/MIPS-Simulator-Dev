@@ -112,6 +112,13 @@ class Heap
 		{
 			return;
 		}
+
+		void heapFree()
+		{
+			backingMemory.clear();
+			initializedMemory.clear();
+			allocInfo.clear();
+		}
 		
 		// This is essentially the wrapper for the memory.
 		uint32_t allocMem(uint32_t size, bool suppress = false)
@@ -611,6 +618,21 @@ class MMU
 
 
 		//printSections();
+	}
+
+	void MMUFree()
+	{
+		//Take care of the binary
+		segments.clear();
+		allSections.clear();
+		
+
+		//Take care of the heap
+		MMUHeap.heapFree();
+		
+
+		//Break the stack's knees
+		stack.clear();
 	}
 
 	

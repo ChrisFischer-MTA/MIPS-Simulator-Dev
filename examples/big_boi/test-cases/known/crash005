@@ -1,0 +1,5 @@
+GETer-Agent:-Agent: Mozill\/5.0 (XHost:11; Ubuntu; Linux x86_64; rv:102.0)=Gecko/20100101 Firefox/102.0
+3ccept: text/html,appp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive

@@ -98,6 +98,7 @@ clock_t startOfEmulation, endOfEmulation;
 double cpu_time_used;
 int globalLogLevel = 0;
 int stepsize = 1;
+int testcaseIdx = 0;
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -824,11 +825,13 @@ class EmulatedCPU
 					
 					for(int i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
 					{
+						/*
 						if(strcmp(basicBlockNames[index].c_str(), static_function_hook_matching[functionVirtualFunction[i]].c_str()) == 0)
 						{
 							printNotifs(5,"Found a hooked function, calling appropriate hooked implementation (prototype)!\n");
 							(this->*static_function_hooks[functionVirtualFunction[i]])(0x0);
 						}
+						*/
 					}				
 				}
 				else
@@ -1378,8 +1381,9 @@ class EmulatedCPU
 		{
 			// a0 is the buffer to write too
 			// a1 is the max length
-			
-			FILE *ifp = fopen(globalFile, "rb");
+			const char *testcase = batchNames[testcaseIdx].c_str();
+			printf("testcase: %s\n", testcase);
+			FILE *ifp = fopen(testcase, "rb");
 			printf("Printing my_read\n");
 			fseek(ifp, 0, SEEK_END);
 			long fsize = ftell(ifp);
@@ -1387,20 +1391,20 @@ class EmulatedCPU
 			fseek(ifp, 0, SEEK_SET);
 			if(fsize < 10000)
 			{
-			    fread(buf, fsize, 1, ifp);
+			    //fread(buf, fsize, 1, ifp);
 			    fclose(ifp);
 			    
-			    buf[fsize] = 0;
+			    //buf[fsize] = 0;
 			    
-			    printf("%s", buf);
+			    //printf("%s", buf);
 			    printf("ending my_read\n\n\n\n\n");
-			    request_len = fsize;
+			    //request_len = fsize;
 			   //return (ssize_t) fsize;
 			}
 			else
 			{
 				fclose(ifp);
-				request_len = 0;
+				//request_len = 0;
 				//return (ssize_t) 0;
 			}
 			// write 13c to v0 and v1
@@ -4498,10 +4502,10 @@ int main(int argn, char ** args)
 		.default_value(false)
 		.implicit_value(true);
 	
-	program.add_argument("--batch")
+	program.add_argument("batch")
 		.help("run a directory of test cases")
-		.default_value(false)
-		.implicit_value(true);
+		.default_value<std::vector<std::string>>({ "/dev/null" })
+  		.append();
 
 	program.add_argument("--loglevel")
 		.scan<'i', int>()
@@ -4522,6 +4526,7 @@ int main(int argn, char ** args)
 	}
 
 	auto code_path = program.get<std::string>("path");
+	auto batchPath = program.get<char*>("batch");
 	globalLogLevel = program.get<int>("loglevel");
 
 	// Usage of optional args --pcout and --reg
@@ -4555,14 +4560,14 @@ int main(int argn, char ** args)
 
 	if (program["--batch"] == true)
 	{
-		char *testcaseDir = malloc(sizeof(char) * 1024);
-		scanf("%s", testcaseDir);
-		std::cout << "Batch Directory: " << testcaseDir << endl;
+		//char *testcaseDir = malloc(sizeof(char) * 1024);
+		//scanf("%s", testcaseDir);
+		std::cout << "Batch Directory: " << batchPath << endl;
 		batchMode = true;
 
 		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
-		for (auto& dirEntry : recursive_directory_iterator(testcaseDir))
+		for (auto& dirEntry : recursive_directory_iterator(batchPath))
 		{	
 			std::string dirString = dirEntry.path().string();
 			std::string knownPath ("/test-cases/known");
@@ -4572,6 +4577,7 @@ int main(int argn, char ** args)
 			batchNames.push_back(dirString);
 			std::cout << dirEntry << std::endl;
 		}
+		//free(testcaseDir);
 	}
 
 	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;

@@ -104,7 +104,7 @@ std::vector<uint32_t> functionVirtualAddress;
 // Array offset in our hooked functions table which dictates which function the emualator calls
 std::vector<short int> functionVirtualFunction; 
 
-const short int NUM_FUNCTIONS_HOOKED = 4;
+const short int NUM_FUNCTIONS_HOOKED = 7;
 
 class EmulatedCPU
 {
@@ -472,7 +472,10 @@ class EmulatedCPU
 			&EmulatedCPU::hooked_libc_write,
 			&EmulatedCPU::hooked_libc_malloc,	
 			&EmulatedCPU::hooked_libc_free,	
-			&EmulatedCPU::hooked_libc_scanf
+			&EmulatedCPU::hooked_libc_scanf,
+			&EmulatedCPU::hooked__GI_tzset,
+			&EmulatedCPU::hooked_my_read,
+			&EmulatedCPU::hooked_my_write,
 			//&EmulatedCPU::hooked_libc_fwrite	
 		};
 		
@@ -481,7 +484,10 @@ class EmulatedCPU
 			"__stdio_WRITE",
 			"__libc_malloc",
 			"free",
-			"scanf"
+			"scanf",
+			"__GI_tzset",
+			"my_read",
+			"my_write",
 			//"__stdio_fwrite"
 		};
 
@@ -1352,6 +1358,33 @@ class EmulatedCPU
 			//puts("The answer is %s")
 			
 		}
+		
+		void hooked__GI_tzset(uint32_t opcode)
+		{
+			// jump to ra
+			this->pc = gpr[31];
+		}
+
+		void hooked_my_read(uint32_t opcode)
+		{
+			// a0 is the buffer to write too
+			// a1 is the max length
+			printf("lol\n");
+			while(true);
+			
+			// jump to ra
+			this->pc = gpr[31];
+		}
+
+		void hooked_my_write(uint32_t opcode)
+		{
+			
+		
+		
+			// jump to ra
+			this->pc = gpr[31];
+		}
+
 
 		// 
 		// Emulationed Operation codes for the JIT. 

@@ -576,7 +576,7 @@ class EmulatedCPU
 						{
 							functionVirtualAddress.push_back(func->GetStart());
 							functionVirtualFunction.push_back(i);
-							// printf("hooking: %s @ 0x%x \n", currentFunctionName.c_str(), func->GetStart());
+							//printf("hooking:%d %s @ 0x%x \n", i,currentFunctionName.c_str(), func->GetStart());
 						}
 					}
 				}
@@ -823,9 +823,12 @@ class EmulatedCPU
 					index = findIterator-basicBlocks.begin();
 					printNotifs(6,"Current PC:  0x%lx - Start of a Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
 					
-					for(int i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
+					for(int i = 0; i < functionVirtualFunction.size(); i++)
 					{
-						
+						//printf("i: %d\n", i);
+						//printf("func: %d\n",functionVirtualFunction[i]);
+						//printf("%s\n", basicBlockNames[index].c_str());
+						//printf("%s\n", static_function_hook_matching[functionVirtualFunction[i]].c_str());
 						if(strcmp(basicBlockNames[index].c_str(), static_function_hook_matching[functionVirtualFunction[i]].c_str()) == 0)
 						{
 							printNotifs(5,"Found a hooked function, calling appropriate hooked implementation (prototype)!\n");
@@ -1397,7 +1400,6 @@ class EmulatedCPU
 				char *buf = memUnit->getEffectiveAddress(gpr[4], 9999, 4);
 				if(buf == NULL)
 				{
-					printf("HOLY SHIT THIS IS BROKEN OH MY GOD IM BEING TOUCHED");
 					generallyPause();
 				}
 			    fread(buf, fsize, 1, ifp);
@@ -1426,7 +1428,7 @@ class EmulatedCPU
 
 		void hooked_my_write(uint32_t opcode)
 		{
-			printf("%s\n", memUnit->getEffectiveAddress(gpr[4], 1, 0));
+			printf("%s\n", memUnit->getEffectiveAddress(gpr[4], 1, 4));
 			// jump to ra
 			this->pc = gpr[31];
 		}

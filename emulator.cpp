@@ -821,6 +821,15 @@ class EmulatedCPU
 					// Get the index
 					index = findIterator-basicBlocks.begin();
 					printNotifs(6,"Current PC:  0x%lx - Start of a Basic Block in: %s\n", pc, basicBlockNames[index].c_str());
+					
+					for(int i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
+					{
+						if(strcmp(basicBlockNames[index].c_str(), static_function_hook_matching[functionVirtualFunction[i]].c_str()) == 0)
+						{
+							printNotifs(5,"Found a hooked function, calling appropriate hooked implementation (prototype)!\n");
+							(this->*static_function_hooks[functionVirtualFunction[i]])(0x0);
+						}
+					}				
 				}
 				else
 				{
@@ -1369,8 +1378,34 @@ class EmulatedCPU
 		{
 			// a0 is the buffer to write too
 			// a1 is the max length
-			printf("lol\n");
-			while(true);
+			
+			FILE *ifp = fopen(globalFile, "rb");
+			printf("Printing my_read\n");
+			fseek(ifp, 0, SEEK_END);
+			long fsize = ftell(ifp);
+			printf("size of file to read in is %ld\n", fsize);
+			fseek(ifp, 0, SEEK_SET);
+			if(fsize < 10000)
+			{
+			    fread(buf, fsize, 1, ifp);
+			    fclose(ifp);
+			    
+			    buf[fsize] = 0;
+			    
+			    printf("%s", buf);
+			    printf("ending my_read\n\n\n\n\n");
+			    request_len = fsize;
+			   //return (ssize_t) fsize;
+			}
+			else
+			{
+				fclose(ifp);
+				request_len = 0;
+				//return (ssize_t) 0;
+			}
+			// write 13c to v0 and v1
+			
+			
 			
 			// jump to ra
 			this->pc = gpr[31];

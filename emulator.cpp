@@ -4487,8 +4487,23 @@ int main(int argn, char ** args)
 
 	if (program["--batch"] == true)
 	{
-		std::cout << "Batch Directory: " << code_path << endl;
+		char *testcaseDir = malloc(sizeof(char) * 1024);
+		scanf("%s", testcaseDir);
+		std::cout << "Batch Directory: " << testcaseDir << endl;
 		batchMode = true;
+
+		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+		for (auto& dirEntry : recursive_directory_iterator(testcaseDir))
+		{	
+			std::string dirString = dirEntry.path().string();
+			std::string knownPath ("/test-cases/known");
+			std::size_t found = dirString.find(knownPath);
+			if (found != std::string::npos)
+				continue;
+			batchNames.push_back(dirString);
+			std::cout << dirEntry << std::endl;
+		}
 	}
 
 	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
@@ -4605,7 +4620,7 @@ int main(int argn, char ** args)
 	
 	//(uint32_t)bv->GetEntryPoint()
 	//electricrock->startOfMain
-	system("clear");
+	//system("clear");
 	electricrock->runEmulation(electricrock->startOfMain);
 
 	// Proper shutdown of core

@@ -825,13 +825,13 @@ class EmulatedCPU
 					
 					for(int i = 0; i < NUM_FUNCTIONS_HOOKED; i++)
 					{
-						/*
+						
 						if(strcmp(basicBlockNames[index].c_str(), static_function_hook_matching[functionVirtualFunction[i]].c_str()) == 0)
 						{
 							printNotifs(5,"Found a hooked function, calling appropriate hooked implementation (prototype)!\n");
 							(this->*static_function_hooks[functionVirtualFunction[i]])(0x0);
 						}
-						*/
+						
 					}				
 				}
 				else
@@ -1381,6 +1381,7 @@ class EmulatedCPU
 		{
 			// a0 is the buffer to write too
 			// a1 is the max length
+			
 			const char *testcase = batchNames[testcaseIdx].c_str();
 			printf("testcase: %s\n", testcase);
 			FILE *ifp = fopen(testcase, "rb");
@@ -1389,27 +1390,35 @@ class EmulatedCPU
 			long fsize = ftell(ifp);
 			printf("size of file to read in is %ld\n", fsize);
 			fseek(ifp, 0, SEEK_SET);
+			
 			if(fsize < 10000)
 			{
-			    //fread(buf, fsize, 1, ifp);
+				printf("the pointer is 0x%x\n", gpr[4]);
+				char *buf = memUnit->getEffectiveAddress(gpr[4], 9999, 4);
+				if(buf == NULL)
+				{
+					printf("HOLY SHIT THIS IS BROKEN OH MY GOD IM BEING TOUCHED");
+					generallyPause();
+				}
+			    fread(buf, fsize, 1, ifp);
 			    fclose(ifp);
 			    
-			    //buf[fsize] = 0;
+			    buf[fsize] = 0;
 			    
-			    //printf("%s", buf);
+			    printf("%s", buf);
 			    printf("ending my_read\n\n\n\n\n");
-			    //request_len = fsize;
-			   //return (ssize_t) fsize;
+			    
 			}
 			else
 			{
 				fclose(ifp);
-				//request_len = 0;
-				//return (ssize_t) 0;
 			}
+			
+			
 			// write 13c to v0 and v1
 			
-			
+			gpr[2] = fsize;
+			gpr[3] = fsize;
 			
 			// jump to ra
 			this->pc = gpr[31];
@@ -1417,9 +1426,7 @@ class EmulatedCPU
 
 		void hooked_my_write(uint32_t opcode)
 		{
-			
-		
-		
+			printf("%s\n", memUnit->getEffectiveAddress(gpr[4], 1, 0));
 			// jump to ra
 			this->pc = gpr[31];
 		}

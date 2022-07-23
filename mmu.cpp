@@ -814,7 +814,7 @@ class MMU
 		//printf("numBytes: [%x]\n", numBytes);
 		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
 		{
-			printf("Stack Overflow Exception");
+			printf("Stack Overflow Exception\n");
 			generallyPause();
 			return NULL;
 		}
@@ -922,6 +922,7 @@ class MMU
 		}
 		
 		// We should never hit this statement
+		// Correction, we are hitting this statement.
 		return NULL;
 	}
 

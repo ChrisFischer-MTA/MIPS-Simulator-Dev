@@ -4482,8 +4482,9 @@ int main(int argn, char ** args)
 		.help("path to the code to be tested by the emulator")
 		.nargs(1);
 		
-	program.add_argument("batch")
+	program.add_argument("--batch")
 		.help("path to the test cases to be tested by the emulator")
+		.default_value(std::string(""))
 		.nargs(1);
 
 	program.add_argument("--pcout")
@@ -4527,7 +4528,7 @@ int main(int argn, char ** args)
 	}
 
 	auto code_path = program.get<std::string>("path");
-	auto batchPath = program.get<std::string>("batch");
+	auto batchPath = program.get<std::string>("--batch");
 	globalLogLevel = program.get<int>("loglevel");
 
 	// Usage of optional args --pcout and --reg
@@ -4559,13 +4560,13 @@ int main(int argn, char ** args)
 		SHUT_UP = 1;
 	}
 
-	if (program.get<std::string>("batch").length() != 0)
+	if (program.get<std::string>("--batch").length() != 0)
 	{
 		//char *testcaseDir = malloc(sizeof(char) * 1024);
 		//scanf("%s", testcaseDir);
 		std::cout << "Batch Directory: " << batchPath << endl;
 		
-/*		batchMode = true;
+		batchMode = true;
 
 		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
@@ -4580,10 +4581,8 @@ int main(int argn, char ** args)
 			std::cout << dirEntry << std::endl;
 		}
 		//free(testcaseDir);
-		*/
+		
 	}
-
-	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
 	/*
 	if(batchMode)

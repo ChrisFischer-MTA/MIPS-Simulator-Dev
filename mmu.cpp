@@ -183,7 +183,8 @@ class Heap
 		uint8_t* readHeapMemory(uint32_t vaddr, uint32_t size, bool suppress = false)
 		{
 			int READWIDTH = 128;
-			printf("[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
+			if(!suppress)
+				printf("[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
 			int i = 0;
 			int start, end;
 			
@@ -1144,9 +1145,10 @@ class MMU
 	
 	// This function uses the Binary Ninja API to validate that the address we're about to jump to 
 	// is not an external symbol that would need to be resolved by the linker.
-	bool isAddrExtern(uint64_t address)
+	bool isAddrExtern(uint64_t address, bool suppress = false)
 	{
-		printf("Checking address [0x%lx]!\n", address);
+		if(!suppress)
+			printf("Checking address [0x%lx]!\n", address);
 		/*
 		// Address is currently for puts() in our a.out
 		//address=0x410864;

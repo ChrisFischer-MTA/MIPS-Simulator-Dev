@@ -1,34 +1,6 @@
 // Christopher Fischer and Rose Newcomer and Sean Kemp
-// 03FEB2022
+// 03FEB2022 
 // Emulator Specific Information
-
-//    .deez...      .....       .eeec.   ..eee..
-//   .d*"  """"*e..d*"""""**e..e*""  "*c.d""  ""*e.
-//  z"           "$          $""       *F         **e.
-// z"             "c        d"          *.           "$.
-//.F                        "            "            'F
-//d                                                   J%
-//3                                                  e"
-//4r                                                d"
-// $     .d"     .        .F             z ..zeeeeed"
-// "*beeeP"      P        d      e.      $**""    "
-//     "*b.     Jbc.     z*%e.. .$**eeeeP"
-//        "*beee* "$$eeed"$$$^$$$""    "
-//                      d$$$$$$"
-//                    .d$$$$$$"
-//                   .$$$$$$$"
-//                  z$$$$$$$beeeeee
-//                 d$$$$$$$$$$$$$*
-//                ^""""""""$$$$$"
-//                        d$$$*
-//                       d$$$"
-//                      d$$*
-//                     d$P"
-//                   .$$"
-//                  .$P"
-//
-// print cloud lines
-// then print bolt emerging from the damn cloud
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -42,6 +14,9 @@
 #include <filesystem>
 #include <limits>
 #include <algorithm>
+#include <unistd.h>
+#include <chrono>
+#include <thread>
 
 
 #include "mmu.cpp"
@@ -97,6 +72,8 @@ bool batchMode = false;
 clock_t startOfEmulation, endOfEmulation;
 double cpu_time_used;
 int globalLogLevel = 0;
+vector<uint32_t> globalKillPoints;
+char *outputfile;
 int stepsize = 1;
 int testcaseIdx = 0;
 
@@ -526,7 +503,11 @@ class EmulatedCPU
 		{
 			bv = bc;
 			//fflush(stdout);
-			memUnit = new MMU(is64bit, bc);
+			memUnit = new MMU(is64bit, bc, 0, outputfile);
+			if(outputfile == NULL)
+			{
+				printf("go sicko go crazy baby\n");
+			}
 			
 			//fflush(stdout);
 			int i;
@@ -604,7 +585,7 @@ class EmulatedCPU
 
 			bv = bc;
 			memUnit->MMUFree();
-			memUnit = new MMU(is64bit, bc);
+			memUnit = new MMU(is64bit, bc, outputfile);
 			int i;
 			pc = 0;
 			for (i = 0; i < 32; i++)
@@ -737,7 +718,7 @@ class EmulatedCPU
 
 		void signalException(int excpt)
 		{
-		printNotifs(1,"Exception occured! [%d]\n", excpt);
+			printNotifs(1,"Exception occured! [%d]\n", excpt);
 			while(true) generallyPause();
 		}
 
@@ -860,6 +841,14 @@ class EmulatedCPU
 						}
 					}
 				}
+
+				if(globalKillPoints.size() != 0)
+				{
+					if(std::find(globalKillPoints.begin(), globalKillPoints.end(), pc) != globalKillPoints.end())
+					{
+						generallyPause();
+					}
+				}
 				
 				// Check to see if we've entered a hooked function
 				// Code to search iteratively through our hooked functions and find if PC is a hooked address.
@@ -919,7 +908,7 @@ class EmulatedCPU
 				
 				//Track the changes to the stack and frame pointer
 				//these are set at the end of the last instruction (In this block) and referenced at this block
-				uint64_t oldFramePointer, oldStackPointer;
+				uint64_t oldFramePointer, oldStackPointer, oldGP;
 				if(gpr[29] != oldStackPointer)
 				{
 					memUnit->newStackSection(gpr[29]);
@@ -1455,10 +1444,10 @@ class EmulatedCPU
 			gpr[3] = fsize;
 			uint32_t vAddr = 24 + gpr[30];
 			char *bytes = memUnit->getWriteAddresss(vAddr, 4, 0);
-			bytes[0] = 0x00;
-			bytes[-1] = 0x46;
-			bytes[-2] = 0x64; 
-			bytes[-3] = 0x30;
+			bytes[0] = (gpr[28] >> 24) & 0xff;
+			bytes[-1] = (gpr[28] >> 16) & 0xff;
+			bytes[-2] = (gpr[28] >> 8) & 0xff; 
+			bytes[-3] = gpr[28] & 0xff;
 
 
 			// jump to ra
@@ -2552,7 +2541,6 @@ class EmulatedCPU
 						printf("%s, ", getName(rd).c_str());
 					printf("%s\n", getName(rs).c_str());
 				}
-				printf("********************************************************\n");
 			}
 			uint64_t temp = gpr[rs];
 			gpr[rd] = pc + 8;
@@ -4473,6 +4461,54 @@ class EmulatedCPU
 
 void electricRockLogo(void)
 {
+	const char *cloud[12] = {"    .deez...      .....       .eeec.   ..eee..",
+						"   .d*\"  \"\"\"\"*e..d*\"\"\"\"\"**e..e*\"\"  \"*c.d\"\"  \"\"*e.",
+						"  z\"           \"$          $\"\"       *F         **e.",
+						" z\"             \"c        d\"          *.           \"$.",
+						".F                        \"            \"            'F",
+						"d                                                   J%",
+						"3                                                  e\"",
+						"4r                                                d\"",
+						" $     .d\"     .        .F             z ..zeeeeed\"",
+						" \"*beeeP\"      P        d      e.      $**\"\"    \"",
+						"     \"*b.     Jbc.     z*%e.. .$**eeeeP\"",
+						"        \"*beee* \"$$eeed\"$$$^$$$\"\"    \""};
+
+	const char *lightning[12] = {"                      d$$$$$$\"",
+						   "                    .d$$$$$$\"",
+						   "                   .$$$$$$$\"",
+						   "                  z$$$$$$$beeeeee",
+						   "                 d$$$$$$$$$$$$$*",
+						   "                ^\"\"\"\"\"\"\"\"$$$$$\"",
+						   "                        d$$$*",
+						   "                       d$$$\"",
+						   "                      d$$*",
+						   "                     d$P\"",
+						   "                   .$$\"",
+						   "                  .$P\""};
+
+	// Print the damn cloud
+
+	for (int j=0; j<12; j++)
+	{
+		system("clear");
+		// Print cloud
+		for (auto i : cloud)
+		{
+			printf("%s\n", i);
+		}
+		//print last j lightning strings
+		for (int k=12-j; k<12;k++)
+		{
+			printf("%s\n", lightning[k]);
+		}
+
+		// wait 1 second
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		// Clear screen
+		
+	}
+	/*
 	puts("    .deez...      .....       .eeec.   ..eee..");						//    .deez...      .....       .eeec.   ..eee..
 	puts("   .d*\"  \"\"\"\"*e..d*\"\"\"\"\"**e..e*\"\"  \"*c.d\"\"  \"\"*e.");	//   .d*"  """"*e..d*"""""**e..e*""  "*c.d""  ""*e.
 	puts("  z\"           \"$          $\"\"       *F         **e.");			//  z"           "$          $""       *F         **e.
@@ -4497,7 +4533,7 @@ void electricRockLogo(void)
 	puts("                     d$P\"");											//                     d$P"
 	puts("                   .$$\"");											//                   .$$"
 	puts("                  .$P\"");											//                  .$P"
-
+	*/
 	return;
 }
 
@@ -4531,42 +4567,48 @@ int main(int argn, char ** args)
 	argparse::ArgumentParser program("Electric Rock");
 
 	program.add_argument("path")
-		.help("path to the code to be tested by the emulator")
+		.help("Set a file path to the code to be tested by the emulator.")
 		.nargs(1);
 		
 	program.add_argument("--batch")
-		.help("path to the test cases to be tested by the emulator")
+		.help("Set a file path to the test cases to be tested by the emulator.")
 		.default_value(std::string(""))
 		.nargs(1);
 
 	program.add_argument("--pcout")
-		.help("dumps pcs to file pcpathing.txt")
+		.help("Dump PCs to file pcpathing.txt.")
 		.default_value(false)
 		.implicit_value(true);
 
 	program.add_argument("--reg")
-		.help("dumps registers at every pc")
+		.help("Dump registers at every PC.")
 		.default_value(false)
 		.implicit_value(true);
 		
 	program.add_argument("--quiet")
-		.help("be quiet and avoid printing debug information")
+		.help("Be quiet and avoid printing debug information.")
 		.default_value(false)
 		.implicit_value(true);
 	
 	program.add_argument("--timer")
-		.help("print execution time of instruction")
+		.help("Print execution time of instruction.")
 		.default_value(false)
 		.implicit_value(true);
 	
-	
-
 	program.add_argument("--loglevel")
 		.scan<'i', int>()
 		.default_value(7)
 		.help("Set the log level globally.");
-		
+
+	program.add_argument("--killpoints")
+		.default_value(std::string(""))
+		.nargs(1)
+		.help("Set a file path to read instruction offsets to terminate the program.");
 	
+	program.add_argument("--outputfile")
+		.default_value(std::string(""))
+		.nargs(1)
+		.help("Set a file path to output crash information to.");
 
 	try 
 	{
@@ -4582,6 +4624,8 @@ int main(int argn, char ** args)
 	auto code_path = program.get<std::string>("path");
 	auto batchPath = program.get<std::string>("--batch");
 	globalLogLevel = program.get<int>("loglevel");
+	auto killpoints_path = program.get<std::string>("killpoints");
+	auto outputfile_path = program.get<std::string>("outputfile");
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)
@@ -4636,6 +4680,39 @@ int main(int argn, char ** args)
 		//for (auto path: batchNames)
 			//std::cout << path << std::endl;
 		//free(testcaseDir);
+		
+	}
+
+	if (program.get<std::string>("--killpoints").length() != 0)
+	{
+		std::cout << "Kill points Directory: " << killpoints_path << endl;
+		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+		FILE *killpointser = fopen(killpoints_path.c_str(), "r");
+		if(killpointser == NULL)
+		{
+			printf("Bad path to kill points\n");
+			raise(SIGKILL);
+		}
+		while(!feof(killpointser))
+		{
+			uint32_t holdpoint = 0;
+			fscanf(killpointser, "%x", &holdpoint);
+			globalKillPoints.push_back(holdpoint);
+
+		}
+	}
+
+	if(program.get<std::string>("--outputfile").length() != 0)
+	{
+		FILE *fp = fopen(outputfile_path.c_str(), "w");
+		if(fp == NULL)
+		{
+			printf("File could not be opened for write, %s\n", outputfile_path);
+			raise(SIGKILL);
+		}
+		
+		outputfile = outputfile_path.c_str();
 		
 	}
 

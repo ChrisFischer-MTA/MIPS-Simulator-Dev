@@ -525,7 +525,7 @@ class EmulatedCPU
 			uint32_t UserLocalPtr = memUnit->MMUHeap.allocMem(12, true) + 6;
 			hwr[29] = UserLocalPtr;
 			
-			if(globalLogLevel >= 7)
+			if(globalLogLevel >= 7 && !beQuietFlag)
 				memUnit->printSections();
 			
 			for(auto& func : bv ->GetAnalysisFunctionList())

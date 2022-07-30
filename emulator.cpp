@@ -76,6 +76,7 @@ vector<uint32_t> globalKillPoints;
 char *outputfile;
 int stepsize = 1;
 int testcaseIdx = 0;
+char *singleTestcase = "";
 
 // Function Information (for hooking)
 std::vector<uint32_t> functionVirtualAddress;
@@ -506,7 +507,7 @@ class EmulatedCPU
 			memUnit = new MMU(is64bit, bc, 0, outputfile);
 			if(outputfile == NULL)
 			{
-				printf("go sicko go crazy baby\n");
+				//printf("go sicko go crazy baby\n");
 			}
 			
 			//fflush(stdout);
@@ -846,7 +847,10 @@ class EmulatedCPU
 				{
 					if(std::find(globalKillPoints.begin(), globalKillPoints.end(), pc) != globalKillPoints.end())
 					{
-						generallyPause();
+						printf("\nEnding execution; hit global killpoint.\n");
+						BNShutdown();
+						raise(SIGKILL);
+						//generallyPause();
 					}
 				}
 				
@@ -1207,14 +1211,14 @@ class EmulatedCPU
 			
 			//registerDump();
 			//printNotifs(6,"Getting string address 0x%lx of size 0x%0lx.\n", gpr[5], gpr[6]);
-			printf("Getting string address 0x%lx of size 0x%0lx.\n", gpr[5], gpr[6]);
+			//printf("Getting string address 0x%lx of size 0x%0lx.\n", gpr[5], gpr[6]);
 			char *address = memUnit->getEffectiveAddress(gpr[5], gpr[6], 17, gpr[5], beQuietFlag);
 			char *strptr = (char *)calloc(gpr[6]+1, sizeof(char));
 			strncpy(strptr, address, gpr[6]);
 			strptr[gpr[6]] = 0;
 			if(address == NULL)
 				signalException(MemoryFault);
-			printf("strlen: %d\n", strlen(strptr));
+			//printf("strlen: %d\n", strlen(strptr));
 			printf("%s", strptr);
 			this->pc = gpr[31];
 			return;
@@ -1313,7 +1317,7 @@ class EmulatedCPU
 					//
 					if(targetFormatStr[1] == 'd')
 					{
-						printf("detected d\n");
+						//printf("detected d\n");
 						numBytes = 4;
 						scanToken = (char *)calloc(4, sizeof(char));
 						for(int i = 0;i< 4;i++)
@@ -1322,10 +1326,10 @@ class EmulatedCPU
 						}
 
 							
-						printf("value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
+						printNotifs(7,"value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
 						//I think scanf casts the pointer in the second argument anyway but. it's a peace of mind thing
 						scanf(targetFormatStr, (int *)scanToken);
-						printf("value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
+						printNotifs(7,"value from scanf: [%d%d%d%d]\n", scanToken[0], scanToken[1], scanToken[2], scanToken[3]);
 					}
 					break;
 				case 2:
@@ -1359,7 +1363,7 @@ class EmulatedCPU
 			char *test = (char *)calloc(4, sizeof(char));
 			memUnit->writeToMMU(writePtr, gpr[5], scanToken, numBytes);
 			memUnit->readFromMMU(writePtr, gpr[5], test, 4);
-			printf("value from scanf: [%d]\n", *((uint32_t *)scanToken));
+			printNotifs(7, "value from scanf: [%d]\n", *((uint32_t *)scanToken));
 			
 			
 			
@@ -1406,18 +1410,19 @@ class EmulatedCPU
 			// a0 is the buffer to write too
 			// a1 is the max length
 			
-			const char *testcase = batchNames[testcaseIdx].c_str();
-			printf("testcase: %s\n", testcase);
+			//const char *testcase = batchNames[testcaseIdx].c_str();
+			const char *testcase = singleTestcase;
+			//printf("testcase: %s\n", testcase);
 			FILE *ifp = fopen(testcase, "rb");
-			printf("Printing my_read\n");
+			//printf("Printing my_read\n");
 			fseek(ifp, 0, SEEK_END);
 			long fsize = ftell(ifp);
-			printf("size of file to read in is %ld\n", fsize);
+			//printf("size of file to read in is %ld\n", fsize);
 			fseek(ifp, 0, SEEK_SET);
 			
 			if(fsize < 10000)
 			{
-				printf("the pointer is 0x%x\n", gpr[4]);
+				//printf("the pointer is 0x%x\n", gpr[4]);
 				char *buf = memUnit->getEffectiveAddress(gpr[4], 9999, 4, 0, beQuietFlag);
 				if(buf == NULL)
 				{
@@ -1428,7 +1433,7 @@ class EmulatedCPU
 			    
 			    buf[fsize] = 0;
 			    
-			    printf("buf: [%s]", buf);
+			    printf("%s", buf);
 			    printf("ending my_read\n\n\n\n\n");
 			    
 			}
@@ -2487,7 +2492,7 @@ class EmulatedCPU
 
 			if (debugPrint)
 			{
-				printf("J %lx\n", instr_index);
+				printNotifs(7,"J %lx\n", instr_index);
 			}
 
 			runInstruction(getNextInstruction());
@@ -4610,6 +4615,11 @@ int main(int argn, char ** args)
 		.nargs(1)
 		.help("Set a file path to output crash information to.");
 
+	program.add_argument("--single")
+		.default_value(std::string(""))
+		.nargs(1)
+		.help("Set a testcase to read input from.");
+
 	try 
 	{
 		program.parse_args(argn, args);
@@ -4626,31 +4636,32 @@ int main(int argn, char ** args)
 	globalLogLevel = program.get<int>("loglevel");
 	auto killpoints_path = program.get<std::string>("killpoints");
 	auto outputfile_path = program.get<std::string>("outputfile");
+	auto single_path = program.get<std::string>("single");
 
 	// Usage of optional args --pcout and --reg
 	if (program["--pcout"] == true)
 	{
-		printf("Setting flag for pcout to true!\n");
+		//printf("Setting flag for pcout to true!\n");
 		pcoutFlag = true;
 		printf("pcout = %d\n", pcoutFlag);
 	}
 
 	if (program["--reg"] == true)
 	{
-		printf("Setting flag for regDump to true!\n");
+		//printf("Setting flag for regDump to true!\n");
 		regDumpFlag = true;
 		printf("regdumpflag = %d\n", regDumpFlag);
 	}
 
 	if (program["--quiet"] == true)
 	{
-		printf("Setting flag for beQuiet to true!\n");
+		//printf("Setting flag for beQuietFlag to true!\n");
 		beQuietFlag = true;
 	}
 
 	if (program["--timer"] == true)
 	{
-		printf("Setting flag for timer and beQuiet to true!\n");
+		//printf("Setting flag for timer and beQuiet to true!\n");
 		timer = true;
 		beQuietFlag = true;
 		SHUT_UP = 1;
@@ -4715,6 +4726,20 @@ int main(int argn, char ** args)
 		outputfile = outputfile_path.c_str();
 		
 	}
+
+	if(program.get<std::string>("--single").length() != 0)
+	{
+		FILE *fp = fopen(single_path.c_str(), "r");
+		if(fp == NULL)
+		{
+			printf("File could not be opened for read, %s\n", single_path);
+			raise(SIGKILL);
+		}
+		
+		singleTestcase = single_path.c_str();
+		//printf("SINGLE TESTCASE HERE\n");
+	}
+
 
 	// Check if file is accessable/exists
 	FILE *fp;

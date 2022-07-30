@@ -4,3 +4,87 @@
 
 /.vs
 pcpathing.txt
+mini_httpd?raw=true
+minihttpd.zip
+.vscode/settings.json
+mini_httpd-1.19/FILES
+mini_httpd-1.19/htpasswd
+mini_httpd-1.19/htpasswd.1
+mini_httpd-1.19/htpasswd.c
+mini_httpd-1.19/htpasswd.o
+mini_httpd-1.19/index.html
+mini_httpd-1.19/match.h
+mini_httpd-1.19/Makefile
+mini_httpd-1.19/match.c
+mini_httpd-1.19/match.o
+mini_httpd-1.19/mime_encodings.h
+mini_httpd-1.19/mime_encodings.txt
+.gitignore
+mini_httpd-1.19/mime_types.h
+mini_httpd-1.19/mime_types.txt
+mini_httpd-1.19/mini_httpd.8
+mini_httpd-1.19/mini_httpd.cnf
+mini_httpd-1.19/mini_httpd.o
+mini_httpd-1.19/port.h
+mini_httpd-1.19/README
+mini_httpd-1.19/tdate_parse.c
+mini_httpd-1.19/tdate_parse.h
+mini_httpd-1.19/tdate_parse.o
+mini_httpd-1.19/version.h
+mini_httpd-1.19/before check/FILES
+mini_httpd-1.19/before check/htpasswd.1
+mini_httpd-1.19/before check/htpasswd.c
+mini_httpd-1.19/before check/htpasswd.o
+mini_httpd-1.19/before check/index.html
+mini_httpd-1.19/before check/Makefile
+mini_httpd-1.19/before check/match.c
+mini_httpd-1.19/before check/match.h
+mini_httpd-1.19/before check/match.o
+mini_httpd-1.19/before check/mime_encodings.h
+mini_httpd-1.19/before check/mime_encodings.txt
+mini_httpd-1.19/before check/mime_types.h
+mini_httpd-1.19/before check/mime_types.txt
+mini_httpd-1.19/before check/mini_httpd.8
+mini_httpd-1.19/before check/mini_httpd.cnf
+mini_httpd-1.19/before check/mini_httpd.o
+mini_httpd-1.19/before check/port.h
+mini_httpd-1.19/before check/README
+mini_httpd-1.19/before check/tdate_parse.c
+mini_httpd-1.19/before check/tdate_parse.h
+mini_httpd-1.19/before check/tdate_parse.o
+mini_httpd-1.19/before check/version.h
+mini_httpd-1.19/before check/contrib/redhat-rpm/mini_httpd.init
+mini_httpd-1.19/before check/contrib/redhat-rpm/mini_httpd.spec
+mini_httpd-1.19/before check/scripts/500.mini_httpd-rotate
+mini_httpd-1.19/before check/scripts/mini_httpd_wrapper
+mini_httpd-1.19/before check/scripts/mini_httpd.sh
+mini_httpd-1.19/contrib/redhat-rpm/mini_httpd.init
+mini_httpd-1.19/contrib/redhat-rpm/mini_httpd.spec
+mini_httpd-1.19/scripts/500.mini_httpd-rotate
+mini_httpd-1.19/scripts/mini_httpd_wrapper
+mini_httpd-1.19/scripts/mini_httpd.sh
+mini_httpd-1.19/second_working/FILES
+mini_httpd-1.19/second_working/htpasswd
+mini_httpd-1.19/second_working/htpasswd.1
+mini_httpd-1.19/second_working/htpasswd.c
+mini_httpd-1.19/second_working/htpasswd.o
+mini_httpd-1.19/second_working/index.html
+mini_httpd-1.19/second_working/Makefile
+mini_httpd-1.19/second_working/match.c
+mini_httpd-1.19/second_working/match.h
+mini_httpd-1.19/second_working/match.o
+mini_httpd-1.19/second_working/mime_encodings.h
+mini_httpd-1.19/second_working/mime_encodings.txt
+mini_httpd-1.19/second_working/mime_types.h
+mini_httpd-1.19/second_working/mime_types.txt
+mini_httpd-1.19/second_working/mini_httpd
+mini_httpd-1.19/second_working/mini_httpd.8
+mini_httpd-1.19/second_working/mini_httpd.cnf
+mini_httpd-1.19/second_working/mini_httpd.o
+mini_httpd-1.19/second_working/port.h
+mini_httpd-1.19/second_working/README
+mini_httpd-1.19/second_working/tdate_parse.c
+mini_httpd-1.19/second_working/tdate_parse.h
+mini_httpd-1.19/second_working/tdate_parse.o
+mini_httpd-1.19/second_working/version.h
+mini_httpd-1.19/working_staates/mini_httpd_working1.c

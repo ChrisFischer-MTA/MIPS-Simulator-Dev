@@ -67,6 +67,7 @@ FILE* PCPathFile = NULL;
 bool pcoutFlag = false;
 bool regDumpFlag = false;
 bool beQuietFlag = false;
+bool autoFlag = false;
 bool timer = false;
 bool batchMode = false;
 clock_t startOfEmulation, endOfEmulation;
@@ -720,6 +721,11 @@ class EmulatedCPU
 		void signalException(int excpt)
 		{
 			printNotifs(1,"Exception occured! [%d]\n", excpt);
+			if(autoFlag)
+			{
+				BNShutdown();
+				raise(SIGKILL);
+			}
 			while(true) generallyPause();
 		}
 
@@ -783,9 +789,14 @@ class EmulatedCPU
 			pc = entryPoint;
 			int index = 0;
 			char *pweasenosteppy = (char *) calloc(1024, sizeof(char));
+			
 			// Get the first instruction, execute it, increment by 1, and so forth.
 			// Implement memory checks every instruction.
 			int next = 0, skip = 0;
+			if(autoFlag)
+			{
+				skip = INT_MAX;
+			}
 			//While nothing has exploded,
 			while (validState == true)
 			{
@@ -2634,6 +2645,11 @@ class EmulatedCPU
 			}
 			uint64_t vAddr = (int64_t)signedImmediate + gpr[rs];
 			char *byte = memUnit->getEffectiveAddress(vAddr, 1, rs, gpr[rs], beQuietFlag);
+			if(byte == NULL)
+			{
+				BNShutdown();
+				raise(SIGKILL);
+			}
 			gpr[rt] = (uint64_t)(*byte);
 
 		}
@@ -3287,7 +3303,7 @@ class EmulatedCPU
 			if(bytes == NULL)
 			{
 				printNotifs(7, "%lx, %x, %lld\n", vAddr, signedImmediate, gpr[rs]);
-				generallyPause();
+				signalException(MemoryFault);
 			}
 			bytes[0] = gpr[rt] & 0xff;
 			
@@ -3694,7 +3710,7 @@ class EmulatedCPU
 			int i = vAddr & 3, j = 24, k = 0;
 			char *bytes = memUnit->getWriteAddresss(vAddr, 4-i, rs, 0);
 			if(bytes == NULL)
-				generallyPause();
+				signalException(MemoryFault);
 				
 
 
@@ -3744,7 +3760,7 @@ class EmulatedCPU
 			int i = vAddr & 3, j = 0, k = 0;
 			char *bytes = memUnit->getWriteAddresss(vAddr - i, i, rs, 0);
 			if(bytes == NULL)
-				generallyPause();
+				signalException(MemoryFault);
 			if(memUnit->isInStack(vAddr))
 				bytes -= i;
 			else
@@ -4133,6 +4149,7 @@ class EmulatedCPU
 				if(isValidMemoryPtr)
 				{
 					//printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
+					printf("%c\n", memUnit->getEffectiveAddress(gpr[i], 1, 0, 0, true));
 					validRegIndices.push_back(i);
 				}
 			}
@@ -4198,14 +4215,19 @@ class EmulatedCPU
 						uint32_t loadedWord;
 						uint64_t vAddr = gpr[validRegIndices[i-22]];
 						char *bytes = memUnit->getEffectiveAddress(vAddr, 4, 0, 0, true);
+						
 						if(memUnit->isInStack(vAddr))
 						{
 							printf("[Stack]  ");
 							loadedWord = 0;
-							loadedWord |= (uint64_t)(bytes[-3] & 0xff);
-							loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
-							loadedWord |= ((uint64_t)(bytes[-1] & 0xff)) << 16;
-							loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+							if(memUnit->isInMemory(vAddr + 4))
+							{
+								loadedWord |= (uint64_t)(bytes[-3] & 0xff);
+								loadedWord |= ((uint64_t)(bytes[-2] & 0xff)) << 8;
+								loadedWord |= ((uint64_t)(bytes[-1] & 0xff)) << 16;
+								loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+							}
+							
 						}
 						else
 						{
@@ -4214,10 +4236,14 @@ class EmulatedCPU
 							if (memUnit->isInBinary(vAddr))
 								printf("[Binary] ");
 							loadedWord = 0;
-							loadedWord |= (uint64_t)(bytes[3] & 0xff);
-							loadedWord |= ((uint64_t)(bytes[2] & 0xff)) << 8;
-							loadedWord |= ((uint64_t)(bytes[1] & 0xff)) << 16;
-							loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+							if(memUnit->isInMemory(vAddr + 4))
+							{
+								loadedWord |= (uint64_t)(bytes[3] & 0xff);
+								loadedWord |= ((uint64_t)(bytes[2] & 0xff)) << 8;
+								loadedWord |= ((uint64_t)(bytes[1] & 0xff)) << 16;
+								loadedWord |= ((uint64_t)(bytes[0] & 0xff)) << 24;
+							}
+							
 						}
 						
 						if(i-22 >= 0 && i-22 < validRegIndices.size())
@@ -4620,6 +4646,8 @@ int main(int argn, char ** args)
 		.nargs(1)
 		.help("Set a testcase to read input from.");
 
+
+
 	try 
 	{
 		program.parse_args(argn, args);
@@ -4729,10 +4757,11 @@ int main(int argn, char ** args)
 
 	if(program.get<std::string>("--single").length() != 0)
 	{
+		autoFlag = true;
 		FILE *fp = fopen(single_path.c_str(), "r");
 		if(fp == NULL)
 		{
-			printf("File could not be opened for read, %s\n", single_path);
+			printf("File could not be opened for read, %s\n", single_path.c_str());
 			raise(SIGKILL);
 		}
 		

@@ -252,7 +252,7 @@ class Heap
 			// Make sure we're accessing something less then the heap size.
 			// TODO: This bounds check is insufficent. it checks to ensure that the first vaddr is in range of the heap.
 			// But does not check the corrosponding claim to size. We should check this!
-			if(vaddr >= (this->heapBase + this->heapSize))
+			if(vaddr >= (this->heapBase + this->heapSize) || vaddr + size >= (this->heapBase + this->heapSize))
 			{
 				printf("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
 				if(outputfile != NULL)
@@ -495,7 +495,7 @@ class Heap
 			}
 			
 			// Make sure we're accessing something less then the heap size.
-			if(vaddr >= (this->heapBase + this->heapSize))
+			if(vaddr > (this->heapBase + this->heapSize))
 			{
 				return 0;
 			}
@@ -976,6 +976,12 @@ class MMU
 		//printf("add, SB, SML : %x, %x, %x\N", address, stackBase, stackMaxLength);
 		
 		//printf("numBytes: [%x]\n", numBytes);
+		if(address == 0)
+		{
+			printf("Null pointer dereference exception\n");
+			return NULL;
+		}
+
 		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
 		{
 			printf("Stack Overflow Exception\n");

@@ -1059,7 +1059,7 @@ class MMU
 							//printf("[FLUSH] 3\n");
 							if (blockOffset + numBytes > token.width)
 							{
-								printf("something weird happened\n");
+								printf("Reading past the size of the block.\n");
 								generallyPause();
 							}
 							//printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
@@ -1188,7 +1188,7 @@ class MMU
 							//printf("[FLUSH] 3\n");
 							if (blockOffset + numBytes > token.width)
 							{
-								printf("something weird happened\n");
+								printf("Reading past size of the block.\n");
 								generallyPause();
 							}
 							//printf("[FLUSH] %x, %x, %x, %x, %x\n", address, token.start, offset, depth, blockOffset);
@@ -1393,10 +1393,8 @@ class MMU
 			scanf("%s", pweasenosteppy);
 			if(strncmp(pweasenosteppy, "exit", 4) == 0)
 			{
-				
 				raise(SIGKILL);
 			}
-				
 		}
 	}
 	void printSections()

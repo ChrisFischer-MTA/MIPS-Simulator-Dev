@@ -107,7 +107,7 @@ class Heap
 			outputfile = fp;
 			if(fp == NULL)
 			{
-				printf("no bitches?\n");
+				//printf("no bitches?\n");
 			}
 			this->heapBase = HeapBase;
 			this->maxHeapSize = MaxHeapSize;

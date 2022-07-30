@@ -93,6 +93,7 @@ class Heap
 		std::vector<uint8_t> backingMemory;
 		std::vector<uint8_t> initializedMemory;
 		std::unordered_map<uint32_t, Allocation> allocInfo; // uint32_t here is the virtual address.
+		char *outputfile;
 	
 	public:
 		
@@ -101,8 +102,13 @@ class Heap
 		// size for the heap from the emulator based off of layout of program memory.
 		// Example call heap(0x5fffffff, 0xffffff);
 		
-		Heap(uint64_t HeapBase, uint64_t MaxHeapSize)
+		Heap(uint64_t HeapBase, uint64_t MaxHeapSize, char *fp)
 		{
+			outputfile = fp;
+			if(fp == NULL)
+			{
+				printf("no bitches?\n");
+			}
 			this->heapBase = HeapBase;
 			this->maxHeapSize = MaxHeapSize;
 			this->heapSize = 0;
@@ -132,6 +138,14 @@ class Heap
 			if((this->heapSize + size) > this->maxHeapSize)
 			{
 				printf("[ERROR] Our heap has exceeded the maximum size.\n");
+				if(outputfile != NULL)
+				{
+					FILE *file = fopen(outputfile, "a");
+					fprintf(file, "[ERROR] Our heap has exceeded the maximum size.\n");
+					fclose(file);
+				}
+					
+
 				return 0;
 			}
 		
@@ -185,6 +199,15 @@ class Heap
 			int READWIDTH = 128;
 			if(!suppress)
 				printf("[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
+			
+			if(outputfile != NULL && !suppress)
+			{
+				FILE *file = fopen(outputfile, "a");
+				fprintf(file, "[DEBUG] called readHeapMemory on vaddr:[0x%x] with size:[%d] \n", vaddr, size);
+				fclose(file);
+			}
+				
+
 			int i = 0;
 			int start, end;
 			
@@ -193,12 +216,21 @@ class Heap
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
 				printHeap("Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "Read Heap Memory on a virtual address of NULL (NULL dereference).\n", vaddr, 0, true, start, end);
 				return NULL;
 			}
 			
 			if(size == 0)
 			{
 				printf("[ERROR] Read Heap Memory on a size of NULL.\n");
+				if(outputfile != NULL)
+				{
+					FILE *file = fopen(outputfile, "a");
+					fprintf(file, "[ERROR] Read Heap Memory on a size of NULL.\n");
+					fclose(file);
+				}
+					
 				return NULL;
 			}
 			
@@ -207,6 +239,13 @@ class Heap
 			if(vaddr < (this->heapBase))
 			{
 				printf("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n");
+				if(outputfile != NULL)
+				{
+					FILE *file = fopen(outputfile, "a");
+					fprintf(file, "[ERROR] Read Heap Memory on a virtual address of less then heap base.\n");
+					fclose(file);
+				}
+					
 				return NULL;
 			}
 			
@@ -216,6 +255,13 @@ class Heap
 			if(vaddr >= (this->heapBase + this->heapSize))
 			{
 				printf("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
+				if(outputfile != NULL)
+				{
+					FILE *file = fopen(outputfile, "a");
+					fprintf(file, "[ERROR] Read Heap Memory on a virtual address of more then heap base.\n");
+					fclose(file);
+				}
+					
 				return NULL;
 			}
 			
@@ -229,21 +275,42 @@ class Heap
 			for(i = (vaddr - this->heapBase); i < ((vaddr - this->heapBase) + size); i++ )
 			{
 				//printf("Checking for guard pages and such at index i:[%d] and vaddr_base [0x%lx] and vaddr [0x%x] w/ val [0x%x].\n", i, (vaddr-this->heapBase), (i), this->backingMemory[i]);
-				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST && !suppress)
+				if(this->initializedMemory[i] & GUARDPAGE_MEMORY_CONST)
 				{
-					printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", this->heapBase + i, 0, true, start, end);
+					if(!suppress)
+					{
+						printHeap("[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", this->heapBase + i, 0, true, start, end);
+						
+					}
+					if(outputfile != NULL)
+						fprintHeap(outputfile, "[ERROR] Reading from Guard page memory! (Buffer Overflow!)\n", this->heapBase + i, 0, true, start, end);
+					
 					return NULL;	
 				}
 				
-				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST && !suppress)
+				if(this->initializedMemory[i] & UNINITIALIZED_MEMORY_CONST)
 				{
-					printHeap("[ERROR] Reading from uninitialized memory!\n", this->heapBase + i, 0,true, start, end);
+					if(!suppress)
+					{
+						printHeap("[ERROR] Reading from uninitialized memory!\n", this->heapBase + i, 0,true, start, end);
+						
+					}
+					if(outputfile != NULL)
+						fprintHeap(outputfile, "[ERROR] Reading from uninitialized memory!\n", this->heapBase + i, 0,true, start, end);
+					
 					return NULL;	
 				}
 				
-				if(this->initializedMemory[i] & FREED_MEMORY_CONS && !suppress)
+				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
-					printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", this->heapBase + i, 0,true, start, end);
+					if(!suppress)
+					{
+						printHeap("[ERROR] Reading from Free'd memory! (Use after free bug)\n", this->heapBase + i, 0,true, start, end);
+						
+					}
+					if(outputfile != NULL)
+						fprintHeap(outputfile, "[ERROR] Reading from Free'd memory! (Use after free bug)\n", this->heapBase + i, 0,true, start, end);
+					
 					return NULL;	
 				}
 				
@@ -267,12 +334,16 @@ class Heap
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
 				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Write Heap Memory on a virtual address of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
 			if(size == 0)
 			{
 				printHeap("[ERROR] Write Heap Memory on a size of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, 1, 1);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Write Heap Memory on a size of NULL. (Improper Malloc/Null Dereference)\n", vaddr, 0, true, 1, 1);
 				return 0;
 			}
 			
@@ -283,6 +354,8 @@ class Heap
 				start = this->heapBase;
 				end = this->heapBase + min((uint64_t) 128, this->heapSize);
 				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Read Heap Memory on a virtual address of less then heap base.\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -294,6 +367,8 @@ class Heap
 				end = this->heapBase + this->heapSize;
 				start = max((uint64_t) end - 128, this->heapBase);
 				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Read Heap Memory on a virtual address of more then heap base.\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -310,12 +385,16 @@ class Heap
 				{
 					
 					printHeap("[ERROR] Writing to guard page memory (Buffer Overflow)!\n", this->heapBase + i, 0, true, start, end);
+					if(outputfile != NULL)
+						fprintHeap(outputfile, "[ERROR] Writing to guard page memory (Buffer Overflow)!\n", this->heapBase + i, 0, true, start, end);
 					return NULL;	
 				}
 				
 				if(this->initializedMemory[i] & FREED_MEMORY_CONS)
 				{
 					printHeap("[ERROR] Reading from previously free'd memory (Use After Free)!\n", this->heapBase + i, 0, true, start, end);
+					if(outputfile != NULL)
+						fprintHeap(outputfile, "[ERROR] Reading from previously free'd memory (Use After Free)!\n", this->heapBase + i, 0, true, start, end);
 					return NULL;	
 				}
 				
@@ -339,7 +418,9 @@ class Heap
 			{
 				start = vaddr;
 				end = vaddr + min((uint64_t) 32, heapSize);
-				printHeap("[ERROR] Write Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr, 0, true, start, end);
+				printHeap("[ERROR] Free Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Free Heap Memory on a virtual address of NULL (Improper MALLOC fail check).\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -349,7 +430,9 @@ class Heap
 			{
 				start = this->heapBase;
 				end = this->heapBase + min((uint64_t) 128, this->heapSize);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr, 0, true, start, end);
+				printHeap("[ERROR] Free Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Free Heap Memory on a virtual address of less then heap base (Possible Heap Underflow!).\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -358,7 +441,9 @@ class Heap
 			{
 				end = this->heapBase + this->heapSize;
 				start = max((uint64_t) end - 128, this->heapBase);
-				printHeap("[ERROR] Read Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr, 0, true, start, end);
+				printHeap("[ERROR] Free Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] Free Heap Memory on a virtual address of more then heap base. (Possible Heap Overflow!)\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
@@ -370,18 +455,24 @@ class Heap
 			if(this->initializedMemory[index] & FREED_MEMORY_CONS)
 			{
 				printHeap("[ERROR] We have found a double free!\n", vaddr, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] We have found a double free!\n", vaddr, 0, true, start, end);
 				return 0;
 			}
 			
 			if(this->initializedMemory[index] & GUARDPAGE_MEMORY_CONST)
 			{
 				printHeap("[ERROR] We are attempting to free memory in a guard page!\n", vaddr, 0,true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] We are attempting to free memory in a guard page!\n", vaddr, 0,true, start, end);
 				return 0;
 			}
 			
 			if(!(this->initializedMemory[index-1] & GUARDPAGE_MEMORY_CONST))
 			{
 				printHeap("[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", vaddr-1, 0, true, start, end);
+				if(outputfile != NULL)
+					fprintHeap(outputfile, "[ERROR] We are attempting to free memory that is not the first chunk of the allocation.\n", vaddr-1, 0, true, start, end);
 				return 0;
 			}
 			
@@ -492,6 +583,77 @@ class Heap
 			//while(true);
 			return;
 		}
+		void fprintHeap(char *filepath, const char* warning, int triggeringVirtualAddress, int triggeringPC = 0, bool convert = false, 
+		               int start = 0, int end = 0)
+		{
+			FILE *file = fopen(filepath, "a");
+			if(file == NULL)
+			{
+				printf("Failed to open file in fprintHeap\n");
+				raise(SIGKILL);
+			}
+
+			//printf("IN fprintheap\n\n\n");
+			if(end == 0)
+				end = this->initializedMemory.size();
+			else
+				end -= heapBase;
+			//if(!convert)
+				//triggeringVirtualAddress = this->heapBase+triggeringVirtualAddress;
+			if(start != 0)
+				start -= heapBase;
+			if(start < 0)
+				start = 0;
+			if(end > heapSize)
+				end = heapSize;
+			int heapOffset = triggeringVirtualAddress - this->heapBase;
+		
+			// ----------------------------
+			// | 0x00 0x00 0x00 0x00 0x00 | 0-7
+			// ----------------------------
+			// |                          | 
+			// |          BYTES           | 8-24
+			// |                          |
+			// ----------------------------
+			// |       GUARD PAGE         | 25-31
+			// ----------------------------
+			int i = 0;
+			
+			fprintf(file, "\nPossible anomolous behavior in the heap has been detected.\n");
+			fprintf(file, "Warning: %s\n", warning);
+			fprintf(file, "This warning was generated by PC 0x%x accessing 0x%08llx in memory.\n", triggeringPC, triggeringVirtualAddress);
+			
+			
+			fprintf(file, "           |----------------------------------------- |\n");
+			for(i = start; i < end; i++)
+			{
+				if(i%8 == 0)
+				{
+					if(i != 0)
+						fprintf(file, " |\n0x%08lx | ", this->heapBase+i);
+					else
+						fprintf(file, "0x%08lx | ", this->heapBase+i);
+				}
+				
+				
+				fprintf(file, "0x%02x ", backingMemory[i]);
+				
+				// Reset the colors.
+				//printf("\x1b[0m");
+				
+			}
+			fprintf(file, " |\n           |----------------------------------------- |\n");
+			
+			fclose(file);
+
+
+			if(strlen(warning) >= 11)
+				if(strncmp(warning, "Debug Print", 11) == 0)
+					return;
+
+			//while(true);
+			return;
+		}
 		
 };
 
@@ -509,14 +671,15 @@ class MMU
 	int alloLength;
 	bool is64Bit;
 	BinaryView* bv = NULL;
+	char *outputfile;
 
 	vector<uint64_t> stackPointerSections;
 	vector<uint64_t> framePointerSections;
 
-	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0)
+	MMU(bool is64bit, BinaryView* bc, uint64_t stackBase=0, char *fp = NULL)
 	{	
 		
-
+		outputfile = fp;
 
 		// Assign the passed BinaryView into our class.
 		bv = bc;
@@ -612,7 +775,7 @@ class MMU
 		//printf("%x, %x gap right sides\n", bigGap.r, secondBiggestGap.r);
 		//printf("%x, %x gap right section\n", bigGap.rightSection, secondBiggestGap.rightSection);
 		//Left and right bounds of SBG padded by 8 bytes
-		MMUHeap = Heap(secondBiggestGap.l + 8, secondBiggestGap.r - secondBiggestGap.r -16);
+		MMUHeap = Heap(secondBiggestGap.l + 8, secondBiggestGap.r - secondBiggestGap.r -16, outputfile);
 
 		//uint32_t GOTbase = MMUHeap.allocMem(65536);
 		//GOTpointer = GOTbase + 32768;
@@ -816,6 +979,14 @@ class MMU
 		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
 		{
 			printf("Stack Overflow Exception\n");
+			if(outputfile != NULL)
+			{
+				FILE *file = fopen(outputfile, "a");
+				fprintf(file, "Stack Overflow Exception\n");
+				fclose(file);
+			}
+				
+
 			generallyPause();
 			return NULL;
 		}
@@ -845,10 +1016,7 @@ class MMU
 		if(MMUHeap.isInHeap(address))
 		{
 			uint8_t *out = MMUHeap.readHeapMemory(address, numBytes, suppressHeap);
-			if(out == NULL)
-			{
-				printf("Fail heap write\n");
-			}
+			
 			return out;
 		}
 		//For Binja binary accesses	
@@ -936,6 +1104,12 @@ class MMU
 		if((address > stackBase && address <= stackBase + 16) || (address + numBytes > stackBase && address + numBytes <= stackBase + 16))
 		{
 			printf("Stack Overflow Exception\n");
+			if(outputfile != NULL)
+			{
+				FILE *file = fopen(outputfile, "a");
+				fprintf(file, "Stack Overflow Exception\n");
+				fclose(file);
+			}
 			return NULL;
 		}
 
@@ -1218,7 +1392,11 @@ class MMU
 			char *pweasenosteppy = (char *)calloc(1024, sizeof(char));
 			scanf("%s", pweasenosteppy);
 			if(strncmp(pweasenosteppy, "exit", 4) == 0)
+			{
+				
 				raise(SIGKILL);
+			}
+				
 		}
 	}
 	void printSections()

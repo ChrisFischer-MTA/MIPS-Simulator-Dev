@@ -547,11 +547,17 @@ class Heap
 			printf("it'll take the highest priority tag it has.\n\n\n");
 			
 			printf("           |----------------------------------------- |\n");
+			if(start % 8 != 0)
+			{
+				printf("0x%08lx | ", this->heapBase+start);
+				for(int i=0;i< start % 8;i++)
+					printf("     ");
+			}
 			for(i = start; i < end; i++)
 			{
 				if(i%8 == 0)
 				{
-					if(i != 0)
+					if(i != start)
 						printf(" |\n0x%08lx | ", this->heapBase+i);
 					else
 						printf("0x%08lx | ", this->heapBase+i);
@@ -573,6 +579,12 @@ class Heap
 				// Reset the colors.
 				printf("\x1b[0m");
 				
+			}
+			if(end % 8 != 0)
+			{
+				
+				for(int i=end % 8;i< 8;i++)
+					printf("     ");
 			}
 			printf(" |\n           |----------------------------------------- |\n");
 			
@@ -625,6 +637,12 @@ class Heap
 			
 			
 			fprintf(file, "           |----------------------------------------- |\n");
+			if(start % 8 != start)
+			{
+				fprintf(file, "0x%08lx | ", this->heapBase+start);
+				for(int i=0;i< start % 8;i++)
+					fprintf(file, "     ");
+			}
 			for(i = start; i < end; i++)
 			{
 				if(i%8 == 0)
@@ -641,6 +659,12 @@ class Heap
 				// Reset the colors.
 				//printf("\x1b[0m");
 				
+			}
+			if(end % 8 != 0)
+			{
+				
+				for(int i=end % 8;i< 8;i++)
+					fprintf(file, "     ");
 			}
 			fprintf(file, " |\n           |----------------------------------------- |\n");
 			

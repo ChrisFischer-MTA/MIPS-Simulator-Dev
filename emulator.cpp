@@ -4149,7 +4149,6 @@ class EmulatedCPU
 				if(isValidMemoryPtr)
 				{
 					//printf("%s: 0x%x\n", getName(i).c_str(), gpr[i]);
-					printf("%c\n", memUnit->getEffectiveAddress(gpr[i], 1, 0, 0, true));
 					validRegIndices.push_back(i);
 				}
 			}
